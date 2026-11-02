@@ -22,9 +22,9 @@ public class Vendor {
     @Column(unique = true, length = 150)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_active")
     private boolean active = true;
 }
