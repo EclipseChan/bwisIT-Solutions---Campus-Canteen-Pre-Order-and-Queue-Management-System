@@ -1,0 +1,4 @@
+Days with Progress and what happened:
+1. October 31 - Creation of initial backend of application. Worked and was functional, lacked most features specified in the project proposal. But connection to Postgre SQL and the program worked.
+2. November 1 - Though no work was uploaded and created, a test functional backend application was made to serve as a testing ground to see what we could add and do.
+3. November 2 - Using the test application as a testing ground, and borrowing code lines from it, continued work until we were able to get orders, minor testing was made to see order details, though other tests are to be conducted. Directions are stated in the ReadME.
