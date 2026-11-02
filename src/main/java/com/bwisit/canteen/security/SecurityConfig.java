@@ -37,8 +37,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register/**", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/vendors/**").permitAll()
                 .requestMatchers("/api/vendor/**").hasRole("VENDOR")
-                .requestMatchers("/api/orders/**", "/api/notifications/**").hasRole("STUDENT")
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
         return http.build();

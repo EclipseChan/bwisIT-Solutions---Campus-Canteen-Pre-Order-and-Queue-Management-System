@@ -28,7 +28,8 @@ public class VendorMenuController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public MenuItemResponse add(@AuthenticationPrincipal AuthUser user, @Valid @RequestBody MenuItemRequest req) {
+    public MenuItemResponse add(@AuthenticationPrincipal AuthUser user,
+                                @Valid @RequestBody MenuItemRequest req) {
         return menu.create(user.id(), req);
     }
 
@@ -39,7 +40,8 @@ public class VendorMenuController {
     }
 
     @PatchMapping("/{itemId}/availability")
-    public MenuItemResponse setAvailability(@AuthenticationPrincipal AuthUser user, @PathVariable Integer itemId,
+    public MenuItemResponse setAvailability(@AuthenticationPrincipal AuthUser user,
+                                            @PathVariable Integer itemId,
                                             @Valid @RequestBody AvailabilityRequest req) {
         return menu.setAvailability(user.id(), itemId, req.available());
     }

@@ -23,7 +23,6 @@ public class Student {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    // STUDENT or ADMIN
     @Column(nullable = false, length = 20)
     private String role = "STUDENT";
 

@@ -65,7 +65,8 @@ public class MenuService {
     @Transactional
     public DeleteResult delete(Integer vendorId, Integer itemId) {
         MenuItem item = owned(vendorId, itemId);
-        // Past orders reference this item and sales history must be kept, so hide it instead.
+        // Past orders reference this item, and sales history must be kept (blueprint Part 3-B),
+        // so hide it instead of deleting it.
         if (orderItems.existsByMenuItemId(itemId)) {
             item.setAvailable(false);
             return new DeleteResult(false,
@@ -75,7 +76,7 @@ public class MenuService {
         return new DeleteResult(true, "Menu item deleted");
     }
 
-    /** Someone else's item looks exactly like one that doesn't exist. */
+    /** Only finds the item if it belongs to this vendor; someone else's item looks like it doesn't exist. */
     private MenuItem owned(Integer vendorId, Integer itemId) {
         return items.findByIdAndVendorId(itemId, vendorId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Menu item not found"));
