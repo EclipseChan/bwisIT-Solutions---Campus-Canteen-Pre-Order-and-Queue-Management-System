@@ -1,0 +1,5 @@
+-- Run once in pgAdmin Query Tool on your project database
+ALTER TABLE vendor  ADD COLUMN IF NOT EXISTS email VARCHAR(150) UNIQUE;
+ALTER TABLE vendor  ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+ALTER TABLE student ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'STUDENT'
+    CHECK (role IN ('STUDENT','ADMIN'));
