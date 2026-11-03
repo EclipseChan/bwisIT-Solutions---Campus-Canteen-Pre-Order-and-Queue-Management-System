@@ -3,4 +3,5 @@ target/
 *.iml
 .env
 application-local.properties
-.vscode/
+node_modules/
+package-lock.json
