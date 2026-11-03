@@ -18,7 +18,7 @@ Spring Boot REST API.
 |---|---|
 | Database | PostgreSQL 18 (also tested on 16) |
 | Backend | Java 21, Spring Boot 3.4, Spring Data JPA, Spring Security with JWT |
-| Client | None in this repository yet. The API is exercised with the smoke test and PowerShell or curl requests (see [docs/api-endpoints.md](docs/api-endpoints.md)) |
+| Client | React 18 with Vite, in `frontend/` (optional, see Step 5). The API can also be exercised with the smoke test and PowerShell or curl requests (see [docs/api-endpoints.md](docs/api-endpoints.md)) |
 
 ## What is in this repository
 
@@ -27,6 +27,7 @@ src/main/             Spring Boot API (Maven project, pom.xml at the root)
 database/             init script, migrations, seed data, setup scripts, reset script
 docs/                 database, roles, endpoints, troubleshooting
 scripts/              run-backend scripts (load .env, start the API)
+frontend/             React web client for students, vendors and administrators (optional)
 test-flow.ps1         end-to-end smoke test (needs the API running)
 .env.example          settings template (placeholders only)
 add_auth_columns.sql  same statements as database/migrations/002_auth_columns.sql
@@ -40,9 +41,14 @@ add_auth_columns.sql  same statements as database/migrations/002_auth_columns.sq
 | JDK | 21 | `java -version` |
 | Maven | 3.9 or newer | `mvn -v` |
 | PostgreSQL | 16 or newer, with `psql` on PATH | `psql --version` |
+| Node.js | 18 or newer (LTS), only for the web client | `node -v` |
 
 You also need the password of the PostgreSQL superuser (`postgres`), chosen when PostgreSQL was
 installed. The first run downloads Maven dependencies, so you need an internet connection.
+
+Use JDK 21. `pom.xml` sets `java.version` to 21, and newer JDKs (for example 25) have not been tested
+with this project. If a newer JDK is your default, install JDK 21 next to it and select it as shown in
+Step 4. Do not edit `java.version` to match another JDK.
 
 ## 2. Setup
 
@@ -77,7 +83,9 @@ Edit `.env` and set:
 The script asks for the PostgreSQL superuser password, creates the login and database named in
 `.env`, runs every file in `database/migrations/` in order, then loads `database/seed/`.
 It is safe to run again. If `psql` is not on PATH on Windows, add
-`-Psql "C:\Program Files\PostgreSQL\18\bin\psql.exe"`.
+`-Psql "C:\Program Files\PostgreSQL\18\bin\psql.exe"` (use your own install path; keep the quotes if it contains spaces).
+Type the superuser password by hand: pasting into the hidden prompt can capture the wrong text and give
+`password authentication failed for user "postgres"`.
 
 Expected last line: `Done. Database 'canteen_db' is ready.` Check the tables:
 
@@ -90,6 +98,20 @@ student, vendor.
 
 ### Step 4: Start the API (port 8080)
 
+If JDK 21 is not your default, select it in the terminal you will run the API from (Windows PowerShell).
+Use your actual folder names; a wrong folder fails silently and the older JDK is used instead. This lasts
+only for that window, so repeat it in every new terminal:
+
+```
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.13.9-hotspot"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+java -version
+mvn -v
+```
+
+Both commands should report 21. If Maven is not installed and winget cannot find it, download the Maven
+binary archive from maven.apache.org, extract it, and add its `bin` folder to `$env:Path` the same way.
+
 The API reads environment variables, not the `.env` file itself, so start it with the script
 that loads `.env` first:
 
@@ -100,6 +122,22 @@ Expected result: the console shows `Started CanteenApplication`. Then open
 http://localhost:8080/api/vendors in a browser. It should list 3 stalls (Aling Nena's Silog,
 Kuya Jun's Burgers, Merienda Corner). The fourth sample stall is switched off on purpose, so
 it is hidden.
+
+### Step 5 (optional): Start the web client (port 5173)
+
+A small React client in `frontend/` with a view for each role. It needs Node.js 18 or newer and the API
+from Step 4 running. In a second terminal, from the repository root:
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+`npm install` is needed only once. Open http://localhost:5173 and log in with a sample account. The port is
+fixed because the API only accepts browser requests from http://localhost:5173 and http://localhost:3000.
+On Windows PowerShell, if `npm` is blocked with "running scripts is disabled", use `npm.cmd` instead
+(for example `npm.cmd install`) or run `Set-ExecutionPolicy -Scope Process Bypass` first. Details: [frontend/README.md](frontend/README.md).
 
 ## 3. Sample accounts
 
@@ -129,6 +167,17 @@ It registers a new vendor and student, adds menu items, places two orders, moves
 preparing, ready and completed, cancels the other, then prints the notifications and a sales
 report. Expected result: it ends with `All steps ran.` in green. Run it before 23:59 Philippine
 time, because its pickup time is 23:59.
+
+### Check in the web client
+
+With the API and the client running, log in at http://localhost:5173:
+
+| Log in as | Do this | Expected |
+|---|---|---|
+| maria@student.test | Order food: view a menu, set quantities and a pickup time, place the order | A queue number; the order appears under My orders |
+| nena@vendor.test | Orders tab: mark an order preparing, ready, then completed | The status moves forward each time |
+| maria@student.test | Refresh My orders and Notifications | The new status and a notification (the client does not update live) |
+| admin@canteen.test | Stalls tab: switch a stall off; Sales tab | The stall disappears from the student list; per-stall report shown |
 
 ### Check by role
 
@@ -196,6 +245,11 @@ psql -U canteen_admin -d canteen_db -f database/seed/001_sample_data.sql
 | `Schema-validation: missing column` | Run the setup script again; it is safe to repeat |
 | Requests fail with connection refused | The API is not running on port 8080 |
 | Sample accounts cannot log in | The seed did not load; run the setup script again |
+| `release version 25 not supported` | `java.version` in `pom.xml` was changed to 25; set it back to 21 |
+| `java -version` still shows another JDK | The JDK 21 folder name is wrong or was set in a different window; see Step 4 |
+| `npm` is blocked or not recognized | Use `npm.cmd`, or `Set-ExecutionPolicy -Scope Process Bypass`; open a new window after installing Node |
+| Web client shows "Failed to fetch" | The API is not running on port 8080, or the client is not on port 5173 |
+| `Port 5173 is already in use` | Close the other frontend terminal; the port must stay 5173 |
 
 The full list is in [docs/troubleshooting.md](docs/troubleshooting.md).
 
@@ -204,6 +258,8 @@ The full list is in [docs/troubleshooting.md](docs/troubleshooting.md).
 - No real credentials are committed. `.env` is ignored by Git; `.env.example` holds placeholders only.
 - Passwords are stored as BCrypt hashes. The demo password applies only to the sample data.
 - Login tokens last 2 hours.
+- Browser requests are accepted only from http://localhost:5173 and http://localhost:3000.
+- The API listens on all network interfaces by default; keep it on a local or trusted network while developing.
 
 ## 10. For groups testing this project
 
@@ -219,6 +275,7 @@ The full list is in [docs/troubleshooting.md](docs/troubleshooting.md).
 - [Database user and role setup](docs/database-roles.md)
 - [Backend endpoints](docs/api-endpoints.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Web client](frontend/README.md)
 
 ## 12. AI usage
 
