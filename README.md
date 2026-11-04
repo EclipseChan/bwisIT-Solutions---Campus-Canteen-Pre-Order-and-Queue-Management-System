@@ -17,16 +17,16 @@ Students pre-order food from campus canteen stalls, choose a pickup time and get
 | Backend | Java 21, Spring Boot 3.4, Spring Data JPA, Spring Security with JWT |
 | Client | React 18 with Vite, in `frontend/` (optional, see Step 5). The API can also be exercised with the smoke test and PowerShell or curl requests (see [docs/api-endpoints.md](docs/api-endpoints.md)) |
 
-## For Testers — Start Here
+## For Testers - Start Here
 
 Use this path to set up and verify the canteen application, then run Activities 4–6 against **other groups' Activity 3 projects** confirmed by the class tracker. This canteen project and `canteen_db` are bwisIT Solutions' own Activity 3 project and do not replace those other-group targets. `group-01`, `group-02`, and `group-03` are provisional folder names, not confirmed project inventory.
 
 | I want to... | Go to |
 |---|---|
 | Set up and run the canteen app | [Quick Setup](#quick-setup), then [Run the Application](#run-the-application) |
-| Verify Activity 4 access control | [Test Activity 4 — Access Control](#test-activity-4--access-control) |
-| Verify Activity 5 maintenance and monitoring | [Test Activity 5 — Maintenance and Monitoring](#test-activity-5--maintenance-and-monitoring) |
-| Verify Activity 6 backup and recovery | [Test Activity 6 — Backup and Recovery](#test-activity-6--backup-and-recovery) |
+| Verify Activity 4 access control | [Test Activity 4 - Access Control](#test-activity-4---access-control) |
+| Verify Activity 5 maintenance and monitoring | [Test Activity 5 - Maintenance and Monitoring](#test-activity-5---maintenance-and-monitoring) |
+| Verify Activity 6 backup and recovery | [Test Activity 6 - Backup and Recovery](#test-activity-6---backup-and-recovery) |
 | Know what a result should look like | [Expected Results](#expected-results) |
 | Understand why something is blocked | [Known Blockers](#known-blockers) |
 
@@ -94,7 +94,7 @@ The web client needs Node.js 18 or newer and the API from Step 4 running. Run `n
 
 The automatic smoke test registers a new vendor and student, adds menu items, places two orders, moves one through preparing, ready and completed, cancels the other, then prints notifications and a sales report. Run it before 23:59 Philippine time, because its pickup time is 23:59. Expected result: `All steps ran.`; if any step fails or the time window has passed, record the actual output and do not claim a pass.
 
-## Test Activity 4 — Access Control
+## Test Activity 4 - Access Control
 
 Activity 4 checks roles, memberships, privileges, and least privilege. This group's `db-access-control/` is the canteen reference implementation; per-project work for other groups belongs in `db-access-control/<group>/`. Confirm other-group projects from the class tracker. Do not run canteen-specific SQL against another group's schema unless it has been adapted and reviewed.
 
@@ -124,7 +124,7 @@ Each manual check has an observable outcome and a place to record evidence:
 | AI usage is declared and validated. | Actual tools/tasks and human validation are disclosed. | AI usage declaration |
 | No secrets appear in files or screenshots. | Secret scan finds no secrets; findings and remediation are documented without values. | Secret-scan checklist |
 
-## Test Activity 5 — Maintenance and Monitoring
+## Test Activity 5 - Maintenance and Monitoring
 
 Activity 5 must target another group's Activity 3 database, not only this canteen database. Some checks may be blocked by account permissions or unavailable server logs. Use the same non-secret local project configuration described for Activity 4. Preview with `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify/run-activity5.ps1 -Project group-01 -DryRun`; expected result: previews without connecting or running maintenance.
 
@@ -148,7 +148,7 @@ Manual checks:
 | Confirm no `VACUUM FULL` was run without approval. | No `VACUUM FULL`, unless specifically approved and recorded. | Maintenance evidence |
 | Confirm report, tracker tab, PDF sections, feedback, and AI declaration exist. | These records reflect actual work and limitations. | Activity 5 report, tracker, PDF, feedback record |
 
-## Test Activity 6 — Backup and Recovery
+## Test Activity 6 - Backup and Recovery
 
 Restore and recovery tests must use a disposable test database and must never touch an original database. Data-bearing dumps must be protected outside the repository. Preview with `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify/run-activity6.ps1 -Project group-01 -DryRun`; expected result: command previews only. Missing project inputs are BLOCKED; no live backup or restore is claimed here.
 
