@@ -279,5 +279,4 @@ The full list is in [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## 12. AI usage
 
-AI tools (Claude by Anthropic) were used to generate and review code, scripts and
-documentation. What was generated, and how the group validated it, is to be declared in the PDF document.
+AI tools (Claude by Anthropic) were used to help guide the development process. What it was used for is to be declared in the PDF progress tracker.
