@@ -12,7 +12,7 @@ Roles travel inside the JWT (valid 2 hours). Route protection is in `SecurityCon
 | Student | `student.role = 'STUDENT'` | Place orders, view own orders, cancel while pending, read own notifications | `/api/orders/**`, `/api/notifications/**` |
 | Vendor | `vendor` row with email and password; must have `is_active = true` to log in | Manage own menu (add, edit, hide, delete), see and advance orders for their stall, view own sales report | `/api/vendor/**` |
 | Administrator | `student.role = 'ADMIN'` | List all stalls, switch stalls on or off, view the canteen-wide sales report | `/api/admin/**` |
-| Application runtime | PostgreSQL login `canteen_admin` (this activity) | The account the API itself uses to reach the database | not a person |
+| Application runtime | PostgreSQL login `canteen_app` (member of `canteen_app_grp`) | The least-privilege account the API uses to reach the database | not a person |
 
 Any logged-in user can call `GET /api/auth/me`.
 

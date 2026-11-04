@@ -8,9 +8,14 @@ $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
 if (-not (Test-Path .env)) { throw "Missing .env. Run: Copy-Item .env.example .env and edit it." }
 
+$appSettings = @("DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD", "JWT_SECRET")
 Get-Content .env | ForEach-Object {
     if ($_ -match '^\s*#' -or $_ -notmatch '=') { return }
     $k, $v = $_ -split '=', 2
-    Set-Item -Path "Env:$($k.Trim())" -Value $v
+    $name = $k.Trim()
+    if ($appSettings -contains $name) {
+        Set-Item -Path "Env:$name" -Value $v
+    }
 }
+Remove-Item Env:DB_ADMIN_USER, Env:DB_ADMIN_PASSWORD, Env:DB_READONLY_PASSWORD -ErrorAction SilentlyContinue
 mvn spring-boot:run

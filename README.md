@@ -68,26 +68,48 @@ cd <repository-folder>
 
 Edit `.env` and set:
 
-- `DB_PASSWORD`: a password for the database login. Choose any password without double quotes.
-  If a login named `canteen_admin` already exists on your PostgreSQL, use that login's current
-  password instead, because setup never changes an existing login's password.
+- `DB_ADMIN_PASSWORD`: maintenance and migration password for `canteen_admin`.
+- `DB_PASSWORD`: runtime password for `canteen_app`.
+- `DB_READONLY_PASSWORD`: reporting password for `canteen_readonly`.
 - `JWT_SECRET`: at least 32 random characters.
 
 `.env` is ignored by Git and must never be committed.
 
-### Step 3: Create the database, tables and sample data
+### Step 3: Create roles, database, tables and sample data
+
+Create the PostgreSQL roles as a superuser. The psql script asks for each role
+password with a hidden prompt; enter the same values configured in `.env`.
+
+- Windows PowerShell:
+
+  ```
+  psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f .\db-access-control\01-create-roles.sql
+  psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f .\db-access-control\02-role-memberships.sql
+  ```
+
+- Linux/macOS:
+
+  ```
+  psql -h "$DB_HOST" -p "$DB_PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -f db-access-control/01-create-roles.sql
+  psql -h "$DB_HOST" -p "$DB_PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -f db-access-control/02-role-memberships.sql
+  ```
 
 - Windows: `powershell -ExecutionPolicy Bypass -File .\database\setup.ps1`
 - Linux or macOS: `./database/setup.sh`
 
-The script asks for the PostgreSQL superuser password, creates the login and database named in
-`.env`, runs every file in `database/migrations/` in order, then loads `database/seed/`.
-It is safe to run again. If `psql` is not on PATH on Windows, add
+The setup script asks for the PostgreSQL superuser password, creates the
+database owned by `canteen_admin`, runs migrations and sample data as that
+account, then applies access-control scripts 03-06. It does not run the app as
+the owner. If `psql` is not on PATH on Windows, add
 `-Psql "C:\Program Files\PostgreSQL\18\bin\psql.exe"` (use your own install path; keep the quotes if it contains spaces).
 Type the superuser password by hand: pasting into the hidden prompt can capture the wrong text and give
 `password authentication failed for user "postgres"`.
 
-Expected last line: `Done. Database 'canteen_db' is ready.` Check the tables:
+Review every database on the PostgreSQL cluster before running
+`db-access-control/07-security-restrictions.sql`. It revokes `PUBLIC CONNECT`
+cluster-wide and can affect other applications; see
+[docs/database-roles.md](docs/database-roles.md).
+Check the tables:
 
 ```
 psql -U canteen_admin -d canteen_db -c "\dt"
@@ -202,7 +224,7 @@ Log in with `POST /api/auth/login` (`email`, `password`) and send the returned t
 | Student | Order, view and cancel (while pending) their own orders, read their notifications | No login of its own; uses the runtime account |
 | Vendor | Manage their own menu, handle orders for their stall, view their sales | No login of its own; uses the runtime account |
 | Administrator | Switch stalls on or off, view the canteen report | No login of its own; uses the runtime account |
-| Application runtime | The account the API connects with | `canteen_admin` in this activity; `canteen_app` in group `canteen_app_grp` from Activity 4 |
+| Application runtime | The account the API connects with | `canteen_app`, member of `canteen_app_grp` |
 
 Details: [docs/user-roles.md](docs/user-roles.md) and [docs/database-roles.md](docs/database-roles.md).
 
@@ -212,9 +234,12 @@ Details: [docs/user-roles.md](docs/user-roles.md) and [docs/database-roles.md](d
 |---|---|---|
 | `DB_HOST` | Database server | localhost |
 | `DB_PORT` | Database port | 5432 |
-| `DB_NAME` | Database name | `canteen_db` in `.env.example` (the API's own fallback is `grpxx_canteendb`) |
-| `DB_USER` | Database login | canteen_admin |
-| `DB_PASSWORD` | Password of that login | none, required |
+| `DB_NAME` | Database name | `canteen_db` |
+| `DB_USER` | Runtime database login | `canteen_app` |
+| `DB_PASSWORD` | Runtime login password | Set locally in `.env` |
+| `DB_ADMIN_USER` | Maintenance and migration login | `canteen_admin` |
+| `DB_ADMIN_PASSWORD` | Maintenance login password | Set locally in `.env` |
+| `DB_READONLY_PASSWORD` | Read-only reporting login password | Set locally in `.env` |
 | `JWT_SECRET` | Signs login tokens, 32 or more characters | none, required |
 
 To use another database name, change `DB_NAME` in `.env` before running the setup script.
@@ -222,8 +247,8 @@ To use another database name, change `DB_NAME` in `.env` before running the setu
 ## 7. Database
 
 Seven tables: student, vendor, menu_item, customer_order, order_item, queue_entry and
-notification. Scripts, migrations and seed data are in `database/` and can be run more than
-once without errors or duplicates. ERD, columns, constraints and the changes from the approved
+notification. Scripts, migrations and seed data are in `database/`; access-control scripts
+are in `db-access-control/`. ERD, columns, constraints and the changes from the approved
 Activity 2 design: [docs/database.md](docs/database.md).
 
 ### Reset the data
@@ -240,7 +265,7 @@ psql -U canteen_admin -d canteen_db -f database/seed/001_sample_data.sql
 | Problem | Fix |
 |---|---|
 | `psql` not recognized | Add the PostgreSQL `bin` folder to PATH and open a new terminal |
-| `password authentication failed for user "canteen_admin"` | The password in `.env` does not match the existing login; see Step 2 |
+| `password authentication failed for user "canteen_admin"` | `DB_ADMIN_PASSWORD` does not match the password entered for the role; see Step 2 |
 | `Could not resolve placeholder 'DB_PASSWORD'` | Start the API with `scripts\run-backend.ps1` so `.env` is loaded |
 | `Schema-validation: missing column` | Run the setup script again; it is safe to repeat |
 | Requests fail with connection refused | The API is not running on port 8080 |
