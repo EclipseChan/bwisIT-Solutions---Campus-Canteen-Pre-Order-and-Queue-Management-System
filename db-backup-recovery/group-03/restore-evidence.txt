@@ -1,0 +1,16 @@
+TEMPLATE ONLY — no restore database or verification result exists.
+
+Project/database: <GROUP_NUMBER> - <PROJECT_NAME> / <DATABASE_NAME>
+Dump filename/checksum (dump stored outside Git): <FILENAME> / <SHA256>
+Restore target (must be separate and disposable): <RESTORE_DATABASE>
+Setup account/approval: <APPROVED_ACCOUNT_AND_APPROVAL_REFERENCE>
+Restore command/date/time/exit status: <NOT_RUN>
+Objects, rows, constraints, sequences: <NOT_VERIFIED>
+Activity 4 roles, memberships, privileges: <NOT_VERIFIED>
+Permitted operation/result: <NOT_RUN>
+Denied operation/result: <NOT_RUN>
+Representative application SELECT/result: <NOT_RUN>
+Application connection test, if feasible: <NOT_RUN>
+Warnings, limitations, or differences: <NOT_RUN>
+
+Insert only actual reviewed, secret-redacted output. Never restore over the original database.

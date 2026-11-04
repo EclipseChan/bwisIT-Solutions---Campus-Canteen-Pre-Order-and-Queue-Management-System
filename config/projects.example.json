@@ -1,0 +1,44 @@
+{
+  "group": "group-01",
+  "projectName": "<project name>",
+  "repoUrl": "<repository URL>",
+  "dbName": "<database name>",
+  "dbHost": "<database host>",
+  "dbPort": "<database port>",
+  "pgVersion": "<version or unknown>",
+  "adminUser": "<A4 maintenance account>",
+  "appUser": "<A4 runtime account>",
+  "readonlyUser": "<A4 readonly account>",
+  "reachable": "unknown",
+  "ownerContact": "<contact or unknown>",
+  "notes": "<notes>",
+  "schemaName": "<schema name>",
+  "groupRoles": [
+    { "name": "<runtime group role>", "canLogin": false },
+    { "name": "<readonly group role>", "canLogin": false }
+  ],
+  "loginRoles": [
+    { "name": "<A4 runtime account>", "applicationRole": "<application role>", "groupRole": "<runtime group role>" },
+    { "name": "<A4 readonly account>", "applicationRole": "<application role>", "groupRole": "<readonly group role>" }
+  ],
+  "memberships": [
+    { "member": "<A4 runtime account>", "role": "<runtime group role>" },
+    { "member": "<A4 readonly account>", "role": "<readonly group role>" }
+  ],
+  "unrelatedDatabases": [],
+  "tablePrivileges": [
+    { "table": "<schema.table>", "appPrivileges": ["SELECT", "INSERT", "UPDATE", "DELETE"], "readonlyPrivileges": ["SELECT"] }
+  ],
+  "sequencePrivileges": [
+    { "sequence": "<schema.sequence>", "appPrivileges": ["USAGE", "SELECT"], "readonlyPrivileges": [] }
+  ],
+  "expectedTables": [],
+  "expectedSequences": [],
+  "restrictPublicConnect": true,
+  "logFiles": [],
+  "recoveryTest": {
+    "table": "<schema.table>",
+    "markerColumn": "<disposable marker column>",
+    "markerValue": "<unique disposable marker value>"
+  }
+}

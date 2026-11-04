@@ -1,0 +1,14 @@
+TEMPLATE ONLY — no backup exists and no checksum has been computed.
+
+Project: <GROUP_NUMBER> - <PROJECT_NAME>
+Database: <DATABASE_NAME>
+Protected dump path (outside Git): <LOCAL_PATH_NOT_TO_COMMIT>
+Dump filename: <NOT_CREATED>
+Size in bytes: <NOT_AVAILABLE>
+SHA-256: <NOT_COMPUTED>
+Backup timestamp and timezone: <NOT_RUN>
+PostgreSQL server / pg_dump version: <NOT_VERIFIED>
+Account / application role: <A4_BACKUP_ACCOUNT> / <APPLICATION_ROLE>
+Command exit status / warnings: <NOT_RUN>
+
+Replace placeholders only with real reviewed metadata. Never paste dump contents, credentials, or credential-bearing connection strings.

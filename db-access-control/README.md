@@ -165,3 +165,7 @@ been reviewed.
 - These scripts must be run against the actual configured PostgreSQL cluster.
   Repository inspection alone does not demonstrate that a role, grant, or
   connection test has executed.
+
+## Other-group Activity 4 templates
+
+The `group-01/`, `group-02/`, and `group-03/` folders are provisional **TEMPLATE — replace with real project data** placeholders, not confirmed group identities or additional canteen databases. Each contains a plan, blockers, and comment-only `.sql.template` files for a future owner-approved project. Do not execute or copy the canteen-specific SQL above into another group's repository or database. Confirm inventory, schema, roles, authorization, and expected results first; keep missing information `BLOCKED`.

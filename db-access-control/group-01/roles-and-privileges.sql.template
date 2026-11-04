@@ -1,0 +1,20 @@
+-- TEMPLATE ONLY — comment-only; not executable SQL.
+-- Do not remove this warning or execute this template as-is.
+-- Replace it only after confirming the target project, schema, roles, and
+-- owner-approved least-privilege plan. Never copy passwords or secrets here.
+--
+-- Target project/database: <VERIFY FROM AUTHORITATIVE SOURCE>
+-- PostgreSQL version: <VERIFY>
+-- Change authorization/window: <VERIFY>
+--
+-- Author reviewed statements here, outside this comment-only template, only
+-- after owner approval. Consider separately:
+--   * NOLOGIN group roles and minimum-privilege login roles
+--   * memberships (including who may SET ROLE)
+--   * database CONNECT/CREATE and unrelated-database access
+--   * schema, table, sequence, and default privileges
+--   * PUBLIC restrictions and their cluster-wide implications
+--   * safe rollback and impact assessment
+--
+-- No SQL statements are supplied because target identities and requirements
+-- are unknown. This file must remain a template until reviewed.

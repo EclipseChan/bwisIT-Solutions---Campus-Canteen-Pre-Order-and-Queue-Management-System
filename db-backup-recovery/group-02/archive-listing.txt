@@ -1,0 +1,10 @@
+TEMPLATE ONLY — `pg_restore --list` has not been run; this is not archive output.
+
+Project/database: <GROUP_NUMBER> - <PROJECT_NAME> / <DATABASE_NAME>
+Dump filename (stored outside Git): <NOT_CREATED>
+Command: pg_restore --list "<PROTECTED_LOCAL_DUMP_PATH>"
+Run date/time and exit status: <NOT_RUN>
+
+Paste actual reviewed `pg_restore --list` output below after creating and verifying the dump. Do not paste credentials or dump data.
+
+<REAL_ARCHIVE_LISTING_OUTPUT_GOES_HERE>

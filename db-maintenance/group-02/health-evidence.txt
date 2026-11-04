@@ -1,0 +1,10 @@
+TEMPLATE ONLY — no database command has been run and no evidence is recorded.
+
+Project: <GROUP_NUMBER> - <PROJECT_NAME>
+Database: <DATABASE_NAME>
+PostgreSQL version: <VERSION_FROM_REAL_OUTPUT>
+Account / application role: <A4_ACCOUNT> / <APPLICATION_ROLE>
+Execution date/time and timezone: <TIMESTAMP>
+Command and exit status: <COMMAND_AND_STATUS>
+
+Paste actual, reviewed, secret-redacted output here. Include a short interpretation and any permission/connectivity limitations. Do not paste query text containing literals or any credentials.

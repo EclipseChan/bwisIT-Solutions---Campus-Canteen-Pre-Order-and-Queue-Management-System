@@ -1,0 +1,8 @@
+TEMPLATE ONLY — no EXPLAIN output has been collected.
+
+Project/database: <GROUP_NUMBER> - <PROJECT_NAME> / <DATABASE_NAME>
+Query purpose and application role: <PURPOSE> / <APPLICATION_ROLE>
+Execution date/time and timezone: <TIMESTAMP>
+Command and exit status: <REAL_COMMAND_AND_STATUS>
+
+Paste the complete actual plan here after reviewing it for sensitive literal values. Interpret scan and join methods, estimated/actual rows, timing, buffers, and justify the recommendation or why the plan is reasonable. Do not create an index merely to satisfy the activity.
