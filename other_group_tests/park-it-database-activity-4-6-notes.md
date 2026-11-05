@@ -22,6 +22,7 @@ All database actions used a newly initialized PostgreSQL 18.6 cluster bound to `
 
 ## Evidence and status
 
+- [Activity 3 installation report](activity3-park-it/activity-3-report.md)
 - [Activity 4 report](activity4-park-it/activity-4-report.md)
 - [Activity 5 report](activity5-park-it/activity-5-report.md)
 - [Activity 6 report](activity6-park-it/activity-6-report.md)
@@ -32,4 +33,4 @@ No new screenshots were captured: the work was performed with PostgreSQL command
 
 ## Reporting format for future applications
 
-Each application will have a separate Markdown report for Activity 4, Activity 5, and Activity 6, with a short shared overview for cross-activity issues and links to the reports.
+Each application will have a separate Markdown report for Activity 3 installation verification and Activities 4, 5, and 6, with a short shared overview for cross-activity issues and links to the reports.
