@@ -1,0 +1,10 @@
+   current_database   | tables | zones | zone_names 
+----------------------+--------+-------+------------
+ park_it_a4a6_restore |      5 |     1 | Zone A
+(1 row)
+
+ app_can_update_zone | readonly_can_update_zone | backup_can_read_staff 
+---------------------+--------------------------+-----------------------
+ t                   | f                        | t
+(1 row)
+
