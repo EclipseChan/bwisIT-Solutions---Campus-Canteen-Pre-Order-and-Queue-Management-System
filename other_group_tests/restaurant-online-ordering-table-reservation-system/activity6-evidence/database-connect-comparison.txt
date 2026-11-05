@@ -1,0 +1,15 @@
+Database ACL check in source and restored databases
+--- grp_binarysisters_projectdb ---
+          database           | default_database_acl | app_connect | report_connect | report_can_read_customer | app_can_read_customer 
+-----------------------------+----------------------+-------------+----------------+--------------------------+-----------------------
+ grp_binarysisters_projectdb | f                    | t           | t              | f                        | t
+(1 row)
+
+Exit code: 0
+--- grp_binarysisters_projectdb_restore_test ---
+                 database                 | default_database_acl | app_connect | report_connect | report_can_read_customer | app_can_read_customer 
+------------------------------------------+----------------------+-------------+----------------+--------------------------+-----------------------
+ grp_binarysisters_projectdb_restore_test | t                    | t           | t              | f                        | t
+(1 row)
+
+Exit code: 0

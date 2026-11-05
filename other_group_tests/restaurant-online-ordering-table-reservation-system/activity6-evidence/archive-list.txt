@@ -1,0 +1,122 @@
+;
+; Archive created at 2026-11-05 23:14:23
+;     dbname: grp_binarysisters_projectdb
+;     TOC Entries: 112
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+5490; 0 0 ACL - SCHEMA public pg_database_owner
+3; 3079 16385 EXTENSION - btree_gist 
+5491; 0 0 COMMENT - EXTENSION btree_gist 
+2; 3079 17111 EXTENSION - pgcrypto 
+5492; 0 0 COMMENT - EXTENSION pgcrypto 
+358; 1255 17320 FUNCTION public fn_check_reservation_capacity() postgres
+411; 1255 17313 FUNCTION public fn_refresh_order_total() postgres
+270; 1255 17315 FUNCTION public fn_require_order_items() postgres
+226; 1259 17150 TABLE public customer postgres
+5493; 0 0 ACL public TABLE customer postgres
+225; 1259 17149 SEQUENCE public customer_customer_id_seq postgres
+5494; 0 0 SEQUENCE OWNED BY public customer_customer_id_seq postgres
+5495; 0 0 ACL public SEQUENCE customer_customer_id_seq postgres
+228; 1259 17168 TABLE public menu_item postgres
+5496; 0 0 ACL public TABLE menu_item postgres
+227; 1259 17167 SEQUENCE public menu_item_menu_item_id_seq postgres
+5497; 0 0 SEQUENCE OWNED BY public menu_item_menu_item_id_seq postgres
+5498; 0 0 ACL public SEQUENCE menu_item_menu_item_id_seq postgres
+235; 1259 17237 TABLE public order_item postgres
+5499; 0 0 ACL public TABLE order_item postgres
+234; 1259 17216 TABLE public orders postgres
+5500; 0 0 ACL public TABLE orders postgres
+233; 1259 17215 SEQUENCE public orders_order_id_seq postgres
+5501; 0 0 SEQUENCE OWNED BY public orders_order_id_seq postgres
+5502; 0 0 ACL public SEQUENCE orders_order_id_seq postgres
+239; 1259 17289 TABLE public payment postgres
+5503; 0 0 ACL public TABLE payment postgres
+238; 1259 17288 SEQUENCE public payment_payment_id_seq postgres
+5504; 0 0 SEQUENCE OWNED BY public payment_payment_id_seq postgres
+5505; 0 0 ACL public SEQUENCE payment_payment_id_seq postgres
+237; 1259 17262 TABLE public reservation postgres
+5506; 0 0 ACL public TABLE reservation postgres
+236; 1259 17261 SEQUENCE public reservation_reservation_id_seq postgres
+5507; 0 0 SEQUENCE OWNED BY public reservation_reservation_id_seq postgres
+5508; 0 0 ACL public SEQUENCE reservation_reservation_id_seq postgres
+230; 1259 17184 TABLE public restaurant_table postgres
+5509; 0 0 ACL public TABLE restaurant_table postgres
+229; 1259 17183 SEQUENCE public restaurant_table_table_id_seq postgres
+5510; 0 0 SEQUENCE OWNED BY public restaurant_table_table_id_seq postgres
+5511; 0 0 ACL public SEQUENCE restaurant_table_table_id_seq postgres
+232; 1259 17200 TABLE public staff postgres
+5512; 0 0 ACL public TABLE staff postgres
+231; 1259 17199 SEQUENCE public staff_staff_id_seq postgres
+5513; 0 0 SEQUENCE OWNED BY public staff_staff_id_seq postgres
+5514; 0 0 ACL public SEQUENCE staff_staff_id_seq postgres
+240; 1259 17324 VIEW public v_customer_directory postgres
+5515; 0 0 ACL public TABLE v_customer_directory postgres
+242; 1259 17332 VIEW public v_order_summary postgres
+5516; 0 0 ACL public TABLE v_order_summary postgres
+243; 1259 17337 VIEW public v_reservation_schedule postgres
+5517; 0 0 ACL public TABLE v_reservation_schedule postgres
+241; 1259 17328 VIEW public v_staff_directory postgres
+5518; 0 0 ACL public TABLE v_staff_directory postgres
+5242; 2604 17153 DEFAULT public customer customer_id postgres
+5244; 2604 17171 DEFAULT public menu_item menu_item_id postgres
+5249; 2604 17219 DEFAULT public orders order_id postgres
+5255; 2604 17292 DEFAULT public payment payment_id postgres
+5253; 2604 17265 DEFAULT public reservation reservation_id postgres
+5246; 2604 17187 DEFAULT public restaurant_table table_id postgres
+5248; 2604 17203 DEFAULT public staff staff_id postgres
+5468; 0 17150 TABLE DATA public customer postgres
+5470; 0 17168 TABLE DATA public menu_item postgres
+5477; 0 17237 TABLE DATA public order_item postgres
+5476; 0 17216 TABLE DATA public orders postgres
+5481; 0 17289 TABLE DATA public payment postgres
+5479; 0 17262 TABLE DATA public reservation postgres
+5472; 0 17184 TABLE DATA public restaurant_table postgres
+5474; 0 17200 TABLE DATA public staff postgres
+5519; 0 0 SEQUENCE SET public customer_customer_id_seq postgres
+5520; 0 0 SEQUENCE SET public menu_item_menu_item_id_seq postgres
+5521; 0 0 SEQUENCE SET public orders_order_id_seq postgres
+5522; 0 0 SEQUENCE SET public payment_payment_id_seq postgres
+5523; 0 0 SEQUENCE SET public reservation_reservation_id_seq postgres
+5524; 0 0 SEQUENCE SET public restaurant_table_table_id_seq postgres
+5525; 0 0 SEQUENCE SET public staff_staff_id_seq postgres
+5275; 2606 17164 CONSTRAINT public customer customer_pkey postgres
+5297; 2606 17323 CONSTRAINT public reservation ex_reservation_no_overlap postgres
+5280; 2606 17182 CONSTRAINT public menu_item menu_item_pkey postgres
+5292; 2606 17231 CONSTRAINT public orders orders_pkey postgres
+5303; 2606 17305 CONSTRAINT public payment payment_pkey postgres
+5295; 2606 17250 CONSTRAINT public order_item pk_order_item postgres
+5301; 2606 17277 CONSTRAINT public reservation reservation_pkey postgres
+5282; 2606 17196 CONSTRAINT public restaurant_table restaurant_table_pkey postgres
+5286; 2606 17212 CONSTRAINT public staff staff_pkey postgres
+5277; 2606 17166 CONSTRAINT public customer uq_customer_email postgres
+5305; 2606 17307 CONSTRAINT public payment uq_payment_order postgres
+5284; 2606 17198 CONSTRAINT public restaurant_table uq_restaurant_table_number postgres
+5288; 2606 17214 CONSTRAINT public staff uq_staff_email postgres
+5278; 1259 17347 INDEX public idx_menu_item_category postgres
+5293; 1259 17344 INDEX public idx_order_item_menu_item postgres
+5289; 1259 17342 INDEX public idx_orders_customer_date postgres
+5290; 1259 17343 INDEX public idx_orders_status postgres
+5298; 1259 17345 INDEX public idx_reservation_customer postgres
+5299; 1259 17346 INDEX public idx_reservation_date postgres
+5313; 2620 17318 TRIGGER public order_item trg_order_item_keep_one postgres
+5314; 2620 17314 TRIGGER public order_item trg_order_item_total postgres
+5312; 2620 17316 TRIGGER public orders trg_orders_require_items postgres
+5315; 2620 17321 TRIGGER public reservation trg_reservation_capacity postgres
+5307; 2606 17256 FK CONSTRAINT public order_item fk_order_item_menu_item postgres
+5308; 2606 17251 FK CONSTRAINT public order_item fk_order_item_order postgres
+5306; 2606 17232 FK CONSTRAINT public orders fk_orders_customer postgres
+5311; 2606 17308 FK CONSTRAINT public payment fk_payment_order postgres
+5309; 2606 17278 FK CONSTRAINT public reservation fk_reservation_customer postgres
+5310; 2606 17283 FK CONSTRAINT public reservation fk_reservation_table postgres
+2437; 826 17368 DEFAULT ACL public DEFAULT PRIVILEGES FOR SEQUENCES postgres
+2436; 826 17367 DEFAULT ACL public DEFAULT PRIVILEGES FOR TABLES postgres
+Exit code: 0

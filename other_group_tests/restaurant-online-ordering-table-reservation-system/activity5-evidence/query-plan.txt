@@ -1,0 +1,41 @@
+                                   QUERY PLAN                                    
+---------------------------------------------------------------------------------
+ Limit  (cost=4.59..4.60 rows=5 width=31)
+   ->  Sort  (cost=4.59..4.60 rows=5 width=31)
+         Sort Key: o.order_date DESC
+         ->  Hash Right Join  (cost=2.81..4.53 rows=5 width=31)
+               Hash Cond: (p.order_id = o.order_id)
+               ->  Seq Scan on payment p  (cost=0.00..1.56 rows=56 width=9)
+               ->  Hash  (cost=2.75..2.75 rows=5 width=26)
+                     ->  Seq Scan on orders o  (cost=0.00..2.75 rows=5 width=26)
+                           Filter: (customer_id = 15)
+(9 rows)
+
+                                                          QUERY PLAN                                                          
+------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=4.59..4.60 rows=5 width=31) (actual time=0.084..0.085 rows=5.00 loops=1)
+   Buffers: shared hit=6
+   ->  Sort  (cost=4.59..4.60 rows=5 width=31) (actual time=0.082..0.082 rows=5.00 loops=1)
+         Sort Key: o.order_date DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=6
+         ->  Hash Right Join  (cost=2.81..4.53 rows=5 width=31) (actual time=0.045..0.053 rows=5.00 loops=1)
+               Hash Cond: (p.order_id = o.order_id)
+               Buffers: shared hit=3
+               ->  Seq Scan on payment p  (cost=0.00..1.56 rows=56 width=9) (actual time=0.012..0.013 rows=56.00 loops=1)
+                     Buffers: shared hit=1
+               ->  Hash  (cost=2.75..2.75 rows=5 width=26) (actual time=0.021..0.021 rows=5.00 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     Buffers: shared hit=2
+                     ->  Seq Scan on orders o  (cost=0.00..2.75 rows=5 width=26) (actual time=0.012..0.018 rows=5.00 loops=1)
+                           Filter: (customer_id = 15)
+                           Rows Removed by Filter: 55
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=8
+ Planning Time: 0.092 ms
+ Execution Time: 0.100 ms
+(22 rows)
+
+Selected seeded customer id: 15
+Exit code: 0

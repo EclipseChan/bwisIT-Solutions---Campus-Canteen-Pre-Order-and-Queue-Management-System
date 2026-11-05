@@ -1,0 +1,15 @@
+Compare sequence visibility for health-check role vs database owner
+--- role=rors_maint ---
+ current_user | information_schema_sequences | catalog_sequences 
+--------------+------------------------------+-------------------
+ rors_maint   |                            0 |                 7
+(1 row)
+
+Exit code: 0
+--- role=postgres ---
+ current_user | information_schema_sequences | catalog_sequences 
+--------------+------------------------------+-------------------
+ postgres     |                            7 |                 7
+(1 row)
+
+Exit code: 0

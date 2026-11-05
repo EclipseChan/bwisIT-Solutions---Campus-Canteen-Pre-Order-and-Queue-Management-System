@@ -1,0 +1,65 @@
+Pager usage is off.
+=== Table activity, dead tuples and last maintenance ===
+      table       | n_live_tup | n_dead_tup | dead_pct | last_vacuum |        last_autovacuum        | last_analyze |       last_autoanalyze        | n_mod_since_analyze 
+------------------+------------+------------+----------+-------------+-------------------------------+--------------+-------------------------------+---------------------
+ customer         |         51 |         52 |     50.5 |             |                               |              | 2026-11-05 23:07:56.282523+08 |                   0
+ staff            |         10 |          8 |     44.4 |             |                               |              |                               |                  18
+ payment          |         56 |          6 |      9.7 |             |                               |              | 2026-11-05 23:07:56.284416+08 |                   0
+ orders           |         60 |          5 |      7.7 |             | 2026-11-05 23:07:56.259831+08 |              | 2026-11-05 23:07:56.277733+08 |                   0
+ reservation      |         50 |          4 |      7.4 |             |                               |              |                               |                  50
+ menu_item        |         50 |          2 |      3.8 |             |                               |              |                               |                  50
+ order_item       |        167 |          2 |      1.2 |             |                               |              | 2026-11-05 23:07:56.279967+08 |                   0
+ restaurant_table |         20 |          0 |      0.0 |             |                               |              |                               |                  20
+(8 rows)
+
+=== Sequential vs index scans (tables read mostly by seq scan may need an index) ===
+      table       | seq_scan | seq_tup_read | idx_scan | n_live_tup 
+------------------+----------+--------------+----------+------------
+ order_item       |      138 |        17605 |      241 |        167
+ customer         |       46 |         1618 |      328 |         51
+ orders           |       33 |         1346 |      572 |         60
+ menu_item        |       20 |          626 |      170 |         50
+ payment          |       12 |          398 |       84 |         56
+ restaurant_table |       11 |          180 |      109 |         20
+ reservation      |        8 |          150 |       58 |         50
+ staff            |        6 |           38 |        1 |         10
+(8 rows)
+
+=== Index usage and size (idx_scan = 0 for a long time = candidate to review, NOT to drop blindly) ===
+      table       |           index            | idx_scan |    size    
+------------------+----------------------------+----------+------------
+ menu_item        | idx_menu_item_category     |        0 | 16 kB
+ orders           | idx_orders_status          |        0 | 16 kB
+ reservation      | idx_reservation_date       |        0 | 16 kB
+ restaurant_table | uq_restaurant_table_number |        0 | 16 kB
+ staff            | uq_staff_email             |        0 | 16 kB
+ order_item       | idx_order_item_menu_item   |        1 | 16 kB
+ payment          | payment_pkey               |        1 | 16 kB
+ reservation      | reservation_pkey           |        1 | 16 kB
+ staff            | staff_pkey                 |        1 | 16 kB
+ reservation      | idx_reservation_customer   |        6 | 16 kB
+ customer         | uq_customer_email          |       18 | 16 kB
+ orders           | idx_orders_customer_date   |       37 | 16 kB
+ reservation      | ex_reservation_no_overlap  |       51 | 8192 bytes
+ payment          | uq_payment_order           |       83 | 16 kB
+ restaurant_table | restaurant_table_pkey      |      109 | 16 kB
+ menu_item        | menu_item_pkey             |      170 | 16 kB
+ order_item       | pk_order_item              |      240 | 16 kB
+ customer         | customer_pkey              |      310 | 16 kB
+ orders           | orders_pkey                |      535 | 16 kB
+(19 rows)
+
+=== Table and index sizes ===
+     relname      | table_size | index_size 
+------------------+------------+------------
+ orders           | 48 kB      | 48 kB
+ customer         | 40 kB      | 32 kB
+ order_item       | 40 kB      | 32 kB
+ reservation      | 8192 bytes | 56 kB
+ menu_item        | 16 kB      | 32 kB
+ payment          | 8192 bytes | 32 kB
+ restaurant_table | 8192 bytes | 32 kB
+ staff            | 8192 bytes | 32 kB
+(8 rows)
+
+Exit code: 0

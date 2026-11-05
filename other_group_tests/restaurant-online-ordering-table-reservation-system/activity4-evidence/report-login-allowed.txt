@@ -1,0 +1,6 @@
+ current_user | visible_order_summaries 
+--------------+-------------------------
+ rors_report  |                      60
+(1 row)
+
+Exit code: 0

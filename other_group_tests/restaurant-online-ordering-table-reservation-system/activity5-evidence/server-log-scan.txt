@@ -1,0 +1,7 @@
+Disposable PostgreSQL stderr log scan
+Pattern: FATAL|ERROR|permission denied
+Matches: 
+3
+2026-11-05 23:06:36.316 +08 [26364] FATAL:  role "Marcos" does not exist
+2026-11-05 23:08:17.867 +08 [25748] ERROR:  permission denied for table orders
+2026-11-05 23:08:17.968 +08 [25680] ERROR:  permission denied for table customer

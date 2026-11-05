@@ -1,0 +1,2 @@
+DROP ROLE
+Exit code: 0
