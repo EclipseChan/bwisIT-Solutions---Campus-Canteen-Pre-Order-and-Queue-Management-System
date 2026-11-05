@@ -1,0 +1,33 @@
+Post-backup marker test
+Marker: menu_category(category_name='Post-Backup Marker'), inserted into grp_brewposdb AFTER the dump completed.
+Expected: present in the source, absent from the restored database.
+
+=== source database (after the dump) ===
+ category_id 
+-------------
+          17
+(1 row)
+
+INSERT 0 1
+       ?column?       
+----------------------
+ source_marker_rows=1
+(1 row)
+
+      ?column?       
+---------------------
+ source_categories=5
+(1 row)
+
+
+=== restored database ===
+       ?column?        
+-----------------------
+ restore_marker_rows=0
+(1 row)
+
+       ?column?       
+----------------------
+ restore_categories=4
+(1 row)
+

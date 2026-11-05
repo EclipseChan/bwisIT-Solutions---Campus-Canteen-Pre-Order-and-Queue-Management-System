@@ -1,0 +1,24 @@
+Scan of the dump's plain-SQL rendering for cluster-global role objects and object ACLs
+Archive: C:\Users\Marcos\AppData\Local\Temp\opencode\brewpos-retest\backup\brewpos-retest.dump (deleted after checksum capture)
+
+--- CREATE ROLE / ALTER ROLE / DROP ROLE statements (expect none) ---
+(none found)
+
+--- GRANT / REVOKE statements (object ACLs, not role definitions) ---
+GRANT USAGE ON SCHEMA public TO brewpos_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.menu_category TO brewpos_app;
+GRANT SELECT,USAGE ON SEQUENCE public.menu_category_category_id_seq TO brewpos_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.menu_item TO brewpos_app;
+GRANT SELECT,USAGE ON SEQUENCE public.menu_item_item_id_seq TO brewpos_app;
+GRANT SELECT,INSERT ON TABLE public.order_line_item TO brewpos_app;
+GRANT SELECT,INSERT ON TABLE public.order_ticket TO brewpos_app;
+GRANT SELECT,USAGE ON SEQUENCE public.order_ticket_order_id_seq TO brewpos_app;
+GRANT SELECT ON TABLE public.staff TO brewpos_app;
+GRANT SELECT,USAGE ON SEQUENCE public.staff_staff_id_seq TO brewpos_app;
+
+--- archive header ---
+; Archive created at 2026-11-05 11:05:16
+;     dbname: grp_brewposdb
+;     TOC Entries: 55
+;     Format: CUSTOM
+; Selected TOC Entries:

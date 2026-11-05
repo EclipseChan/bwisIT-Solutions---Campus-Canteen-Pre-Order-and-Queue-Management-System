@@ -1,0 +1,19 @@
+BEGIN
+INSERT 0 2
+INSERT 0 3
+INSERT 0 11
+DO
+psql.exe : psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/src/brewpos-main/database/seed.sql:136: 
+NOTICE:  Inserted 5 sample orders (Today total: 915.50 across 3 orders; Yesterday total: 440.00 across 2 orders).
+At C:\Users\Marcos\AppData\Local\Temp\opencode\brewpos-retest\provision-db.ps1:21 char:1
++ & "$PGBIN\psql.exe" @psqlArgs -d grp_brewposdb -f "$SRC\database\seed ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (psql:C:/Users/M...ross 2 orders).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+COMMIT
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE

@@ -1,0 +1,55 @@
+=== read access (should succeed) ===
+ staff_rows 
+------------
+          2
+(1 row)
+
+ order_rows 
+------------
+          7
+(1 row)
+
+=== expected denials: historical order mutation ===
+psql.exe : psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:7: ERROR:  
+42501: permission denied for table order_ticket
+At line:9 char:1
++ & $PSQL -h 127.0.0.1 -p 55457 -U brewpos_app -d grp_brewposdb -X -v O ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (psql:C:/Users/M...le order_ticket:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:8: ERROR:  42501: 
+permission denied for table order_ticket
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:9: ERROR:  42501: 
+permission denied for table order_line_item
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:10: ERROR:  42501: 
+permission denied for table order_line_item
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:11: ERROR:  42501: 
+permission denied for table order_ticket
+LOCATION:  aclcheck_error, aclchk.c:2795
+=== expected denials: staff changes ===
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:14: ERROR:  42501: 
+permission denied for table staff
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:15: ERROR:  42501: 
+permission denied for table staff
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:16: ERROR:  42501: 
+permission denied for table staff
+LOCATION:  aclcheck_error, aclchk.c:2795
+=== expected denials: DDL ===
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:19: ERROR:  42501: 
+permission denied for schema public
+LINE 1: CREATE TABLE public.retest_should_fail (id integer);
+                     ^
+LOCATION:  aclcheck_error, aclchk.c:2795
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:20: ERROR:  42501: must 
+be owner of table menu_item
+LOCATION:  aclcheck_error, aclchk.c:2933
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/evidence/activity4-denied.sql:21: ERROR:  42501: must 
+be owner of table order_ticket
+LOCATION:  aclcheck_error, aclchk.c:2933
