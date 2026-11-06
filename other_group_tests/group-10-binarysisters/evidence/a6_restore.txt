@@ -1,0 +1,4 @@
+﻿DROP DATABASE
+DROP DATABASE
+pg_restore exit code: 0 ; elapsed seconds: 0.31
+no messages (no warnings or errors)

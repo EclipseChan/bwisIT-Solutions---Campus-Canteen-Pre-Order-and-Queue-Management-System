@@ -1,0 +1,28 @@
+﻿--- [rors_app@grp_binarysisters_projectdb] EXPLAIN SELECT * FROM orders WHERE customer_id = 1 ORDER BY order_date DESC
+                         QUERY PLAN                          
+-------------------------------------------------------------
+ Sort  (cost=2.78..2.79 rows=1 width=30)
+   Sort Key: order_date DESC
+   ->  Seq Scan on orders  (cost=0.00..2.77 rows=1 width=30)
+         Filter: (customer_id = 1)
+(4 rows)
+
+
+--- [rors_app@grp_binarysisters_projectdb] EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM orders WHERE customer_id = 1 ORDER BY order_date DESC
+                                                QUERY PLAN                                                
+----------------------------------------------------------------------------------------------------------
+ Sort  (cost=2.78..2.79 rows=1 width=30) (actual time=0.036..0.036 rows=0.00 loops=1)
+   Sort Key: order_date DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=5
+   ->  Seq Scan on orders  (cost=0.00..2.77 rows=1 width=30) (actual time=0.019..0.019 rows=0.00 loops=1)
+         Filter: (customer_id = 1)
+         Rows Removed by Filter: 62
+         Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=148
+ Planning Time: 1.754 ms
+ Execution Time: 0.056 ms
+(12 rows)
+
+

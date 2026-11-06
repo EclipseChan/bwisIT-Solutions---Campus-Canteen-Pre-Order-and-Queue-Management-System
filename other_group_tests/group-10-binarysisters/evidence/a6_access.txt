@@ -1,0 +1,36 @@
+﻿--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp_binarysisters%' order by 1
+               datname               |                                                                             datacl                                                                              
+-------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ grp_binarysisters_projectdb         | {postgres=CTc/postgres,rors_runtime_grp=c/postgres,rors_readonly_grp=c/postgres,rors_maint_grp=c/postgres,rors_backup_grp=c/postgres,rors_admin_grp=c/postgres}
+ grp_binarysisters_projectdb_restore | 
+(2 rows)
+
+
+--- re-applying database-level privileges on grp_binarysisters_projectdb_restore (not carried by a database-only dump)
+--- [postgres@postgres] REVOKE ALL ON DATABASE grp_binarysisters_projectdb_restore FROM PUBLIC
+REVOKE
+
+--- [postgres@postgres] GRANT CONNECT ON DATABASE grp_binarysisters_projectdb_restore TO rors_runtime_grp, rors_readonly_grp, rors_maint_grp, rors_backup_grp, rors_admin_grp
+GRANT
+
+--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp_binarysisters%' order by 1
+               datname               |                                                                             datacl                                                                              
+-------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ grp_binarysisters_projectdb         | {postgres=CTc/postgres,rors_runtime_grp=c/postgres,rors_readonly_grp=c/postgres,rors_maint_grp=c/postgres,rors_backup_grp=c/postgres,rors_admin_grp=c/postgres}
+ grp_binarysisters_projectdb_restore | {postgres=CTc/postgres,rors_runtime_grp=c/postgres,rors_readonly_grp=c/postgres,rors_maint_grp=c/postgres,rors_backup_grp=c/postgres,rors_admin_grp=c/postgres}
+(2 rows)
+
+
+--- [rors_report@grp_binarysisters_projectdb_restore] select count(*) as orders_visible_to_report from orders
+ orders_visible_to_report 
+--------------------------
+                       62
+(1 row)
+
+
+--- [rors_report@grp_binarysisters_projectdb_restore] select password from customer limit 1
+ERROR:  permission denied for table customer
+
+--- [rors_app@grp_binarysisters_projectdb_restore] DELETE FROM payment WHERE false
+ERROR:  permission denied for table payment
+

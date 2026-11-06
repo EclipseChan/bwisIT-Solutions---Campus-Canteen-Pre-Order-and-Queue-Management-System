@@ -1,0 +1,140 @@
+﻿################ grp_binarysisters_projectdb
+--- [postgres@grp_binarysisters_projectdb] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+      8 |     4 |         7
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb] select extname,extversion from pg_extension order by 1
+  extname   | extversion 
+------------+------------
+ btree_gist | 1.8
+ pgcrypto   | 1.4
+ plpgsql    | 1.0
+(3 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb] select (select count(*) from customer) customer,(select count(*) from menu_item) menu_item,(select count(*) from orders) orders,(select count(*) from order_item) order_item,(select count(*) from payment) payment,(select count(*) from reservation) reservation
+ customer | menu_item | orders | order_item | payment | reservation 
+----------+-----------+--------+------------+---------+-------------
+       51 |        51 |     62 |        171 |      58 |          53
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |    16
+ f       |     6
+ n       |    45
+ p       |     8
+ t       |     2
+ u       |     4
+ x       |     1
+(7 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb] select conname from pg_constraint where contype='x'
+          conname          
+---------------------------
+ ex_reservation_no_overlap
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb] select tgname from pg_trigger where not tgisinternal order by 1
+          tgname          
+--------------------------
+ trg_order_item_keep_one
+ trg_order_item_total
+ trg_orders_require_items
+ trg_reservation_capacity
+(4 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+          207
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb] select * from v_order_summary order by order_id limit 3
+ order_id | customer_id | customer_name |     order_date      | order_status | total_amount | line_items | payment_method | payment_status 
+----------+-------------+---------------+---------------------+--------------+--------------+------------+----------------+----------------
+        1 |          31 | Ines Kumar    | 2023-06-09 11:50:29 | ready        |       710.00 |          3 | gcash          | paid
+        2 |           4 | Mia Hughes    | 2023-11-02 20:00:28 | completed    |      1000.00 |          4 | gcash          | paid
+        3 |          44 | Jack Singh    | 2023-07-22 16:30:11 | completed    |       730.00 |          4 | gcash          | paid
+(3 rows)
+
+
+################ grp_binarysisters_projectdb_restore
+--- [postgres@grp_binarysisters_projectdb_restore] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+      8 |     4 |         7
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select extname,extversion from pg_extension order by 1
+  extname   | extversion 
+------------+------------
+ btree_gist | 1.8
+ pgcrypto   | 1.4
+ plpgsql    | 1.0
+(3 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select (select count(*) from customer) customer,(select count(*) from menu_item) menu_item,(select count(*) from orders) orders,(select count(*) from order_item) order_item,(select count(*) from payment) payment,(select count(*) from reservation) reservation
+ customer | menu_item | orders | order_item | payment | reservation 
+----------+-----------+--------+------------+---------+-------------
+       51 |        51 |     62 |        171 |      58 |          53
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |    16
+ f       |     6
+ n       |    45
+ p       |     8
+ t       |     2
+ u       |     4
+ x       |     1
+(7 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select conname from pg_constraint where contype='x'
+          conname          
+---------------------------
+ ex_reservation_no_overlap
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select tgname from pg_trigger where not tgisinternal order by 1
+          tgname          
+--------------------------
+ trg_order_item_keep_one
+ trg_order_item_total
+ trg_orders_require_items
+ trg_reservation_capacity
+(4 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+          207
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select * from v_order_summary order by order_id limit 3
+ order_id | customer_id | customer_name |     order_date      | order_status | total_amount | line_items | payment_method | payment_status 
+----------+-------------+---------------+---------------------+--------------+--------------+------------+----------------+----------------
+        1 |          31 | Ines Kumar    | 2023-06-09 11:50:29 | ready        |       710.00 |          3 | gcash          | paid
+        2 |           4 | Mia Hughes    | 2023-11-02 20:00:28 | completed    |      1000.00 |          4 | gcash          | paid
+        3 |          44 | Jack Singh    | 2023-07-22 16:30:11 | completed    |       730.00 |          4 | gcash          | paid
+(3 rows)
+
+

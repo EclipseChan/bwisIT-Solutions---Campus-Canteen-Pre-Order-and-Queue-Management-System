@@ -1,0 +1,57 @@
+﻿target payment_id: 1
+== BEFORE
+--- [postgres@grp_binarysisters_projectdb_restore] select payment_id,order_id,payment_method,amount,payment_status from payment order by payment_id limit 3
+ payment_id | order_id | payment_method | amount  | payment_status 
+------------+----------+----------------+---------+----------------
+          1 |        1 | gcash          |  710.00 | paid
+          2 |        2 | gcash          | 1000.00 | paid
+          3 |        3 | gcash          |  730.00 | paid
+(3 rows)
+
+
+== INCIDENT
+--- [postgres@grp_binarysisters_projectdb_restore] delete from payment where payment_id = 1
+DELETE 1
+
+== AFTER LOSS
+--- [postgres@grp_binarysisters_projectdb_restore] select payment_id,order_id,payment_method,amount,payment_status from payment order by payment_id limit 3
+ payment_id | order_id | payment_method | amount  | payment_status 
+------------+----------+----------------+---------+----------------
+          2 |        2 | gcash          | 1000.00 | paid
+          3 |        3 | gcash          |  730.00 | paid
+          4 |        4 | cash           |  350.00 | paid
+(3 rows)
+
+
+--- [postgres@grp_binarysisters_projectdb_restore] select count(*) as target_rows from payment where payment_id = 1
+ target_rows 
+-------------
+           0
+(1 row)
+
+
+== RECOVERY: restore the same dump into grp_binarysisters_projectdb_recovery
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@grp_binarysisters_projectdb_recovery] select payment_id,order_id,payment_method,amount,payment_status from payment where payment_id = 1
+ payment_id | order_id | payment_method | amount | payment_status 
+------------+----------+----------------+--------+----------------
+          1 |        1 | gcash          | 710.00 | paid
+(1 row)
+
+
+--- [postgres@grp_binarysisters_projectdb_recovery] select count(*) as payments from payment
+ payments 
+----------
+       58
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@grp_binarysisters_projectdb] select count(*) as target_rows from payment where payment_id = 1
+ target_rows 
+-------------
+           1
+(1 row)
+
+

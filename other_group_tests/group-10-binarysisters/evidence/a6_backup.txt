@@ -1,0 +1,70 @@
+﻿run at 11/06/2026 22:22:00
+pg_dump exit code: 0
+Name          : grp_binarysisters_projectdb_activity6.dump
+Length        : 51105
+LastWriteTime : 06/11/2026 10:22:00 pm
+Algorithm : SHA256
+Hash      : EED5CF8012B38A31E60C2BB1109BE5301C1F63BED2234F1552F4AD4A5A807DBD
+Path      : C:\Users\Marcos\dba\backups\grp_binarysisters_projectdb_activity6.dump
+--- pg_restore --list (first 60 lines)
+;
+; Archive created at 2026-11-06 22:22:00
+;     dbname: grp_binarysisters_projectdb
+;     TOC Entries: 112
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+5488; 0 0 ACL - SCHEMA public pg_database_owner
+3; 3079 16841 EXTENSION - btree_gist 
+5489; 0 0 COMMENT - EXTENSION btree_gist 
+2; 3079 17567 EXTENSION - pgcrypto 
+5490; 0 0 COMMENT - EXTENSION pgcrypto 
+497; 1255 17776 FUNCTION public fn_check_reservation_capacity() postgres
+296; 1255 17769 FUNCTION public fn_refresh_order_total() postgres
+279; 1255 17771 FUNCTION public fn_require_order_items() postgres
+224; 1259 17606 TABLE public customer postgres
+5491; 0 0 ACL public TABLE customer postgres
+223; 1259 17605 SEQUENCE public customer_customer_id_seq postgres
+5492; 0 0 SEQUENCE OWNED BY public customer_customer_id_seq postgres
+5493; 0 0 ACL public SEQUENCE customer_customer_id_seq postgres
+226; 1259 17624 TABLE public menu_item postgres
+5494; 0 0 ACL public TABLE menu_item postgres
+225; 1259 17623 SEQUENCE public menu_item_menu_item_id_seq postgres
+5495; 0 0 SEQUENCE OWNED BY public menu_item_menu_item_id_seq postgres
+5496; 0 0 ACL public SEQUENCE menu_item_menu_item_id_seq postgres
+233; 1259 17693 TABLE public order_item postgres
+5497; 0 0 ACL public TABLE order_item postgres
+232; 1259 17672 TABLE public orders postgres
+5498; 0 0 ACL public TABLE orders postgres
+231; 1259 17671 SEQUENCE public orders_order_id_seq postgres
+5499; 0 0 SEQUENCE OWNED BY public orders_order_id_seq postgres
+5500; 0 0 ACL public SEQUENCE orders_order_id_seq postgres
+237; 1259 17745 TABLE public payment postgres
+5501; 0 0 ACL public TABLE payment postgres
+236; 1259 17744 SEQUENCE public payment_payment_id_seq postgres
+5502; 0 0 SEQUENCE OWNED BY public payment_payment_id_seq postgres
+5503; 0 0 ACL public SEQUENCE payment_payment_id_seq postgres
+235; 1259 17718 TABLE public reservation postgres
+5504; 0 0 ACL public TABLE reservation postgres
+234; 1259 17717 SEQUENCE public reservation_reservation_id_seq postgres
+5505; 0 0 SEQUENCE OWNED BY public reservation_reservation_id_seq postgres
+5506; 0 0 ACL public SEQUENCE reservation_reservation_id_seq postgres
+228; 1259 17640 TABLE public restaurant_table postgres
+5507; 0 0 ACL public TABLE restaurant_table postgres
+227; 1259 17639 SEQUENCE public restaurant_table_table_id_seq postgres
+5508; 0 0 SEQUENCE OWNED BY public restaurant_table_table_id_seq postgres
+5509; 0 0 ACL public SEQUENCE restaurant_table_table_id_seq postgres
+230; 1259 17656 TABLE public staff postgres
+5510; 0 0 ACL public TABLE staff postgres
+229; 1259 17655 SEQUENCE public staff_staff_id_seq postgres
+5511; 0 0 SEQUENCE OWNED BY public staff_staff_id_seq postgres
+5512; 0 0 ACL public SEQUENCE staff_staff_id_seq postgres
+TABLE DATA entries in archive: 8

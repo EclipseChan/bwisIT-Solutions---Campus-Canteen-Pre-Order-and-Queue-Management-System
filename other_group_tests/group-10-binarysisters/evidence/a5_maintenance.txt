@@ -1,0 +1,63 @@
+﻿--- [rors_maint@grp_binarysisters_projectdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables where relname in ('orders','order_item') order by 1
+  relname   | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+------------+------------+------------+-------------------------------+-------------------------------
+ order_item |        171 |          0 | 2026-11-06 21:43:13.447752+08 | 2026-11-06 21:43:13.449044+08
+ orders     |         62 |          2 | 2026-11-06 21:43:13.392193+08 | 2026-11-06 21:43:13.394394+08
+(2 rows)
+
+
+--- [rors_maint@grp_binarysisters_projectdb] ANALYZE
+ANALYZE
+
+--- [rors_maint@grp_binarysisters_projectdb] VACUUM (VERBOSE, ANALYZE) public.orders
+INFO:  vacuuming "grp_binarysisters_projectdb.public.orders"
+INFO:  finished vacuuming "grp_binarysisters_projectdb.public.orders": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total), 0 eagerly scanned
+tuples: 2 removed, 62 remain, 0 are dead but not yet removable
+removable cutoff: 1348, which was 0 XIDs old when operation ended
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 15.924 MB/s
+buffer usage: 95 hits, 0 reads, 5 dirtied
+WAL usage: 6 records, 5 full page images, 35507 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.orders"
+INFO:  "orders": scanned 2 of 2 pages, containing 62 live rows and 0 dead rows; 62 rows in sample, 62 estimated total rows
+INFO:  finished analyzing table "grp_binarysisters_projectdb.public.orders"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 355 hits, 0 reads, 0 dirtied
+WAL usage: 5 records, 0 full page images, 380 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [rors_maint@grp_binarysisters_projectdb] VACUUM (VERBOSE, ANALYZE) public.order_item
+INFO:  vacuuming "grp_binarysisters_projectdb.public.order_item"
+INFO:  finished vacuuming "grp_binarysisters_projectdb.public.order_item": index scans: 0
+pages: 0 removed, 2 remain, 2 scanned (100.00% of total), 0 eagerly scanned
+tuples: 0 removed, 171 remain, 0 are dead but not yet removable
+removable cutoff: 1349, which was 0 XIDs old when operation ended
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 22.645 MB/s
+buffer usage: 74 hits, 0 reads, 5 dirtied
+WAL usage: 5 records, 5 full page images, 34079 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.order_item"
+INFO:  "order_item": scanned 2 of 2 pages, containing 171 live rows and 0 dead rows; 171 rows in sample, 171 estimated total rows
+INFO:  finished analyzing table "grp_binarysisters_projectdb.public.order_item"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 195 hits, 0 reads, 0 dirtied
+WAL usage: 6 records, 0 full page images, 442 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [rors_maint@grp_binarysisters_projectdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables where relname in ('orders','order_item') order by 1
+  relname   | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+------------+------------+------------+-------------------------------+-------------------------------
+ order_item |        171 |          0 | 2026-11-06 22:22:00.227946+08 | 2026-11-06 22:22:00.229381+08
+ orders     |         62 |          0 | 2026-11-06 22:22:00.16787+08  | 2026-11-06 22:22:00.169386+08
+(2 rows)
+
+
