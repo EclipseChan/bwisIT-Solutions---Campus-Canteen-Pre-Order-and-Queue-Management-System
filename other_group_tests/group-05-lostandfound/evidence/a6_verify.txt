@@ -1,0 +1,94 @@
+﻿################ grp05_lostandfounddb
+--- [postgres@grp05_lostandfounddb] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+      8 |     0 |         8
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+     table_name     | row_count 
+--------------------+-----------
+ categories         |        11
+ claim_images       |         0
+ claims             |         4
+ item_images        |         0
+ items              |         7
+ lost_report_images |         1
+ lost_reports       |         9
+ potential_matches  |         7
+(8 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     8
+ f       |     8
+ n       |    27
+ p       |     8
+ u       |     2
+(5 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+           97
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select count(*) from pg_trigger where not tgisinternal
+ count 
+-------
+     0
+(1 row)
+
+
+################ grp05_lostandfounddb_restore
+--- [postgres@grp05_lostandfounddb_restore] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+      8 |     0 |         8
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb_restore] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+     table_name     | row_count 
+--------------------+-----------
+ categories         |        11
+ claim_images       |         0
+ claims             |         4
+ item_images        |         0
+ items              |         7
+ lost_report_images |         1
+ lost_reports       |         9
+ potential_matches  |         7
+(8 rows)
+
+
+--- [postgres@grp05_lostandfounddb_restore] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     8
+ f       |     8
+ n       |    27
+ p       |     8
+ u       |     2
+(5 rows)
+
+
+--- [postgres@grp05_lostandfounddb_restore] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+           97
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb_restore] select count(*) from pg_trigger where not tgisinternal
+ count 
+-------
+     0
+(1 row)
+
+

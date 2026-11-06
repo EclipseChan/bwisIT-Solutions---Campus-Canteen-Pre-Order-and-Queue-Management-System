@@ -1,0 +1,39 @@
+﻿target table: attendance
+== BEFORE
+--- [postgres@ojt_management_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.attendance t
+ rows |          table_checksum          
+------+----------------------------------
+    1 | d55742fab726b2abd6f4836d909b2a7d
+(1 row)
+
+
+== INCIDENT: delete one row
+--- [postgres@ojt_management_restore] delete from public.attendance where ctid = (select min(ctid) from public.attendance)
+DELETE 1
+
+== AFTER LOSS
+--- [postgres@ojt_management_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.attendance t
+ rows | table_checksum 
+------+----------------
+    0 | 
+(1 row)
+
+
+== RECOVERY: restore the same dump into ojt_management_recovery
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@ojt_management_recovery] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.attendance t
+ rows |          table_checksum          
+------+----------------------------------
+    1 | d55742fab726b2abd6f4836d909b2a7d
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@ojt_management] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.attendance t
+ rows |          table_checksum          
+------+----------------------------------
+    1 | d55742fab726b2abd6f4836d909b2a7d
+(1 row)
+
+

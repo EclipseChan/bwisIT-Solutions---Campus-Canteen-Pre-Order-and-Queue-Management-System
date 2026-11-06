@@ -1,0 +1,104 @@
+﻿--- [postgres@grp05_lostandfounddb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+      relname       | n_live_tup | n_dead_tup | last_vacuum | last_analyze 
+--------------------+------------+------------+-------------+--------------
+ categories         |         11 |          0 |             | 
+ claim_images       |          0 |          0 |             | 
+ claims             |          4 |          2 |             | 
+ item_images        |          0 |          0 |             | 
+ items              |          7 |          0 |             | 
+ lost_report_images |          1 |          0 |             | 
+ lost_reports       |          9 |          0 |             | 
+ potential_matches  |          7 |          0 |             | 
+(8 rows)
+
+
+--- [postgres@grp05_lostandfounddb] ANALYZE
+ANALYZE
+
+--- [postgres@grp05_lostandfounddb] VACUUM (VERBOSE, ANALYZE) public.potential_matches
+INFO:  vacuuming "grp05_lostandfounddb.public.potential_matches"
+INFO:  finished vacuuming "grp05_lostandfounddb.public.potential_matches": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 0 removed, 7 remain, 0 are dead but not yet removable
+removable cutoff: 2207, which was 0 XIDs old when operation ended
+new relfrozenxid: 2146, which is 20 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 20.198 MB/s
+buffer usage: 53 hits, 0 reads, 5 dirtied
+WAL usage: 5 records, 5 full page images, 33755 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.potential_matches"
+INFO:  "potential_matches": scanned 1 of 1 pages, containing 7 live rows and 0 dead rows; 7 rows in sample, 7 estimated total rows
+INFO:  finished analyzing table "grp05_lostandfounddb.public.potential_matches"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 258 hits, 0 reads, 0 dirtied
+WAL usage: 6 records, 0 full page images, 442 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp05_lostandfounddb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+      relname       | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+--------------------+------------+------------+-------------------------------+-------------------------------
+ categories         |         11 |          0 |                               | 2026-11-06 23:22:22.39893+08
+ claim_images       |          0 |          0 |                               | 2026-11-06 23:22:22.391943+08
+ claims             |          4 |          2 |                               | 2026-11-06 23:22:22.391198+08
+ item_images        |          0 |          0 |                               | 2026-11-06 23:22:22.399622+08
+ items              |          7 |          0 |                               | 2026-11-06 23:22:22.386269+08
+ lost_report_images |          1 |          0 |                               | 2026-11-06 23:22:22.400632+08
+ lost_reports       |          9 |          0 |                               | 2026-11-06 23:22:22.388632+08
+ potential_matches  |          7 |          0 | 2026-11-06 23:22:22.575786+08 | 2026-11-06 23:22:22.578083+08
+(8 rows)
+
+
+--- [postgres@grp05_lostandfounddb] EXPLAIN select i.item_id, i.title, c.name from items i join categories c using(category_id) where i.status='unclaimed' and i.title ilike '%umbrella%' and i.location_found ilike '%library%'
+                                                                         QUERY PLAN                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Hash Join  (cost=1.14..2.30 rows=1 width=51)
+   Hash Cond: (c.category_id = i.category_id)
+   ->  Seq Scan on categories c  (cost=0.00..1.11 rows=11 width=22)
+   ->  Hash  (cost=1.12..1.12 rows=1 width=37)
+         ->  Seq Scan on items i  (cost=0.00..1.12 rows=1 width=37)
+               Filter: (((title)::text ~~* '%umbrella%'::text) AND ((location_found)::text ~~* '%library%'::text) AND ((status)::text = 'unclaimed'::text))
+(6 rows)
+
+
+--- [postgres@grp05_lostandfounddb] EXPLAIN (ANALYZE, BUFFERS) select i.item_id, i.title, c.name from items i join categories c using(category_id) where i.status='unclaimed' and i.title ilike '%umbrella%' and i.location_found ilike '%library%'
+                                                                         QUERY PLAN                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Hash Join  (cost=1.14..2.30 rows=1 width=51) (actual time=0.033..0.033 rows=1.00 loops=1)
+   Hash Cond: (c.category_id = i.category_id)
+   Buffers: shared hit=2
+   ->  Seq Scan on categories c  (cost=0.00..1.11 rows=11 width=22) (actual time=0.007..0.007 rows=11.00 loops=1)
+         Buffers: shared hit=1
+   ->  Hash  (cost=1.12..1.12 rows=1 width=37) (actual time=0.020..0.021 rows=1.00 loops=1)
+         Buckets: 1024  Batches: 1  Memory Usage: 9kB
+         Buffers: shared hit=1
+         ->  Seq Scan on items i  (cost=0.00..1.12 rows=1 width=37) (actual time=0.014..0.015 rows=1.00 loops=1)
+               Filter: (((title)::text ~~* '%umbrella%'::text) AND ((location_found)::text ~~* '%library%'::text) AND ((status)::text = 'unclaimed'::text))
+               Rows Removed by Filter: 6
+               Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=201
+ Planning Time: 2.093 ms
+ Execution Time: 0.051 ms
+(16 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+          indexname           |     tablename      
+------------------------------+--------------------
+ categories_pkey              | categories
+ claim_images_pkey            | claim_images
+ claims_claim_code_key        | claims
+ claims_pkey                  | claims
+ item_images_pkey             | item_images
+ items_pkey                   | items
+ lost_report_images_pkey      | lost_report_images
+ lost_reports_pkey            | lost_reports
+ lost_reports_report_code_key | lost_reports
+ potential_matches_pkey       | potential_matches
+(10 rows)
+
+

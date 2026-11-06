@@ -1,0 +1,135 @@
+﻿run at 11/06/2026 23:14:31
+extracting C:\Users\Marcos\Downloads\grp05_lostandfound-main.zip to C:\Users\Marcos\dba\lf
+--- prerequisites
+psql (PostgreSQL) 18.6
+PHP 8.2.12 (cli) (built: Oct 24 2023 21:15:15) (ZTS Visual C++ 2019 x64)
+php extensions: pdo_pgsql, pgsql
+git version 2.56.0.windows.4
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@postgres] CREATE DATABASE grp05_lostandfounddb
+CREATE DATABASE
+
+=== 1 schema script
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+=== 2 necessary data script
+INSERT 0 11
+=== 3 role script (both enter_your_password_here placeholders replaced with test passwords, as the README says)
+CREATE ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+CREATE ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+=== 4 demo data script
+BEGIN
+INSERT 0 0
+DELETE 0
+DELETE 0
+DELETE 0
+INSERT 0 6
+INSERT 0 7
+INSERT 0 3
+INSERT 0 6
+COMMIT
+=== .env written from .env.example with the database settings
+=== result
+--- [postgres@grp05_lostandfounddb] select tablename from pg_tables where schemaname='public' order by 1
+     tablename      
+--------------------
+ categories
+ claim_images
+ claims
+ item_images
+ items
+ lost_report_images
+ lost_reports
+ potential_matches
+(8 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select conrelid::regclass as tbl, contype, count(*) from pg_constraint where connamespace='public'::regnamespace group by 1,2 order by 1,2
+        tbl         | contype | count 
+--------------------+---------+-------
+ categories         | n       |     2
+ categories         | p       |     1
+ items              | c       |     1
+ items              | f       |     1
+ items              | n       |     2
+ items              | p       |     1
+ lost_reports       | c       |     3
+ lost_reports       | f       |     1
+ lost_reports       | n       |     5
+ lost_reports       | p       |     1
+ lost_reports       | u       |     1
+ claims             | c       |     3
+ claims             | f       |     1
+ claims             | n       |     4
+ claims             | p       |     1
+ claims             | u       |     1
+ potential_matches  | c       |     1
+ potential_matches  | f       |     2
+ potential_matches  | n       |     2
+ potential_matches  | p       |     1
+ item_images        | f       |     1
+ item_images        | n       |     4
+ item_images        | p       |     1
+ lost_report_images | f       |     1
+ lost_report_images | n       |     4
+ lost_report_images | p       |     1
+ claim_images       | f       |     1
+ claim_images       | n       |     4
+ claim_images       | p       |     1
+(29 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select count(*) as categories from categories
+ categories 
+------------
+         11
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select (select count(*) from items) items, (select count(*) from lost_reports) lost_reports, (select count(*) from claims) claims, (select count(*) from potential_matches) matches
+ items | lost_reports | claims | matches 
+-------+--------------+--------+---------
+     6 |            7 |      3 |       6
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, (rolpassword is null) as no_password from pg_authid where rolname like 'lostandfound_%' order by 1
+       rolname       | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | no_password 
+---------------------+-------------+----------+-------------+---------------+-------------
+ lostandfound_app    | t           | f        | f           | f             | f
+ lostandfound_public | t           | f        | f           | f             | f
+(2 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select datname, datacl from pg_database where datname='grp05_lostandfounddb'
+       datname        |                               datacl                                
+----------------------+---------------------------------------------------------------------
+ grp05_lostandfounddb | {=Tc/postgres,postgres=CTc/postgres,lostandfound_public=c/postgres}
+(1 row)
+
+

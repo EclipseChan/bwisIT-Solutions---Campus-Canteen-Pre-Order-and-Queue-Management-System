@@ -1,0 +1,94 @@
+﻿run at 11/06/2026 23:22:20
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select pg_size_pretty(pg_database_size('grp05_lostandfounddb')) as db_size
+ db_size 
+---------
+ 8566 kB
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='grp05_lostandfounddb'
+       datname        | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+----------------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ grp05_lostandfounddb |           1 |         462 |            16 |        10 |    40248 |         0 |          0
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select pid,usename,application_name,state,left(query,60) as query from pg_stat_activity where datname='grp05_lostandfounddb'
+  pid  | usename  | application_name | state  |                            query                             
+-------+----------+------------------+--------+--------------------------------------------------------------
+ 30528 | postgres | psql             | active | select pid,usename,application_name,state,left(query,60) as 
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze from pg_stat_user_tables order by relname
+      relname       | n_live_tup | n_dead_tup | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+--------------------+------------+------------+-------------+-----------------+--------------+------------------
+ categories         |         11 |          0 |             |                 |              | 
+ claim_images       |          0 |          0 |             |                 |              | 
+ claims             |          4 |          2 |             |                 |              | 
+ item_images        |          0 |          0 |             |                 |              | 
+ items              |          7 |          0 |             |                 |              | 
+ lost_report_images |          1 |          0 |             |                 |              | 
+ lost_reports       |          9 |          0 |             |                 |              | 
+ potential_matches  |          7 |          0 |             |                 |              | 
+(8 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+     table_name     | row_count 
+--------------------+-----------
+ categories         |        11
+ claim_images       |         0
+ claims             |         4
+ item_images        |         0
+ items              |         7
+ lost_report_images |         1
+ lost_reports       |         9
+ potential_matches  |         7
+(8 rows)
+
+
+--- [postgres@postgres] show log_statement
+ log_statement 
+---------------
+ none
+(1 row)
+
+
+--- [postgres@postgres] show log_min_duration_statement
+ log_min_duration_statement 
+----------------------------
+ -1
+(1 row)
+
+
+--- [postgres@postgres] show max_connections
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+
+--- [postgres@postgres] show autovacuum
+ autovacuum 
+------------
+ on
+(1 row)
+
+
+--- can an application role run maintenance?
+--- [login lostandfound_app@grp05_lostandfounddb] VACUUM public.items
+WARNING:  permission denied to vacuum "items", skipping it
+VACUUM
+
+--- [login lostandfound_app@grp05_lostandfounddb] ANALYZE public.items
+WARNING:  permission denied to analyze "items", skipping it
+ANALYZE
+

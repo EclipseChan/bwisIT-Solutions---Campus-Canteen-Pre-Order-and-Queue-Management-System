@@ -1,0 +1,109 @@
+﻿run at 11/06/2026 23:04:07
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@ojt_management] select pg_size_pretty(pg_database_size('ojt_management')) as db_size
+ db_size 
+---------
+ 9006 kB
+(1 row)
+
+
+--- [postgres@ojt_management] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='ojt_management'
+    datname     | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+----------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ ojt_management |           1 |         475 |            22 |        43 |    50375 |         0 |          0
+(1 row)
+
+
+--- [postgres@ojt_management] select pid,usename,application_name,state,left(query,60) as query from pg_stat_activity where datname='ojt_management'
+  pid  | usename  | application_name | state  |                            query                             
+-------+----------+------------------+--------+--------------------------------------------------------------
+ 25668 | postgres | psql             | active | select pid,usename,application_name,state,left(query,60) as 
+(1 row)
+
+
+--- [postgres@ojt_management] select relname,n_live_tup,n_dead_tup,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze from pg_stat_user_tables order by relname
+       relname        | n_live_tup | n_dead_tup | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+----------------------+------------+------------+-------------+-----------------+--------------+------------------
+ academic_supervisors |          1 |          0 |             |                 |              | 
+ attendance           |          1 |          1 |             |                 |              | 
+ audit_log            |          0 |          0 |             |                 |              | 
+ companies            |          1 |          0 |             |                 |              | 
+ company_supervisors  |          1 |          0 |             |                 |              | 
+ evaluations          |          1 |          0 |             |                 |              | 
+ ojt_applications     |          1 |          1 |             |                 |              | 
+ ojt_placements       |          1 |          0 |             |                 |              | 
+ requirements         |          3 |          0 |             |                 |              | 
+ student_requirements |          3 |          5 |             |                 |              | 
+ students             |          1 |          0 |             |                 |              | 
+ users                |          5 |          1 |             |                 |              | 
+(12 rows)
+
+
+--- [postgres@ojt_management] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+      table_name      | row_count 
+----------------------+-----------
+ academic_supervisors |         1
+ attendance           |         1
+ audit_log            |         0
+ companies            |         1
+ company_supervisors  |         1
+ evaluations          |         1
+ ojt_applications     |         1
+ ojt_placements       |         1
+ requirements         |         3
+ student_requirements |         3
+ students             |         1
+ users                |         5
+(12 rows)
+
+
+--- [postgres@postgres] show log_statement
+ log_statement 
+---------------
+ none
+(1 row)
+
+
+--- [postgres@postgres] show log_min_duration_statement
+ log_min_duration_statement 
+----------------------------
+ -1
+(1 row)
+
+
+--- [postgres@postgres] show max_connections
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+
+--- [postgres@postgres] show autovacuum
+ autovacuum 
+------------
+ on
+(1 row)
+
+
+--- can an application role see other sessions or run maintenance?
+--- [ojt_admin@ojt_management] select count(*) from pg_stat_activity
+ count 
+-------
+    11
+(1 row)
+
+
+--- [ojt_admin@ojt_management] VACUUM public.users
+WARNING:  permission denied to vacuum "users", skipping it
+VACUUM
+
+--- [ojt_admin@ojt_management] ANALYZE public.users
+WARNING:  permission denied to analyze "users", skipping it
+ANALYZE
+

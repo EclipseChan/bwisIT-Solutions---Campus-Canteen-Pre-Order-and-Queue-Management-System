@@ -1,0 +1,71 @@
+﻿run at 11/06/2026 23:04:10
+no dedicated backup role exists in the project SQL, so the dump is taken as postgres
+pg_dump exit code: 0
+Name          : ojt_management_activity6.dump
+Length        : 54021
+LastWriteTime : 06/11/2026 11:04:10 pm
+Algorithm : SHA256
+Hash      : F9149CE2218F1473CF70F872B0E40DAC945CB6961859D445919A9D8BF195CCE2
+Path      : C:\Users\Marcos\dba\backups\ojt_management_activity6.dump
+--- pg_restore --list (first 60 lines)
+;
+; Archive created at 2026-11-06 23:04:10
+;     dbname: ojt_management
+;     TOC Entries: 143
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+5196; 0 0 ACL - SCHEMA public pg_database_owner
+228; 1259 21857 TABLE public academic_supervisors postgres
+5197; 0 0 ACL public TABLE academic_supervisors postgres
+227; 1259 21856 SEQUENCE public academic_supervisors_academic_sup_id_seq postgres
+5198; 0 0 SEQUENCE OWNED BY public academic_supervisors_academic_sup_id_seq postgres
+240; 1259 22025 TABLE public attendance postgres
+5199; 0 0 ACL public TABLE attendance postgres
+5200; 0 0 ACL public COLUMN attendance.is_verified postgres
+239; 1259 22024 SEQUENCE public attendance_attendance_id_seq postgres
+5201; 0 0 SEQUENCE OWNED BY public attendance_attendance_id_seq postgres
+5202; 0 0 ACL public SEQUENCE attendance_attendance_id_seq postgres
+222; 1259 21794 TABLE public audit_log postgres
+5203; 0 0 ACL public TABLE audit_log postgres
+221; 1259 21793 SEQUENCE public audit_log_audit_id_seq postgres
+5204; 0 0 SEQUENCE OWNED BY public audit_log_audit_id_seq postgres
+226; 1259 21836 TABLE public companies postgres
+5205; 0 0 ACL public TABLE companies postgres
+225; 1259 21835 SEQUENCE public companies_company_id_seq postgres
+5206; 0 0 SEQUENCE OWNED BY public companies_company_id_seq postgres
+5207; 0 0 ACL public SEQUENCE companies_company_id_seq postgres
+230; 1259 21877 TABLE public company_supervisors postgres
+5208; 0 0 ACL public TABLE company_supervisors postgres
+229; 1259 21876 SEQUENCE public company_supervisors_company_sup_id_seq postgres
+5209; 0 0 SEQUENCE OWNED BY public company_supervisors_company_sup_id_seq postgres
+5210; 0 0 ACL public SEQUENCE company_supervisors_company_sup_id_seq postgres
+242; 1259 22050 TABLE public evaluations postgres
+5211; 0 0 ACL public TABLE evaluations postgres
+241; 1259 22049 SEQUENCE public evaluations_evaluation_id_seq postgres
+5212; 0 0 SEQUENCE OWNED BY public evaluations_evaluation_id_seq postgres
+5213; 0 0 ACL public SEQUENCE evaluations_evaluation_id_seq postgres
+234; 1259 21922 TABLE public ojt_applications postgres
+5214; 0 0 ACL public TABLE ojt_applications postgres
+233; 1259 21921 SEQUENCE public ojt_applications_application_id_seq postgres
+5215; 0 0 SEQUENCE OWNED BY public ojt_applications_application_id_seq postgres
+5216; 0 0 ACL public SEQUENCE ojt_applications_application_id_seq postgres
+238; 1259 21985 TABLE public ojt_placements postgres
+5217; 0 0 ACL public TABLE ojt_placements postgres
+5218; 0 0 ACL public COLUMN ojt_placements.status postgres
+237; 1259 21984 SEQUENCE public ojt_placements_placement_id_seq postgres
+5219; 0 0 SEQUENCE OWNED BY public ojt_placements_placement_id_seq postgres
+5220; 0 0 ACL public SEQUENCE ojt_placements_placement_id_seq postgres
+232; 1259 21905 TABLE public requirements postgres
+5221; 0 0 ACL public TABLE requirements postgres
+231; 1259 21904 SEQUENCE public requirements_req_id_seq postgres
+5222; 0 0 SEQUENCE OWNED BY public requirements_req_id_seq postgres
+TABLE DATA entries in archive: 12

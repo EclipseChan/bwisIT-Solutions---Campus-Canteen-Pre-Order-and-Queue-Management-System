@@ -1,0 +1,218 @@
+﻿run at 11/06/2026 23:21:53
+--- [postgres@grp05_lostandfounddb] select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, rolinherit, (rolpassword is null) as no_password from pg_authid where rolname like 'lostandfound_%' order by 1
+       rolname       | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | rolinherit | no_password 
+---------------------+-------------+----------+-------------+---------------+------------+-------------
+ lostandfound_app    | t           | f        | f           | f             | t          | f
+ lostandfound_public | t           | f        | f           | f             | t          | f
+(2 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select datname, datacl from pg_database where datname='grp05_lostandfounddb'
+       datname        |                               datacl                                
+----------------------+---------------------------------------------------------------------
+ grp05_lostandfounddb | {=Tc/postgres,postgres=CTc/postgres,lostandfound_public=c/postgres}
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+     tablename      | tableowner 
+--------------------+------------
+ categories         | postgres
+ claim_images       | postgres
+ claims             | postgres
+ item_images        | postgres
+ items              | postgres
+ lost_report_images | postgres
+ lost_reports       | postgres
+ potential_matches  | postgres
+(8 rows)
+
+
+=== privilege matrix, letters S I U D (a dash means not granted)
+--- [postgres@grp05_lostandfounddb] select tablename, concat(case when has_table_privilege('lostandfound_app',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('lostandfound_app',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('lostandfound_app',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('lostandfound_app',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as app, concat(case when has_table_privilege('lostandfound_public',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('lostandfound_public',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('lostandfound_public',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('lostandfound_public',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as public_role from pg_tables where schemaname='public' order by 1
+     tablename      | app  | public_role 
+--------------------+------+-------------
+ categories         | SIU- | S---
+ claim_images       | SIUD | -I--
+ claims             | SIU- | SI--
+ item_images        | SIUD | S---
+ items              | SIU- | S---
+ lost_report_images | SIUD | SI--
+ lost_reports       | SIU- | SI--
+ potential_matches  | SIUD | SI-D
+(8 rows)
+
+
+=== column-level grants for lostandfound_public on lost_reports
+--- [postgres@grp05_lostandfounddb] select column_name, privilege_type from information_schema.column_privileges where table_name='lost_reports' and grantee='lostandfound_public' and privilege_type='UPDATE' order by 1
+ column_name | privilege_type 
+-------------+----------------
+ status      | UPDATE
+(1 row)
+
+
+=== behaviour tests using real logins
+################ lostandfound_public
+### SELECT items (allowed)
+--- [login lostandfound_public@grp05_lostandfounddb] select count(*) from items
+ count 
+-------
+     7
+(1 row)
+
+
+### SELECT lost_reports with personal data (allowed by the grant)
+--- [login lostandfound_public@grp05_lostandfounddb] select report_code, full_name, student_number, email, phone_number from lost_reports limit 2
+ report_code |   full_name   | student_number |         email          | phone_number 
+-------------+---------------+----------------+------------------------+--------------
+ DEMO-LR-001 | Maria Santos  | DEMO-2024-001  | maria.demo@example.com | 09170000001
+ DEMO-LR-007 | Carla Mendoza | DEMO-2024-007  | carla.demo@example.com | 09170000007
+(2 rows)
+
+
+### SELECT claims with personal data (allowed by the grant)
+--- [login lostandfound_public@grp05_lostandfounddb] select claim_code, full_name, student_number, email, phone_number from claims limit 2
+  claim_code  |   full_name   | student_number |          email          | phone_number 
+--------------+---------------+----------------+-------------------------+--------------
+ DEMO-CLM-001 | Maria Santos  | DEMO-2024-001  | maria.demo@example.com  | 09170000001
+ DEMO-CLM-002 | Miguel Garcia | DEMO-2024-004  | miguel.demo@example.com | 09170000004
+(2 rows)
+
+
+### INSERT claim (allowed, rolled back)
+--- [login lostandfound_public@grp05_lostandfounddb] BEGIN; INSERT INTO claims(claim_code,item_id,full_name,email) VALUES ('ZZ-TEST',(select min(item_id) from items),'zz','a@b.c') RETURNING claim_id; ROLLBACK
+BEGIN
+ claim_id 
+----------
+        5
+(1 row)
+
+INSERT 0 1
+ROLLBACK
+
+### UPDATE lost_reports.status (column grant)
+--- [login lostandfound_public@grp05_lostandfounddb] update lost_reports set status='cancelled' where false
+UPDATE 0
+
+### UPDATE lost_reports.title (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] update lost_reports set title='x' where false
+ERROR:  permission denied for table lost_reports
+
+### UPDATE claims.status (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] update claims set status='approved' where false
+ERROR:  permission denied for table claims
+
+### INSERT items (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] insert into items(title) values ('zz')
+ERROR:  permission denied for table items
+
+### UPDATE items (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] update items set status='claimed' where false
+ERROR:  permission denied for table items
+
+### DELETE lost_reports (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] delete from lost_reports where false
+ERROR:  permission denied for table lost_reports
+
+### DELETE potential_matches (allowed)
+--- [login lostandfound_public@grp05_lostandfounddb] delete from potential_matches where false
+DELETE 0
+
+### SELECT claim_images (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] select count(*) from claim_images
+ERROR:  permission denied for table claim_images
+
+### SELECT pg_stat_activity (other sessions hidden)
+--- [login lostandfound_public@grp05_lostandfounddb] select count(*) as visible, count(query) filter (where query <> '<insufficient privilege>') as with_text from pg_stat_activity
+ visible | with_text 
+---------+-----------
+      11 |         1
+(1 row)
+
+
+### CREATE TABLE (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] create table public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: create table public.zz(x int)
+                     ^
+
+### CREATE ROLE (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] create role zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### DROP TABLE items (expect denied)
+--- [login lostandfound_public@grp05_lostandfounddb] drop table items
+ERROR:  must be owner of table items
+
+################ lostandfound_app
+### SELECT claims (allowed)
+--- [login lostandfound_app@grp05_lostandfounddb] select count(*) from claims
+ count 
+-------
+     4
+(1 row)
+
+
+### UPDATE claims.status (allowed, no row changed)
+--- [login lostandfound_app@grp05_lostandfounddb] update claims set status='approved' where false
+UPDATE 0
+
+### UPDATE items (allowed)
+--- [login lostandfound_app@grp05_lostandfounddb] update items set status='claimed' where false
+UPDATE 0
+
+### DELETE items (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] delete from items where false
+ERROR:  permission denied for table items
+
+### DELETE claims (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] delete from claims where false
+ERROR:  permission denied for table claims
+
+### DELETE lost_reports (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] delete from lost_reports where false
+ERROR:  permission denied for table lost_reports
+
+### DELETE item_images (allowed)
+--- [login lostandfound_app@grp05_lostandfounddb] delete from item_images where false
+DELETE 0
+
+### DELETE potential_matches (allowed)
+--- [login lostandfound_app@grp05_lostandfounddb] delete from potential_matches where false
+DELETE 0
+
+### CREATE TABLE (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] create table public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: create table public.zz(x int)
+                     ^
+
+### DROP TABLE items (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] drop table items
+ERROR:  must be owner of table items
+
+### CREATE ROLE (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] create role zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### VACUUM (expect denied)
+--- [login lostandfound_app@grp05_lostandfounddb] vacuum public.items
+WARNING:  permission denied to vacuum "items", skipping it
+VACUUM
+
+=== can the roles connect elsewhere
+--- [postgres@grp05_lostandfounddb] select datname, has_database_privilege('lostandfound_public', datname, 'CONNECT') as public_role_can_connect, has_database_privilege('lostandfound_app', datname, 'CONNECT') as app_role_can_connect from pg_database where not datistemplate order by 1
+       datname        | public_role_can_connect | app_role_can_connect 
+----------------------+-------------------------+----------------------
+ canteen_db           | f                       | f
+ grp05_lostandfounddb | t                       | t
+ postgres             | f                       | f
+(3 rows)
+
+
+=== wrong password is rejected
+--- [login lostandfound_public@grp05_lostandfounddb] select 1
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  password authentication failed for user "lostandfound_public"
+

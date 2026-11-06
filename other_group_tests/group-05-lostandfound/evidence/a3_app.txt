@@ -1,0 +1,239 @@
+﻿run at 11/06/2026 23:15:15
+=== static pages
+http://127.0.0.1:8000/app.html -> HTTP 200
+http://127.0.0.1:8001/app.html -> HTTP 200
+=== public API
+GET http://127.0.0.1:8000/api/public/categories
+  -> [{"category_id":1,"name":"IDs and Documents"},{"category_id":2,"name":"Wallets and Pouches"},{"category_id":3,"name":"Phones and Gadgets"},{"category_id":4,"name":"Chargers, Cables and Accessories"},{"category_id":5,"name":"Keys and Keychains"},{"category_id":6,"name":"Bags"},{"category_id":7,"name":"Books and School Supplies"},{"category_id":8,"name":"Clothing and Wearables"},{"category_id":9,"name":"Umbrellas"},{"category_id":10,"name":"Bottles and Food Containers"},{"category_id":11,"name":"Others"}]
+[HTTP 200]
+
+GET http://127.0.0.1:8000/api/public/items
+  -> [{"item_id":1,"category_id":2,"title":"[DEMO] Black leather wallet","description":"Black leather bifold wallet containing a student ID and several cards.","location_found":"Library","date_found":"2026-11-04","time_found":"10:15:00","status":"unclaimed","images":[]},{"item_id":2,"category_id":5,"title":"[DEMO] Set of three silver keys","description":"Three silver keys attached to a round blue keychain.","location_found":"Main Lobby","date_found":"2026-11-02","time_found":"16:40:00","status":"unclaimed","images":[]},{"item_id":4,"category_id":7,"title":"[DEMO] Casio scientific calculator","description":"Black Casio scientific calculator, model FX-991ES Plus.","location_found":"Engineering Buil ...(truncated)
+
+GET http://127.0.0.1:8000/api/public/items/search?title=umbrella
+  -> []
+[HTTP 200]
+
+POST http://127.0.0.1:8000/api/public/lost-reports/add
+  body: {"category_id":9,"title":"TEST black umbrella","description":"Folding umbrella with a wooden handle, left during the cross-group test","location_lost":"Library","date_lost":"2026-11-05","time_lost":"10:00","full_name":"Test Tester","student_number":"2023-00001-TG-0","email":"tester@example.com","phone_number":null,"contact_preference":"email"}
+  -> <br />
+<b>Warning</b>:  Undefined array key "EMAILJS_BASE_URL" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>7</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_SERVICE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>12</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_TEMPLATE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>13</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_PUBLIC_KEY" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php ...(truncated)
+
+report_code created: LR-2026-851423
+POST http://127.0.0.1:8000/api/public/lost-reports/view
+  body: {"report_code":"LR-2026-851423"}
+  -> {"report_id":8,"report_code":"LR-2026-851423","category_id":9,"title":"TEST black umbrella","description":"Folding umbrella with a wooden handle, left during the cross-group test","location_lost":"Library","date_lost":"2026-11-05","time_lost":"10:00:00","full_name":"Test Tester","student_number":"2023-00001-TG-0","email":"tester@example.com","phone_number":null,"contact_preference":"email","status":"active","created_at":"2026-11-06 23:15:20.190906","images":[]}
+[HTTP 200]
+
+GET http://127.0.0.1:8000/api/public/lost-reports/matches/LR-2026-851423
+  -> []
+[HTTP 200]
+
+unclaimed item used for the claim: 1
+POST http://127.0.0.1:8000/api/public/claims/add
+  body: {"item_id":1,"full_name":"Test Tester","student_number":"2023-00001-TG-0","email":"tester@example.com","phone_number":null,"contact_preference":"email"}
+  -> <br />
+<b>Warning</b>:  Undefined array key "EMAILJS_BASE_URL" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>7</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_SERVICE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>12</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_TEMPLATE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>13</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_PUBLIC_KEY" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php ...(truncated)
+
+claim_code created: CLM-2026-770920
+POST http://127.0.0.1:8000/api/public/claims/view
+  body: {"claim_code":"CLM-2026-770920"}
+  -> {"claim_id":4,"claim_code":"CLM-2026-770920","item_id":1,"full_name":"Test Tester","student_number":"2023-00001-TG-0","email":"tester@example.com","phone_number":null,"contact_preference":"email","status":"pending","created_at":"2026-11-06 23:15:20.604481","claimed_item":{"item_id":1,"category_id":2,"title":"[DEMO] Black leather wallet","description":"Black leather bifold wallet containing a student ID and several cards.","location_found":"Library","date_found":"2026-11-04","time_found":"10:15:00","status":"unclaimed","images":[]}}
+[HTTP 200]
+
+=== validation and error handling
+POST http://127.0.0.1:8000/api/public/lost-reports/add
+  body: {"title":"incomplete"}
+  -> {"message":"Missing required fields: category_id, description, full_name, student_number"}
+[HTTP 400]
+
+POST http://127.0.0.1:8000/api/public/lost-reports/view
+  body: {"report_code":"NOPE-0000"}
+  -> {"message":"Resource not found."}
+[HTTP 404]
+
+POST http://127.0.0.1:8000/api/public/lost-reports/view
+  body: {}
+  -> <br />
+<b>Warning</b>:  Undefined array key "report_code" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\controllers\publicController.php</b> on line <b>40</b><br />
+<br />
+<b>Fatal error</b>:  Uncaught TypeError: LostReportService::getLostReportByCode(): Argument #1 ($code) must be of type string, null given, called in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\controllers\publicController.php on line 40 and defined in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\services\lostReportService.php:205
+Stack trace:
+#0 C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\controllers\publicController.php(40): LostReportService-&gt;getLostReportByCode(NULL)
+#1 C:\Users\M ...(truncated)
+
+GET http://127.0.0.1:8000/api/admin/items
+  -> {"error":"Endpoint not found"}
+[HTTP 404]
+
+=== admin API
+GET http://127.0.0.1:8001/api/admin/test
+  -> {"message":"its working! :D"}
+[HTTP 200]
+
+GET http://127.0.0.1:8001/api/admin/items
+  -> [{"item_id":1,"category_id":2,"title":"[DEMO] Black leather wallet","description":"Black leather bifold wallet containing a student ID and several cards.","location_found":"Library","date_found":"2026-11-04","time_found":"10:15:00","status":"unclaimed","images":[]},{"item_id":2,"category_id":5,"title":"[DEMO] Set of three silver keys","description":"Three silver keys attached to a round blue keychain.","location_found":"Main Lobby","date_found":"2026-11-02","time_found":"16:40:00","status":"unclaimed","images":[]},{"item_id":3,"category_id":6,"title":"[DEMO] Navy blue backpack","description":"Navy blue backpack with two main compartments and a small front pocket.","location_found":"Cafeteria ...(truncated)
+
+GET http://127.0.0.1:8001/api/admin/lost-reports
+  -> [{"report_id":1,"report_code":"DEMO-LR-001","category_id":2,"title":"Black wallet","description":"A black leather wallet with my school ID and bank cards inside.","location_lost":"Library","date_lost":"2026-11-04","time_lost":"09:45:00","full_name":"Maria Santos","student_number":"DEMO-2024-001","email":"maria.demo@example.com","phone_number":"09170000001","contact_preference":"email","status":"active","created_at":"2026-11-04 23:14:38.585963","images":[]},{"report_id":2,"report_code":"DEMO-LR-007","category_id":3,"title":"White wireless earbuds","description":"White wireless earbuds in a charging case.","location_lost":"Student Lounge","date_lost":"2026-10-31","time_lost":"14:00:00","full_n ...(truncated)
+
+GET http://127.0.0.1:8001/api/admin/claims
+  -> [{"claim_id":1,"claim_code":"DEMO-CLM-001","item_id":1,"full_name":"Maria Santos","student_number":"DEMO-2024-001","email":"maria.demo@example.com","phone_number":"09170000001","contact_preference":"email","status":"pending","created_at":"2026-11-06 21:14:38.585963","images":[]},{"claim_id":2,"claim_code":"DEMO-CLM-002","item_id":3,"full_name":"Miguel Garcia","student_number":"DEMO-2024-004","email":"miguel.demo@example.com","phone_number":"09170000004","contact_preference":"sms","status":"approved","created_at":"2026-11-05 23:14:38.585963","images":[]},{"claim_id":3,"claim_code":"DEMO-CLM-003","item_id":4,"full_name":"Rafael Torres","student_number":"DEMO-2024-008","email":"rafael.demo@exam ...(truncated)
+
+PATCH http://127.0.0.1:8001/api/admin/claims/update/4
+  body: {"status":"approved"}
+  -> <br />
+<b>Warning</b>:  Undefined array key "EMAILJS_BASE_URL" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>7</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_SERVICE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>12</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_TEMPLATE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>13</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_PUBLIC_KEY" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php ...(truncated)
+
+POST http://127.0.0.1:8001/api/admin/items/add
+  body: {"category_id":9,"title":"TEST found umbrella","description":"Black folding umbrella","location_found":"Library","date_found":"2026-11-06","time_found":"09:30"}
+  -> <br />
+<b>Warning</b>:  Undefined array key "EMAILJS_BASE_URL" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>7</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_SERVICE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>12</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_TEMPLATE_ID" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php</b> on line <b>13</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "EMAILJS_PUBLIC_KEY" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php ...(truncated)
+
+GET http://127.0.0.1:8001/api/admin/sms/stats
+  -> <br />
+<b>Warning</b>:  Undefined array key "TEXTBEE_API_KEY" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\textbeeClient.php</b> on line <b>8</b><br />
+<br />
+<b>Warning</b>:  Undefined array key "TEXTBEE_BASE_URL" in <b>C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\textbeeClient.php</b> on line <b>9</b><br />
+{"success":false,"status":0,"message":"Unable to connect to TextBee."}
+[HTTP 200]
+
+=== which database role does each server really use? (login switched off for one role at a time)
+--- [postgres@postgres] ALTER ROLE lostandfound_public NOLOGIN
+ALTER ROLE
+
+-- public role disabled: public server then admin server
+GET http://127.0.0.1:8000/api/public/categories
+  -> {"error":"Database connection failed"}
+[HTTP 500]
+
+GET http://127.0.0.1:8001/api/admin/categories
+  -> [{"category_id":1,"name":"IDs and Documents"},{"category_id":2,"name":"Wallets and Pouches"},{"category_id":3,"name":"Phones and Gadgets"},{"category_id":4,"name":"Chargers, Cables and Accessories"},{"category_id":5,"name":"Keys and Keychains"},{"category_id":6,"name":"Bags"},{"category_id":7,"name":"Books and School Supplies"},{"category_id":8,"name":"Clothing and Wearables"},{"category_id":9,"name":"Umbrellas"},{"category_id":10,"name":"Bottles and Food Containers"},{"category_id":11,"name":"Others"}]
+[HTTP 200]
+
+--- [postgres@postgres] ALTER ROLE lostandfound_public LOGIN
+ALTER ROLE
+
+--- [postgres@postgres] ALTER ROLE lostandfound_app NOLOGIN
+ALTER ROLE
+
+-- app role disabled: public server then admin server
+GET http://127.0.0.1:8000/api/public/categories
+  -> [{"category_id":1,"name":"IDs and Documents"},{"category_id":2,"name":"Wallets and Pouches"},{"category_id":3,"name":"Phones and Gadgets"},{"category_id":4,"name":"Chargers, Cables and Accessories"},{"category_id":5,"name":"Keys and Keychains"},{"category_id":6,"name":"Bags"},{"category_id":7,"name":"Books and School Supplies"},{"category_id":8,"name":"Clothing and Wearables"},{"category_id":9,"name":"Umbrellas"},{"category_id":10,"name":"Bottles and Food Containers"},{"category_id":11,"name":"Others"}]
+[HTTP 200]
+
+GET http://127.0.0.1:8001/api/admin/categories
+  -> {"error":"Database connection failed"}
+[HTTP 500]
+
+--- [postgres@postgres] ALTER ROLE lostandfound_app LOGIN
+ALTER ROLE
+
+-- both roles restored
+GET http://127.0.0.1:8000/api/public/categories
+  -> [{"category_id":1,"name":"IDs and Documents"},{"category_id":2,"name":"Wallets and Pouches"},{"category_id":3,"name":"Phones and Gadgets"},{"category_id":4,"name":"Chargers, Cables and Accessories"},{"category_id":5,"name":"Keys and Keychains"},{"category_id":6,"name":"Bags"},{"category_id":7,"name":"Books and School Supplies"},{"category_id":8,"name":"Clothing and Wearables"},{"category_id":9,"name":"Umbrellas"},{"category_id":10,"name":"Bottles and Food Containers"},{"category_id":11,"name":"Others"}]
+[HTTP 200]
+
+=== database state after the tests
+--- [postgres@grp05_lostandfounddb] select (select count(*) from items) items, (select count(*) from lost_reports) lost_reports, (select count(*) from claims) claims, (select count(*) from potential_matches) matches
+ items | lost_reports | claims | matches 
+-------+--------------+--------+---------
+     7 |            8 |      4 |       7
+(1 row)
+
+
+--- [postgres@grp05_lostandfounddb] select claim_code, status, full_name from claims order by claim_id desc limit 3
+   claim_code    |  status  |   full_name   
+-----------------+----------+---------------
+ CLM-2026-770920 | approved | Test Tester
+ DEMO-CLM-003    | rejected | Rafael Torres
+ DEMO-CLM-002    | approved | Miguel Garcia
+(3 rows)
+
+
+--- [postgres@grp05_lostandfounddb] select report_code, status, title from lost_reports order by report_id desc limit 3
+  report_code   |  status  |        title        
+----------------+----------+---------------------
+ LR-2026-851423 | active   | TEST black umbrella
+ DEMO-LR-002    | active   | Blue water bottle
+ DEMO-LR-006    | resolved | Black umbrella
+(3 rows)
+
+
+=== PHP server logs (last lines)
+-- public
+Stack trace:
+#0 C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\controllers\publicController.php(40): LostReportService->getLostReportByCode(NULL)
+#1 C:\Users\Marcos\dba\lf\grp05_lostandfound-main\public\index.php(56): PublicController->handleRequest('POST', '/api/public/los...')
+#2 {main}
+  thrown in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\services\lostReportService.php on line 205
+[Fri Nov  6 23:15:20 2026] 127.0.0.1:56545 [200]: POST /api/public/lost-reports/view - Uncaught TypeError: LostReportService::getLostReportByCode(): Argument #1 ($code) must be of type string, null given, called in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\controllers\publicController.php on line 40 and defined in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\services\lostReportService.php:205
+Stack trace:
+#0 C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\controllers\publicController.php(40): LostReportService->getLostReportByCode(NULL)
+#1 C:\Users\Marcos\dba\lf\grp05_lostandfound-main\public\index.php(56): PublicController->handleRequest('POST', '/api/public/los...')
+#2 {main}
+  thrown in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\services\lostReportService.php on line 205
+[Fri Nov  6 23:15:20 2026] 127.0.0.1:56545 Closing
+[Fri Nov  6 23:15:20 2026] 127.0.0.1:56547 Accepted
+[Fri Nov  6 23:15:20 2026] 127.0.0.1:56547 [404]: GET /api/admin/items
+[Fri Nov  6 23:15:20 2026] 127.0.0.1:56547 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56566 Accepted
+[Fri Nov  6 23:15:21 2026] SQLSTATE[08006] [7] FATAL:  role "lostandfound_public" is not permitted to log in
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56566 [500]: GET /api/public/categories
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56566 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56574 Accepted
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56574 [200]: GET /api/public/categories
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56574 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56579 Accepted
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56579 [200]: GET /api/public/categories
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56579 Closing
+-- admin
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "EMAILJS_TEMPLATE_ID" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php on line 13
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "EMAILJS_PUBLIC_KEY" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php on line 14
+[Fri Nov  6 23:15:21 2026] EmailJS claim approval response: {"success":false,"status":0,"message":"Unable to connect to EmailJS."}
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56559 [200]: PATCH /api/admin/claims/update/4
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56559 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56561 Accepted
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "EMAILJS_BASE_URL" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php on line 7
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "EMAILJS_SERVICE_ID" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php on line 12
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "EMAILJS_TEMPLATE_ID" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php on line 13
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "EMAILJS_PUBLIC_KEY" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\emailJSClient.php on line 14
+[Fri Nov  6 23:15:21 2026] EmailJS response: {"success":false,"status":0,"message":"Unable to connect to EmailJS."}
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56561 [201]: POST /api/admin/items/add
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56561 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56563 Accepted
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "TEXTBEE_API_KEY" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\textbeeClient.php on line 8
+[Fri Nov  6 23:15:21 2026] PHP Warning:  Undefined array key "TEXTBEE_BASE_URL" in C:\Users\Marcos\dba\lf\grp05_lostandfound-main\src\integrations\textbeeClient.php on line 9
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56563 [200]: GET /api/admin/sms/stats
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56563 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56568 Accepted
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56568 [200]: GET /api/admin/categories
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56568 Closing
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56576 Accepted
+[Fri Nov  6 23:15:21 2026] SQLSTATE[08006] [7] FATAL:  role "lostandfound_app" is not permitted to log in
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56576 [500]: GET /api/admin/categories
+[Fri Nov  6 23:15:21 2026] 127.0.0.1:56576 Closing

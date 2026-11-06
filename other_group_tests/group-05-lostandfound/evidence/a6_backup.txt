@@ -1,0 +1,71 @@
+﻿run at 11/06/2026 23:22:22
+no dedicated backup role exists in the project SQL, so the dump is taken as postgres
+pg_dump exit code: 0
+Name          : grp05_lostandfounddb_activity6.dump
+Length        : 32805
+LastWriteTime : 06/11/2026 11:22:22 pm
+Algorithm : SHA256
+Hash      : 0ED9D80E50D1C65127570A2EB79F32FFD784AE35EC40D239979F9A831CC26929
+Path      : C:\Users\Marcos\dba\backups\grp05_lostandfounddb_activity6.dump
+--- pg_restore --list (first 60 lines)
+;
+; Archive created at 2026-11-06 23:22:22
+;     dbname: grp05_lostandfounddb
+;     TOC Entries: 89
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+5117; 0 0 ACL - SCHEMA public pg_database_owner
+220; 1259 22772 TABLE public categories postgres
+5118; 0 0 ACL public TABLE categories postgres
+219; 1259 22771 SEQUENCE public categories_category_id_seq postgres
+5119; 0 0 SEQUENCE OWNED BY public categories_category_id_seq postgres
+5120; 0 0 ACL public SEQUENCE categories_category_id_seq postgres
+234; 1259 22908 TABLE public claim_images postgres
+5121; 0 0 ACL public TABLE claim_images postgres
+233; 1259 22907 SEQUENCE public claim_images_claim_image_id_seq postgres
+5122; 0 0 SEQUENCE OWNED BY public claim_images_claim_image_id_seq postgres
+5123; 0 0 ACL public SEQUENCE claim_images_claim_image_id_seq postgres
+226; 1259 22826 TABLE public claims postgres
+5124; 0 0 ACL public TABLE claims postgres
+225; 1259 22825 SEQUENCE public claims_claim_id_seq postgres
+5125; 0 0 SEQUENCE OWNED BY public claims_claim_id_seq postgres
+5126; 0 0 ACL public SEQUENCE claims_claim_id_seq postgres
+230; 1259 22874 TABLE public item_images postgres
+5127; 0 0 ACL public TABLE item_images postgres
+229; 1259 22873 SEQUENCE public item_images_item_image_id_seq postgres
+5128; 0 0 SEQUENCE OWNED BY public item_images_item_image_id_seq postgres
+5129; 0 0 ACL public SEQUENCE item_images_item_image_id_seq postgres
+222; 1259 22781 TABLE public items postgres
+5130; 0 0 ACL public TABLE items postgres
+221; 1259 22780 SEQUENCE public items_item_id_seq postgres
+5131; 0 0 SEQUENCE OWNED BY public items_item_id_seq postgres
+5132; 0 0 ACL public SEQUENCE items_item_id_seq postgres
+232; 1259 22891 TABLE public lost_report_images postgres
+5133; 0 0 ACL public TABLE lost_report_images postgres
+231; 1259 22890 SEQUENCE public lost_report_images_report_image_id_seq postgres
+5134; 0 0 SEQUENCE OWNED BY public lost_report_images_report_image_id_seq postgres
+5135; 0 0 ACL public SEQUENCE lost_report_images_report_image_id_seq postgres
+224; 1259 22799 TABLE public lost_reports postgres
+5136; 0 0 ACL public TABLE lost_reports postgres
+5137; 0 0 ACL public COLUMN lost_reports.status postgres
+223; 1259 22798 SEQUENCE public lost_reports_report_id_seq postgres
+5138; 0 0 SEQUENCE OWNED BY public lost_reports_report_id_seq postgres
+5139; 0 0 ACL public SEQUENCE lost_reports_report_id_seq postgres
+228; 1259 22852 TABLE public potential_matches postgres
+5140; 0 0 ACL public TABLE potential_matches postgres
+227; 1259 22851 SEQUENCE public potential_matches_match_id_seq postgres
+5141; 0 0 SEQUENCE OWNED BY public potential_matches_match_id_seq postgres
+5142; 0 0 ACL public SEQUENCE potential_matches_match_id_seq postgres
+4891; 2604 22775 DEFAULT public categories category_id postgres
+4909; 2604 22911 DEFAULT public claim_images claim_image_id postgres
+4898; 2604 22829 DEFAULT public claims claim_id postgres
+TABLE DATA entries in archive: 8

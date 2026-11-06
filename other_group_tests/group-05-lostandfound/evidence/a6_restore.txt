@@ -1,0 +1,6 @@
+﻿NOTICE:  database "grp05_lostandfounddb_restore" does not exist, skipping
+DROP DATABASE
+NOTICE:  database "grp05_lostandfounddb_recovery" does not exist, skipping
+DROP DATABASE
+pg_restore exit code: 0 ; elapsed seconds: 0.2
+no messages (no warnings or errors)

@@ -1,0 +1,34 @@
+﻿--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp05_lostandfounddb%' order by 1
+           datname            |                               datacl                                
+------------------------------+---------------------------------------------------------------------
+ grp05_lostandfounddb         | {=Tc/postgres,postgres=CTc/postgres,lostandfound_public=c/postgres}
+ grp05_lostandfounddb_restore | 
+(2 rows)
+
+
+--- re-applying the database-level CONNECT grant on grp05_lostandfounddb_restore (a database dump does not carry it)
+--- [postgres@postgres] GRANT CONNECT ON DATABASE grp05_lostandfounddb_restore TO lostandfound_public
+GRANT
+
+--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp05_lostandfounddb%' order by 1
+           datname            |                               datacl                                
+------------------------------+---------------------------------------------------------------------
+ grp05_lostandfounddb         | {=Tc/postgres,postgres=CTc/postgres,lostandfound_public=c/postgres}
+ grp05_lostandfounddb_restore | {=Tc/postgres,postgres=CTc/postgres,lostandfound_public=c/postgres}
+(2 rows)
+
+
+--- [login lostandfound_public@grp05_lostandfounddb_restore] select count(*) as items_visible_to_public from items
+ items_visible_to_public 
+-------------------------
+                       7
+(1 row)
+
+
+--- [login lostandfound_app@grp05_lostandfounddb_restore] select count(*) from claims
+ count 
+-------
+     4
+(1 row)
+
+

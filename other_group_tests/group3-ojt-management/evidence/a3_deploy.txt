@@ -1,0 +1,165 @@
+﻿run at 11/06/2026 22:46:27
+--- prerequisites
+psql (PostgreSQL) 18.6
+openjdk version "21.0.13" 2026-10-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.13+9 (build 21.0.13+9-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.13+9 (build 21.0.13+9-LTS, mixed mode, sharing)
+javac 21.0.13
+Apache Maven 3.9.16 (2bdd9fddda4b155ebf8000e807eb73fd829a51d5)
+Maven home: C:\Program Files\Apache\maven\apache-maven-3.9.16
+Java version: 21.0.13, vendor: Eclipse Adoptium, runtime: C:\Program Files\Eclipse Adoptium\jdk-21.0.13.9-hotspot
+Default locale: en_PH, platform encoding: UTF-8
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@postgres] CREATE DATABASE ojt_management
+CREATE DATABASE
+
+=== PART 1 (tables) run exactly as documented, errors are kept
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+psql:C:/Users/Marcos/dba/ojt/sql/part1_tables.sql:113: ERROR:  syntax error at or near ")"
+LINE 1: );
+        ^
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+psql:C:/Users/Marcos/dba/ojt/sql/part1_tables.sql:197: ERROR:  syntax error at or near "ΓÇï"
+LINE 1: ΓÇï
+        ^
+=== PART 2 (roles and grants) run exactly as documented
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+=== result
+--- [postgres@ojt_management] select count(*) as tables from pg_tables where schemaname='public'
+ tables 
+--------
+     12
+(1 row)
+
+
+--- [postgres@ojt_management] select tablename from pg_tables where schemaname='public' order by 1
+      tablename       
+----------------------
+ academic_supervisors
+ attendance
+ audit_log
+ companies
+ company_supervisors
+ evaluations
+ ojt_applications
+ ojt_placements
+ requirements
+ student_requirements
+ students
+ users
+(12 rows)
+
+
+--- [postgres@ojt_management] select conrelid::regclass as tbl, contype, count(*) from pg_constraint where connamespace='public'::regnamespace group by 1,2 order by 1,2
+         tbl          | contype | count 
+----------------------+---------+-------
+ users                | c       |     1
+ users                | n       |     8
+ users                | p       |     1
+ users                | u       |     2
+ audit_log            | n       |     5
+ audit_log            | p       |     1
+ students             | c       |     1
+ students             | f       |     1
+ students             | n       |     9
+ students             | p       |     1
+ students             | u       |     2
+ companies            | n       |     8
+ companies            | p       |     1
+ companies            | u       |     1
+ academic_supervisors | f       |     1
+ academic_supervisors | n       |     5
+ academic_supervisors | p       |     1
+ academic_supervisors | u       |     1
+ company_supervisors  | f       |     2
+ company_supervisors  | n       |     8
+ company_supervisors  | p       |     1
+ company_supervisors  | u       |     1
+ requirements         | n       |     4
+ requirements         | p       |     1
+ requirements         | u       |     1
+ ojt_applications     | c       |     1
+ ojt_applications     | f       |     2
+ ojt_applications     | n       |     6
+ ojt_applications     | p       |     1
+ ojt_applications     | u       |     1
+ student_requirements | c       |     1
+ student_requirements | f       |     3
+ student_requirements | n       |     4
+ student_requirements | p       |     1
+ student_requirements | u       |     1
+ ojt_placements       | c       |     3
+ ojt_placements       | f       |     3
+ ojt_placements       | n       |    11
+ ojt_placements       | p       |     1
+ ojt_placements       | u       |     1
+ attendance           | c       |     2
+ attendance           | f       |     1
+ attendance           | n       |     6
+ attendance           | p       |     1
+ attendance           | u       |     1
+ evaluations          | c       |     1
+ evaluations          | f       |     2
+ evaluations          | n       |     6
+ evaluations          | p       |     1
+(49 rows)
+
+
+--- [postgres@ojt_management] select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, (rolpassword is null) as no_password from pg_authid where rolname like 'ojt_%' order by 1
+         rolname         | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | no_password 
+-------------------------+-------------+----------+-------------+---------------+-------------
+ ojt_academic_supervisor | t           | f        | f           | f             | t
+ ojt_admin               | t           | f        | f           | f             | t
+ ojt_company_supervisor  | t           | f        | f           | f             | t
+ ojt_coordinator         | t           | f        | f           | f             | t
+ ojt_student             | t           | f        | f           | f             | t
+(5 rows)
+
+
+--- [postgres@ojt_management] select datname, datacl from pg_database where datname='ojt_management'
+    datname     |                                                                                      datacl                                                                                      
+----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ ojt_management | {=Tc/postgres,postgres=CTc/postgres,ojt_admin=c/postgres,ojt_student=c/postgres,ojt_academic_supervisor=c/postgres,ojt_company_supervisor=c/postgres,ojt_coordinator=c/postgres}
+(1 row)
+
+

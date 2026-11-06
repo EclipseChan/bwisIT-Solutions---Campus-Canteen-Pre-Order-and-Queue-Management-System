@@ -1,0 +1,225 @@
+﻿run at 11/06/2026 23:03:56
+--- [postgres@ojt_management] select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, rolinherit, (rolpassword is null) as no_password from pg_authid where rolname like 'ojt_%' order by 1
+         rolname         | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | rolinherit | no_password 
+-------------------------+-------------+----------+-------------+---------------+------------+-------------
+ ojt_academic_supervisor | t           | f        | f           | f             | t          | t
+ ojt_admin               | t           | f        | f           | f             | t          | t
+ ojt_company_supervisor  | t           | f        | f           | f             | t          | t
+ ojt_coordinator         | t           | f        | f           | f             | t          | t
+ ojt_student             | t           | f        | f           | f             | t          | t
+(5 rows)
+
+
+--- [postgres@ojt_management] select datname, datacl from pg_database where datname='ojt_management'
+    datname     |                                                                                      datacl                                                                                      
+----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ ojt_management | {=Tc/postgres,postgres=CTc/postgres,ojt_admin=c/postgres,ojt_student=c/postgres,ojt_academic_supervisor=c/postgres,ojt_company_supervisor=c/postgres,ojt_coordinator=c/postgres}
+(1 row)
+
+
+--- [postgres@ojt_management] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+      tablename       | tableowner 
+----------------------+------------
+ academic_supervisors | postgres
+ attendance           | postgres
+ audit_log            | postgres
+ companies            | postgres
+ company_supervisors  | postgres
+ evaluations          | postgres
+ ojt_applications     | postgres
+ ojt_placements       | postgres
+ requirements         | postgres
+ student_requirements | postgres
+ students             | postgres
+ users                | postgres
+(12 rows)
+
+
+=== privilege matrix, letters S I U D (a dash means not granted)
+--- [postgres@ojt_management] select tablename, concat(case when has_table_privilege('ojt_admin',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('ojt_admin',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('ojt_admin',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('ojt_admin',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as admin, concat(case when has_table_privilege('ojt_student',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('ojt_student',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('ojt_student',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('ojt_student',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as student, concat(case when has_table_privilege('ojt_academic_supervisor',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('ojt_academic_supervisor',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('ojt_academic_supervisor',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('ojt_academic_supervisor',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as acad, concat(case when has_table_privilege('ojt_company_supervisor',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('ojt_company_supervisor',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('ojt_company_supervisor',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('ojt_company_supervisor',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as comp, concat(case when has_table_privilege('ojt_coordinator',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('ojt_coordinator',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('ojt_coordinator',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('ojt_coordinator',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as coord from pg_tables where schemaname='public' order by 1
+      tablename       | admin | student | acad | comp | coord 
+----------------------+-------+---------+------+------+-------
+ academic_supervisors | ----  | ----    | ---- | ---- | S---
+ attendance           | ----  | SIU-    | S--- | SIU- | S---
+ audit_log            | S---  | ----    | ---- | ---- | ----
+ companies            | ----  | S---    | ---- | S--- | SIU-
+ company_supervisors  | ----  | ----    | ---- | S--- | SIU-
+ evaluations          | ----  | S---    | S--- | SIU- | S---
+ ojt_applications     | ----  | SIU-    | S--- | ---- | SIU-
+ ojt_placements       | ----  | S---    | S--- | S--- | SIU-
+ requirements         | ----  | S---    | S--- | ---- | S---
+ student_requirements | ----  | SIU-    | S--- | ---- | S---
+ students             | ----  | S---    | S--- | S--- | S---
+ users                | SIU-  | ----    | ---- | ---- | ----
+(12 rows)
+
+
+=== behaviour tests (session role set with PGOPTIONS role=<name>)
+### [ojt_admin] SELECT users
+--- [ojt_admin@ojt_management] select count(*) from users
+ count 
+-------
+     5
+(1 row)
+
+
+### [ojt_admin] SELECT audit_log
+--- [ojt_admin@ojt_management] select count(*) from audit_log
+ count 
+-------
+     0
+(1 row)
+
+
+### [ojt_admin] INSERT users (rolled back)
+--- [ojt_admin@ojt_management] BEGIN; INSERT INTO users(username,email,password_hash,role) VALUES ('zz_test','zz@test.local','x','ADMIN') RETURNING user_id; ROLLBACK
+BEGIN
+ user_id 
+---------
+       6
+(1 row)
+
+INSERT 0 1
+ROLLBACK
+
+### [ojt_admin] DELETE users (expect denied)
+--- [ojt_admin@ojt_management] delete from users where false
+ERROR:  permission denied for table users
+
+### [ojt_admin] SELECT students (expect denied)
+--- [ojt_admin@ojt_management] select count(*) from students
+ERROR:  permission denied for table students
+
+### [ojt_student] SELECT users (expect denied)
+--- [ojt_student@ojt_management] select password_hash from users limit 1
+ERROR:  permission denied for table users
+
+### [ojt_student] SELECT students (allowed)
+--- [ojt_student@ojt_management] select count(*) from students
+ count 
+-------
+     1
+(1 row)
+
+
+### [ojt_student] UPDATE application status (own role may set it)
+--- [ojt_student@ojt_management] update ojt_applications set status='Approved' where false
+UPDATE 0
+
+### [ojt_student] UPDATE requirement status (self-verify)
+--- [ojt_student@ojt_management] update student_requirements set status='Approved', verified_at=now() where false
+UPDATE 0
+
+### [ojt_student] UPDATE attendance is_verified
+--- [ojt_student@ojt_management] update attendance set is_verified=true where false
+UPDATE 0
+
+### [ojt_student] DELETE attendance (expect denied)
+--- [ojt_student@ojt_management] delete from attendance where false
+ERROR:  permission denied for table attendance
+
+### [ojt_student] SELECT company_supervisors (expect denied)
+--- [ojt_student@ojt_management] select count(*) from company_supervisors
+ERROR:  permission denied for table company_supervisors
+
+### [ojt_academic_supervisor] UPDATE requirement status (allowed)
+--- [ojt_academic_supervisor@ojt_management] update student_requirements set status='Approved' where false
+UPDATE 0
+
+### [ojt_academic_supervisor] UPDATE requirement file_path (expect denied)
+--- [ojt_academic_supervisor@ojt_management] update student_requirements set file_path='x' where false
+ERROR:  permission denied for table student_requirements
+
+### [ojt_academic_supervisor] UPDATE placement start_date (expect denied)
+--- [ojt_academic_supervisor@ojt_management] update ojt_placements set start_date=current_date where false
+ERROR:  permission denied for table ojt_placements
+
+### [ojt_academic_supervisor] UPDATE placement status (allowed)
+--- [ojt_academic_supervisor@ojt_management] update ojt_placements set status='Active' where false
+UPDATE 0
+
+### [ojt_academic_supervisor] SELECT companies (expect denied)
+--- [ojt_academic_supervisor@ojt_management] select count(*) from companies
+ERROR:  permission denied for table companies
+
+### [ojt_company_supervisor] INSERT evaluation (allowed, no row so only privilege checked)
+--- [ojt_company_supervisor@ojt_management] update evaluations set score=score where false
+UPDATE 0
+
+### [ojt_company_supervisor] SELECT ojt_applications (expect denied)
+--- [ojt_company_supervisor@ojt_management] select count(*) from ojt_applications
+ERROR:  permission denied for table ojt_applications
+
+### [ojt_company_supervisor] SELECT users (expect denied)
+--- [ojt_company_supervisor@ojt_management] select count(*) from users
+ERROR:  permission denied for table users
+
+### [ojt_coordinator] UPDATE ojt_placements (allowed)
+--- [ojt_coordinator@ojt_management] update ojt_placements set status='Active' where false
+UPDATE 0
+
+### [ojt_coordinator] UPDATE users (expect denied)
+--- [ojt_coordinator@ojt_management] update users set is_active=false where false
+ERROR:  permission denied for table users
+
+### [ojt_coordinator] DELETE companies (expect denied)
+--- [ojt_coordinator@ojt_management] delete from companies where false
+ERROR:  permission denied for table companies
+
+### [ojt_coordinator] SELECT evaluations (allowed)
+--- [ojt_coordinator@ojt_management] select count(*) from evaluations
+ count 
+-------
+     1
+(1 row)
+
+
+=== DDL and server-level actions (expect denied for every app role)
+### [ojt_admin] CREATE TABLE
+--- [ojt_admin@ojt_management] CREATE TABLE public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.zz(x int)
+                     ^
+
+### [ojt_admin] DROP TABLE
+--- [ojt_admin@ojt_management] DROP TABLE students
+ERROR:  must be owner of table students
+
+### [ojt_admin] CREATE ROLE
+--- [ojt_admin@ojt_management] CREATE ROLE zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### [ojt_admin] CREATE DATABASE
+--- [ojt_admin@postgres] CREATE DATABASE zz_test
+ERROR:  permission denied to create database
+
+### [ojt_student] CREATE TABLE
+--- [ojt_student@ojt_management] CREATE TABLE public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.zz(x int)
+                     ^
+
+### [ojt_student] DROP TABLE
+--- [ojt_student@ojt_management] DROP TABLE students
+ERROR:  must be owner of table students
+
+### [ojt_student] CREATE ROLE
+--- [ojt_student@ojt_management] CREATE ROLE zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### [ojt_student] CREATE DATABASE
+--- [ojt_student@postgres] CREATE DATABASE zz_test
+ERROR:  permission denied to create database
+
+=== can PUBLIC or the roles connect elsewhere
+--- [postgres@ojt_management] select datname, has_database_privilege('ojt_student', datname, 'CONNECT') as ojt_student_can_connect from pg_database where not datistemplate order by 1
+    datname     | ojt_student_can_connect 
+----------------+-------------------------
+ canteen_db     | f
+ ojt_management | t
+ postgres       | f
+(3 rows)
+
+

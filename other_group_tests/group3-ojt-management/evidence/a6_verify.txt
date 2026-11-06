@@ -1,0 +1,102 @@
+﻿################ ojt_management
+--- [postgres@ojt_management] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+     12 |     0 |        12
+(1 row)
+
+
+--- [postgres@ojt_management] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+      table_name      | row_count 
+----------------------+-----------
+ academic_supervisors |         1
+ attendance           |         1
+ audit_log            |         0
+ companies            |         1
+ company_supervisors  |         1
+ evaluations          |         1
+ ojt_applications     |         1
+ ojt_placements       |         1
+ requirements         |         3
+ student_requirements |         3
+ students             |         1
+ users                |         5
+(12 rows)
+
+
+--- [postgres@ojt_management] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |    10
+ f       |    15
+ n       |    80
+ p       |    12
+ u       |    12
+(5 rows)
+
+
+--- [postgres@ojt_management] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+          137
+(1 row)
+
+
+--- [postgres@ojt_management] select count(*) from pg_trigger where not tgisinternal
+ count 
+-------
+     0
+(1 row)
+
+
+################ ojt_management_restore
+--- [postgres@ojt_management_restore] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+     12 |     0 |        12
+(1 row)
+
+
+--- [postgres@ojt_management_restore] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+      table_name      | row_count 
+----------------------+-----------
+ academic_supervisors |         1
+ attendance           |         1
+ audit_log            |         0
+ companies            |         1
+ company_supervisors  |         1
+ evaluations          |         1
+ ojt_applications     |         1
+ ojt_placements       |         1
+ requirements         |         3
+ student_requirements |         3
+ students             |         1
+ users                |         5
+(12 rows)
+
+
+--- [postgres@ojt_management_restore] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |    10
+ f       |    15
+ n       |    80
+ p       |    12
+ u       |    12
+(5 rows)
+
+
+--- [postgres@ojt_management_restore] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+          137
+(1 row)
+
+
+--- [postgres@ojt_management_restore] select count(*) from pg_trigger where not tgisinternal
+ count 
+-------
+     0
+(1 row)
+
+

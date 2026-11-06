@@ -1,0 +1,144 @@
+﻿--- [postgres@ojt_management] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+       relname        | n_live_tup | n_dead_tup | last_vacuum | last_analyze 
+----------------------+------------+------------+-------------+--------------
+ academic_supervisors |          1 |          0 |             | 
+ attendance           |          1 |          1 |             | 
+ audit_log            |          0 |          0 |             | 
+ companies            |          1 |          0 |             | 
+ company_supervisors  |          1 |          0 |             | 
+ evaluations          |          1 |          0 |             | 
+ ojt_applications     |          1 |          1 |             | 
+ ojt_placements       |          1 |          0 |             | 
+ requirements         |          3 |          0 |             | 
+ student_requirements |          3 |          5 |             | 
+ students             |          1 |          0 |             | 
+ users                |          5 |          1 |             | 
+(12 rows)
+
+
+--- [postgres@ojt_management] ANALYZE
+ANALYZE
+
+--- [postgres@ojt_management] VACUUM (VERBOSE, ANALYZE) public.users
+INFO:  vacuuming "ojt_management.public.users"
+INFO:  finished vacuuming "ojt_management.public.users": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 1 removed, 5 remain, 0 are dead but not yet removable
+removable cutoff: 1777, which was 0 XIDs old when operation ended
+new relfrozenxid: 1703, which is 5 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 1 dead item identifiers removed
+index "users_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "users_username_key": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "users_email_key": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 7.901 MB/s
+buffer usage: 96 hits, 0 reads, 4 dirtied
+WAL usage: 10 records, 4 full page images, 33550 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  vacuuming "ojt_management.pg_toast.pg_toast_21769"
+INFO:  finished vacuuming "ojt_management.pg_toast.pg_toast_21769": index scans: 0
+pages: 0 removed, 0 remain, 0 scanned (100.00% of total), 0 eagerly scanned
+tuples: 0 removed, 0 remain, 0 are dead but not yet removable
+removable cutoff: 1777, which was 0 XIDs old when operation ended
+new relfrozenxid: 1777, which is 79 XIDs ahead of previous value
+frozen: 0 pages from table (100.00% of total) had 0 tuples frozen
+visibility map: 0 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan not needed: 0 pages from table (100.00% of total) had 0 dead item identifiers removed
+avg read rate: 7.578 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 28 hits, 1 reads, 0 dirtied
+WAL usage: 1 records, 0 full page images, 258 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.users"
+INFO:  "users": scanned 1 of 1 pages, containing 5 live rows and 0 dead rows; 5 rows in sample, 5 estimated total rows
+INFO:  finished analyzing table "ojt_management.public.users"
+avg read rate: 0.000 MB/s, avg write rate: 3.906 MB/s
+buffer usage: 371 hits, 0 reads, 1 dirtied
+WAL usage: 16 records, 0 full page images, 1512 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@ojt_management] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+       relname        | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+----------------------+------------+------------+-------------------------------+-------------------------------
+ academic_supervisors |          1 |          0 |                               | 2026-11-06 23:04:09.767169+08
+ attendance           |          1 |          1 |                               | 2026-11-06 23:04:09.888842+08
+ audit_log            |          0 |          0 |                               | 2026-11-06 23:04:09.75397+08
+ companies            |          1 |          0 |                               | 2026-11-06 23:04:09.882186+08
+ company_supervisors  |          1 |          0 |                               | 2026-11-06 23:04:09.884907+08
+ evaluations          |          1 |          0 |                               | 2026-11-06 23:04:09.887246+08
+ ojt_applications     |          1 |          1 |                               | 2026-11-06 23:04:09.760688+08
+ ojt_placements       |          1 |          0 |                               | 2026-11-06 23:04:09.886308+08
+ requirements         |          3 |          0 |                               | 2026-11-06 23:04:09.883596+08
+ student_requirements |          3 |          5 |                               | 2026-11-06 23:04:09.768477+08
+ students             |          1 |          0 |                               | 2026-11-06 23:04:09.765755+08
+ users                |          5 |          0 | 2026-11-06 23:04:09.947774+08 | 2026-11-06 23:04:09.950833+08
+(12 rows)
+
+
+--- [postgres@ojt_management] EXPLAIN select s.student_number, c.company_name, a.status from ojt_applications a join students s using(student_id) join companies c using(company_id) where a.status='Pending'
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..3.06 rows=1 width=29)
+   Join Filter: (a.company_id = c.company_id)
+   ->  Nested Loop  (cost=0.00..2.04 rows=1 width=23)
+         Join Filter: (a.student_id = s.student_id)
+         ->  Seq Scan on ojt_applications a  (cost=0.00..1.01 rows=1 width=17)
+               Filter: ((status)::text = 'Pending'::text)
+         ->  Seq Scan on students s  (cost=0.00..1.01 rows=1 width=14)
+   ->  Seq Scan on companies c  (cost=0.00..1.01 rows=1 width=14)
+(8 rows)
+
+
+--- [postgres@ojt_management] EXPLAIN (ANALYZE, BUFFERS) select s.student_number, c.company_name, a.status from ojt_applications a join students s using(student_id) join companies c using(company_id) where a.status='Pending'
+                                                         QUERY PLAN                                                         
+----------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..3.06 rows=1 width=29) (actual time=0.015..0.016 rows=0.00 loops=1)
+   Join Filter: (a.company_id = c.company_id)
+   Buffers: shared hit=1
+   ->  Nested Loop  (cost=0.00..2.04 rows=1 width=23) (actual time=0.015..0.015 rows=0.00 loops=1)
+         Join Filter: (a.student_id = s.student_id)
+         Buffers: shared hit=1
+         ->  Seq Scan on ojt_applications a  (cost=0.00..1.01 rows=1 width=17) (actual time=0.015..0.015 rows=0.00 loops=1)
+               Filter: ((status)::text = 'Pending'::text)
+               Rows Removed by Filter: 1
+               Buffers: shared hit=1
+         ->  Seq Scan on students s  (cost=0.00..1.01 rows=1 width=14) (never executed)
+   ->  Seq Scan on companies c  (cost=0.00..1.01 rows=1 width=14) (never executed)
+ Planning:
+   Buffers: shared hit=277
+ Planning Time: 4.542 ms
+ Execution Time: 0.039 ms
+(16 rows)
+
+
+--- [postgres@ojt_management] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+                         indexname                         |      tablename       
+-----------------------------------------------------------+----------------------
+ academic_supervisors_pkey                                 | academic_supervisors
+ academic_supervisors_user_id_key                          | academic_supervisors
+ attendance_pkey                                           | attendance
+ attendance_placement_id_attendance_date_key               | attendance
+ audit_log_pkey                                            | audit_log
+ companies_company_name_key                                | companies
+ companies_pkey                                            | companies
+ company_supervisors_pkey                                  | company_supervisors
+ company_supervisors_user_id_key                           | company_supervisors
+ evaluations_pkey                                          | evaluations
+ ojt_applications_application_id_student_id_company_id_key | ojt_applications
+ ojt_applications_pkey                                     | ojt_applications
+ ojt_placements_application_id_key                         | ojt_placements
+ ojt_placements_pkey                                       | ojt_placements
+ requirements_pkey                                         | requirements
+ requirements_title_key                                    | requirements
+ student_requirements_pkey                                 | student_requirements
+ student_requirements_student_id_req_id_key                | student_requirements
+ students_pkey                                             | students
+ students_student_number_key                               | students
+ students_user_id_key                                      | students
+ users_email_key                                           | users
+ users_pkey                                                | users
+ users_username_key                                        | users
+(24 rows)
+
+

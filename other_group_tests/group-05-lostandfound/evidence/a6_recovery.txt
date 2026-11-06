@@ -1,0 +1,39 @@
+﻿target table: claims
+== BEFORE
+--- [postgres@grp05_lostandfounddb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.claims t
+ rows |          table_checksum          
+------+----------------------------------
+    4 | c1bb415b36f75e95457c3ceb5597b33d
+(1 row)
+
+
+== INCIDENT: delete one row
+--- [postgres@grp05_lostandfounddb_restore] delete from public.claims where ctid = (select min(ctid) from public.claims)
+DELETE 1
+
+== AFTER LOSS
+--- [postgres@grp05_lostandfounddb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.claims t
+ rows |          table_checksum          
+------+----------------------------------
+    3 | e63cbd3ea16e8a4e3b6ad690703539b8
+(1 row)
+
+
+== RECOVERY: restore the same dump into grp05_lostandfounddb_recovery
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@grp05_lostandfounddb_recovery] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.claims t
+ rows |          table_checksum          
+------+----------------------------------
+    4 | c1bb415b36f75e95457c3ceb5597b33d
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@grp05_lostandfounddb] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.claims t
+ rows |          table_checksum          
+------+----------------------------------
+    4 | c1bb415b36f75e95457c3ceb5597b33d
+(1 row)
+
+

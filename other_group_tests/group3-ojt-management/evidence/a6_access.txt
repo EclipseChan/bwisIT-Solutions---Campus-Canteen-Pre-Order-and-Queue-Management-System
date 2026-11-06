@@ -1,0 +1,30 @@
+﻿--- [postgres@postgres] select datname,datacl from pg_database where datname like 'ojt_management%' order by 1
+        datname         |                                                                                      datacl                                                                                      
+------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ ojt_management         | {=Tc/postgres,postgres=CTc/postgres,ojt_admin=c/postgres,ojt_student=c/postgres,ojt_academic_supervisor=c/postgres,ojt_company_supervisor=c/postgres,ojt_coordinator=c/postgres}
+ ojt_management_restore | 
+(2 rows)
+
+
+--- re-applying the database-level CONNECT grant on ojt_management_restore (a database-only dump does not carry it)
+--- [postgres@postgres] GRANT CONNECT ON DATABASE ojt_management_restore TO ojt_admin, ojt_student, ojt_academic_supervisor, ojt_company_supervisor, ojt_coordinator
+GRANT
+
+--- [postgres@postgres] select datname,datacl from pg_database where datname like 'ojt_management%' order by 1
+        datname         |                                                                                      datacl                                                                                      
+------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ ojt_management         | {=Tc/postgres,postgres=CTc/postgres,ojt_admin=c/postgres,ojt_student=c/postgres,ojt_academic_supervisor=c/postgres,ojt_company_supervisor=c/postgres,ojt_coordinator=c/postgres}
+ ojt_management_restore | {=Tc/postgres,postgres=CTc/postgres,ojt_admin=c/postgres,ojt_student=c/postgres,ojt_academic_supervisor=c/postgres,ojt_company_supervisor=c/postgres,ojt_coordinator=c/postgres}
+(2 rows)
+
+
+--- [ojt_admin@ojt_management_restore] select count(*) as users_visible_to_admin from users
+ users_visible_to_admin 
+------------------------
+                      5
+(1 row)
+
+
+--- [ojt_admin@ojt_management_restore] select count(*) from students
+ERROR:  permission denied for table students
+

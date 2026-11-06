@@ -1,0 +1,50 @@
+﻿run at 11/06/2026 22:54:19
+--- workaround: the code inserts columns that the documented schema does not have
+--- [postgres@ojt_management] ALTER TABLE academic_supervisors ADD COLUMN IF NOT EXISTS employee_number varchar(30), ADD COLUMN IF NOT EXISTS department varchar(100), ADD COLUMN IF NOT EXISTS contact_number varchar(20)
+NOTICE:  column "employee_number" of relation "academic_supervisors" already exists, skipping
+NOTICE:  column "department" of relation "academic_supervisors" already exists, skipping
+NOTICE:  column "contact_number" of relation "academic_supervisors" already exists, skipping
+ALTER TABLE
+
+--- [postgres@ojt_management] ALTER TABLE company_supervisors ADD COLUMN IF NOT EXISTS department varchar(100)
+NOTICE:  column "department" of relation "company_supervisors" already exists, skipping
+ALTER TABLE
+
+--- javac
+javac exit code: 0
+--- starting the app (db.properties points at ojt_management, the shipped file points at OJT_Mangementdb)
+app is running (pid 8452)
+--- stdout
+--- stderr
+--- [postgres@ojt_management] select count(*) as users from users
+ users 
+-------
+     3
+(1 row)
+
+
+--- [postgres@ojt_management] select username, role, is_active from users order by user_id
+   username   |  role   | is_active 
+--------------+---------+-----------
+ demo_admin   | ADMIN   | t
+ demo_student | STUDENT | t
+ test_demo    | STUDENT | t
+(3 rows)
+
+
+--- [postgres@ojt_management] select count(*) as companies from companies
+ companies 
+-----------
+         1
+(1 row)
+
+
+--- [postgres@ojt_management] select title from requirements order by 1
+        title        
+---------------------
+ Medical certificate
+ Parent consent
+ Resume
+(3 rows)
+
+
