@@ -1,0 +1,35 @@
+-- Disposable recovery marker removed
+DELETE 1
+ remaining_marker_rows 
+-----------------------
+                     0
+(1 row)
+
+-- Default ACL and schema constraint inventory
+ explicit_public_default_acl 
+-----------------------------
+                           0
+(1 row)
+
+  table_name  | contype | constraints 
+--------------+---------+-------------
+ parking_zone | c       |           1
+ parking_zone | n       |           4
+ parking_zone | p       |           1
+ parking_zone | u       |           1
+ payment      | c       |           1
+ payment      | f       |           1
+ payment      | n       |           5
+ payment      | p       |           1
+ payment      | u       |           1
+ staff_user   | n       |           4
+ staff_user   | p       |           1
+ staff_user   | u       |           1
+ transaction  | f       |           2
+ transaction  | n       |           6
+ transaction  | p       |           1
+ vehicle      | n       |           3
+ vehicle      | p       |           1
+ vehicle      | u       |           1
+(18 rows)
+

@@ -1,0 +1,11 @@
+TEMPLATE ONLY — no ANALYZE or VACUUM command has been run.
+
+Project/database: <GROUP_NUMBER> - <PROJECT_NAME> / <DATABASE_NAME>
+Selected table and rationale: <SCHEMA.TABLE> / <RATIONALE>
+Account/application role: <A4_MAINTENANCE_ACCOUNT> / <APPLICATION_ROLE>
+Date/time and timezone: <TIMESTAMP>
+Exact commands and exit status: <REAL_COMMANDS_AND_STATUS>
+Before/after statistics: <REAL_REDACTED_OUTPUT_OR_REFERENCE>
+Warnings, concurrency impact, or limitations: <ACTUAL_RESULT>
+
+Insert only actual reviewed output. Never claim completion from the presence of the SQL template.

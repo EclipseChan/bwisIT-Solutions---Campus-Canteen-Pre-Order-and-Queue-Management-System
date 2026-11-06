@@ -1,0 +1,10 @@
+Backup format: pg_dump custom archive (-Fc)
+Database: grp_binarysisters_projectdb
+Executed as: rors_backup
+Temporary path outside repository: 
+C:\Users\Marcos\AppData\Local\Temp\rors-db-validation-20261105-230405\rors-disposable-backup.dump
+Backup size (bytes): 
+50951
+SHA-256: 
+4ED34AA06CD34F26D16B908B51B1ED0155DA5645BCCFCC11FE76FB9CF3356C40
+Data-bearing backup removed after restore validation.

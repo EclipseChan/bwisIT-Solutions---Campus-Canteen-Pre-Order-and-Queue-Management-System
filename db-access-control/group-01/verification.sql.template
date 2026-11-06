@@ -1,0 +1,12 @@
+-- TEMPLATE ONLY — comment-only; not executable SQL.
+-- Define checks only after the owner-approved plan and target schema are known.
+-- Record observed output separately, with secrets and sensitive data redacted.
+--
+-- Target project/database: <VERIFY FROM AUTHORITATIVE SOURCE>
+-- Approved test account/role: <VERIFY>
+-- Expected permitted operation and reason: <DEFINE BEFORE TEST>
+-- Expected denied operation and reason: <DEFINE BEFORE TEST>
+-- Safe test objects/data and cleanup: <VERIFY WITH OWNER>
+--
+-- Do not infer success from a query returning zero rows. Compare actual results
+-- against documented expectations and retain failures/limitations.

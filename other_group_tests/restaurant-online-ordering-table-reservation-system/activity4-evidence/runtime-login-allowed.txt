@@ -1,0 +1,6 @@
+ current_user | visible_menu_items 
+--------------+--------------------
+ rors_app     |                 50
+(1 row)
+
+Exit code: 0

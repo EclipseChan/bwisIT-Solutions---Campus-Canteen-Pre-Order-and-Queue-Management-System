@@ -1,0 +1,42 @@
+=== counts ===
+   table_name    | count 
+-----------------+-------
+ menu_category   |     4
+ menu_item       |    12
+ order_line_item |    12
+ order_ticket    |     7
+ staff           |     2
+(5 rows)
+
+=== orders 10 and 11 ===
+ order_id |      order_timestamp       | payment_method | staff_id 
+----------+----------------------------+----------------+----------
+       10 | 2026-11-05 10:54:53.347697 | CASH           |        2
+       11 | 2026-11-05 10:55:31.606032 | ONLINE         |        2
+(2 rows)
+
+ order_id |    item_name     | quantity | sold_price | line_total 
+----------+------------------+----------+------------+------------
+       10 | Butter Croissant |        1 |      75.50 |      75.50
+       10 | Hojicha Latte    |        2 |     115.00 |     230.00
+       11 | Hojicha Latte    |        1 |     150.00 |     150.00
+(3 rows)
+
+=== Hojicha menu row ===
+ item_id |   item_name   | category_name | price  | is_active 
+---------+---------------+---------------+--------+-----------
+      23 | Hojicha Latte | Tea Specials  | 150.00 | t
+(1 row)
+
+=== daily sales ===
+ net_sales | completed_orders 
+-----------+------------------
+   1371.00 |                5
+(1 row)
+
+ payment_method | orders | sales  
+----------------+--------+--------
+ CASH           |      3 | 921.00
+ ONLINE         |      2 | 450.00
+(2 rows)
+

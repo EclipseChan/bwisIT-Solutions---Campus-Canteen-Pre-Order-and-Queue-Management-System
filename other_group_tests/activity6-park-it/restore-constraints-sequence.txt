@@ -1,0 +1,10 @@
+ constraints 
+-------------
+          36
+(1 row)
+
+ last_value | is_called 
+------------+-----------
+          2 | t
+(1 row)
+

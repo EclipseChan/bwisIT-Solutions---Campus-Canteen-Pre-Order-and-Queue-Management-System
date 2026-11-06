@@ -1,0 +1,31 @@
+Activity 3 PHP/application retest — 2026-11-05
+
+Runtime
+-------
+Executable: C:\xampp2\php\php.exe
+Version: PHP 8.2.12 CLI
+Current PowerShell PATH lookup: `php` is not found; direct executable path works.
+Active configuration: C:\xampp2\php\php.ini
+Default extensions: pdo_pgsql and pgsql are not loaded.
+Extension files: C:\xampp2\php\ext\php_pdo_pgsql.dll and php_pgsql.dll exist.
+
+Checks
+------
+- `php -l` on all 39 PHP files: 39 passed, 0 failed.
+- Default `tools\test-connection.php`: exit 1; reported that pdo_pgsql is not enabled.
+- Test-only invocation:
+  `C:\xampp2\php\php.exe -d extension=php_pdo_pgsql.dll -d extension=php_pgsql.dll tools\test-connection.php`
+  Result: connected to PostgreSQL 18.6 as `rors_app`; all eight tables were reachable.
+- Database: a fresh disposable PostgreSQL 18.6 cluster bound only to 127.0.0.1 on port 51584; local trust authentication. Migrations, seed data, roles, and grants were applied manually. The existing PostgreSQL service was not used.
+- Web smoke test, with those same one-process extension overrides and the README `-t app/public` server mode:
+  `/` returned HTTP 200 and rendered the Mesa home page.
+  `/health` returned HTTP 200:
+  `{"status":"ok","database":"grp_binarysisters_projectdb","account":"rors_app","tables":8}`
+- A browser view and screenshot of the rendered home page were captured.
+
+Limitations and cleanup
+-----------------------
+- `database/roles/03_set_passwords.psql` is absent from the supplied ZIP, so the documented `setup.ps1 -WithRoles` password step was not run. Local trust authentication does not verify passwords.
+- No PHP configuration or application source files were modified.
+- The PHP server, temporary PostgreSQL cluster, extracted ZIP copy, and database files were stopped and removed after the checks.
+- Customer/staff login and end-to-end order/reservation flows were not exercised.

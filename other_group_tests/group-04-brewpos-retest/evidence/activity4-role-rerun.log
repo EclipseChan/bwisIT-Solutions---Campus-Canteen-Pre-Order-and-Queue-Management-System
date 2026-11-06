@@ -1,0 +1,24 @@
+psql.exe : 
+psql:C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/src/brewpos-main/database/05_create_app_role.sql:39: 
+NOTICE:  Role brewpos_app already exists; non-superuser attributes verified.
+At line:4 char:1
++ & "C:\Program Files\PostgreSQL\18\bin\psql.exe" @admin -d grp_brewpos ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (psql:C:/Users/M...butes verified.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+DO
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+GRANT
+GRANT
+REVOKE
+REVOKE
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT

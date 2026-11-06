@@ -1,0 +1,78 @@
+Pager usage is off.
+=== Who am I (account and group roles) ===
+  account   | session_user |   member_of    
+------------+--------------+----------------
+ rors_maint | rors_maint   | rors_maint_grp
+(1 row)
+
+=== Version / database ===
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+          database           |  size   
+-----------------------------+---------
+ grp_binarysisters_projectdb | 9342 kB
+(1 row)
+
+=== Object counts ===
+ tables | indexes | views | sequences 
+--------+---------+-------+-----------
+      8 |      19 |     4 |         0
+(1 row)
+
+=== Database statistics (connections, rollbacks, deadlocks, temp files) ===
+           datname           | numbackends | xact_commit | xact_rollback | deadlocks | temp_files | conflicts | stats_reset 
+-----------------------------+-------------+-------------+---------------+-----------+------------+-----------+-------------
+ grp_binarysisters_projectdb |           1 |          94 |             4 |         0 |          0 |         0 | 
+(1 row)
+
+=== Sessions in this database ===
+  pid  |  usename   | application_name | client_addr | state  | wait_event_type | wait_event |         backend_start         |          query_start          | running_for |                                      query                                       
+-------+------------+------------------+-------------+--------+-----------------+------------+-------------------------------+-------------------------------+-------------+----------------------------------------------------------------------------------
+ 21128 | rors_maint | psql             | 127.0.0.1   | active |                 |            | 2026-11-05 23:08:18.003098+08 | 2026-11-05 23:08:18.127996+08 | 00:00:00    | SELECT pid, usename, application_name, client_addr, state, wait_event_type, wait
+(1 row)
+
+=== Sessions by state ===
+ state  | count 
+--------+-------
+ active |     1
+(1 row)
+
+=== Long-running (> 1 minute) or blocked ===
+ pid | usename | state | running_for | wait_event_type | blocked_by | query 
+-----+---------+-------+-------------+-----------------+------------+-------
+(0 rows)
+
+=== Activity 4 roles present (compare with access-control-plan.md and record differences) ===
+      rolname      | rolsuper | rolcreatedb | rolcreaterole | rolcanlogin 
+-------------------+----------+-------------+---------------+-------------
+ rors_admin_grp    | f        | f           | f             | f
+ rors_backup_grp   | f        | f           | f             | f
+ rors_maint_grp    | f        | f           | f             | f
+ rors_readonly_grp | f        | f           | f             | f
+ rors_runtime_grp  | f        | f           | f             | f
+ rors_app          | f        | f           | f             | t
+ rors_backup       | f        | f           | f             | t
+ rors_dba          | f        | f           | f             | t
+ rors_maint        | f        | f           | f             | t
+ rors_report       | f        | f           | f             | t
+(10 rows)
+
+=== Key settings that affect logging and maintenance ===
+            name            | setting 
+----------------------------+---------
+ autovacuum                 | on
+ log_connections            | 
+ log_destination            | stderr
+ log_directory              | log
+ log_disconnections         | off
+ log_min_duration_statement | -1
+ log_min_messages           | warning
+ logging_collector          | off
+ max_connections            | 100
+ shared_buffers             | 16384
+(10 rows)
+
+Exit code: 0

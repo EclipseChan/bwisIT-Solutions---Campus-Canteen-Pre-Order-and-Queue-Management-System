@@ -1,0 +1,39 @@
+Activity 4 - password authentication and cross-database connection checks
+Cluster: isolated PostgreSQL 18.6 on 127.0.0.1:55457; database grp_brewposdb
+
+=== correct password: intended database ===
+brewpos_app|grp_brewposdb|127.0.0.1|55457
+exit=0
+
+=== correct password: unrelated postgres database ===
+brewpos_app|postgres|127.0.0.1|55457
+exit=0
+
+=== correct password: unrelated template1 database ===
+brewpos_app|template1|127.0.0.1|55457
+exit=0
+
+=== wrong password: must be rejected ===
+psql: error: connection to server at "127.0.0.1", port 55457 failed: FATAL:  password authentication failed for user "brewpos_app"
+exit=2
+
+=== no password supplied: must be rejected ===
+psql: error: connection to server at "127.0.0.1", port 55457 failed: fe_sendauth: no password supplied
+exit=2
+
+=== pg_hba.conf connection rules (non-comment host rules) ===
+local   all             all                                     scram-sha-256
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             ::1/128                 scram-sha-256
+local   replication     all                                     scram-sha-256
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+
+=== server log: authentication and connection entries ===
+2026-11-05 11:06:40.903 +08 [26304] LOG:  connection authenticated: identity="brewpos_app" method=scram-sha-256 (C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/pgdata/pg_hba.conf:115)
+2026-11-05 11:06:40.903 +08 [26304] LOG:  connection authorized: user=brewpos_app database=grp_brewposdb application_name=psql
+2026-11-05 11:06:40.968 +08 [4100] LOG:  connection authenticated: identity="brewpos_app" method=scram-sha-256 (C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/pgdata/pg_hba.conf:115)
+2026-11-05 11:06:40.968 +08 [4100] LOG:  connection authorized: user=brewpos_app database=postgres application_name=psql
+2026-11-05 11:06:41.026 +08 [24088] LOG:  connection authenticated: identity="brewpos_app" method=scram-sha-256 (C:/Users/Marcos/AppData/Local/Temp/opencode/brewpos-retest/pgdata/pg_hba.conf:115)
+2026-11-05 11:06:41.026 +08 [24088] LOG:  connection authorized: user=brewpos_app database=template1 application_name=psql
+2026-11-05 11:06:41.082 +08 [22004] FATAL:  password authentication failed for user "brewpos_app"

@@ -1,0 +1,9 @@
+Static install-prerequisite review of the supplied archive
+
+- The README requires PHP 8.1+ and documents `php -S localhost:8000 -t app/public`.
+- `database/setup.ps1` line 59 invokes `database/roles/03_set_passwords.psql` in the `-WithRoles` branch.
+- The archive contains `01_create_roles.sql`, `02_grants.sql`, and `04_verify_privileges.sql`; `03_set_passwords.psql` is absent.
+- The password-script invocation is not followed by a `$LASTEXITCODE` check before the script proceeds to the privilege verification and prints that the database is ready.
+- The setup script was inspected but not run against the existing PostgreSQL service.
+
+This is a static archive finding, not the result of executing the setup script.

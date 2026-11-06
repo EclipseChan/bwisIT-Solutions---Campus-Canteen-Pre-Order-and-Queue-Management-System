@@ -1,0 +1,6 @@
+             current_database             | probe_connect 
+------------------------------------------+---------------
+ grp_binarysisters_projectdb_restore_test | t
+(1 row)
+
+Exit code: 0

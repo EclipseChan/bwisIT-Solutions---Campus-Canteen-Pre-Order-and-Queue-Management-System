@@ -1,0 +1,44 @@
+   database_name   |                             server_version                              | database_size 
+-------------------+-------------------------------------------------------------------------+---------------
+ park_it_a4a6_test | PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit | 8254 kB
+(1 row)
+
+ public_tables 
+---------------
+             5
+(1 row)
+
+ public_sequences 
+------------------
+                5
+(1 row)
+
+ state  | sessions 
+--------+----------
+ active |        1
+(1 row)
+
+  table_name  | estimated_live_rows | estimated_dead_rows | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+--------------+---------------------+---------------------+-------------+-----------------+--------------+------------------
+ parking_zone |                   1 |                   2 |             |                 |              | 
+ payment      |                   0 |                   0 |             |                 |              | 
+ staff_user   |                   0 |                   0 |             |                 |              | 
+ transaction  |                   0 |                   0 |             |                 |              | 
+ vehicle      |                   0 |                   0 |             |                 |              | 
+(5 rows)
+
+       rolname        | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole 
+----------------------+-------------+----------+-------------+---------------
+ park_it_app          | t           | f        | f           | f
+ park_it_app_grp      | f           | f        | f           | f
+ park_it_backup       | t           | f        | f           | f
+ park_it_backup_grp   | f           | f        | f           | f
+ park_it_readonly     | t           | f        | f           | f
+ park_it_readonly_grp | f           | f        | f           | f
+(6 rows)
+
+ log_destination | logging_collector | log_directory |          log_filename          
+-----------------+-------------------+---------------+--------------------------------
+ stderr          | off               | log           | postgresql-%Y-%m-%d_%H%M%S.log
+(1 row)
+

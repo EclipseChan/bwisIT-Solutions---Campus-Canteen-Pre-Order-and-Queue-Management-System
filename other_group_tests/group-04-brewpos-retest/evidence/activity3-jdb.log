@@ -1,0 +1,12 @@
+Set uncaught java.lang.Throwable
+Set deferred uncaught java.lang.Throwable
+Initializing jdb ...
+
+VM Started: > Deferring breakpoint com.brewpos.BrewPosApplication.main.
+It will be set after the class is loaded.
+> Nothing suspended.
+> No thread specified.
+> > Nothing suspended.
+No frames on the current call stack
+
+main[1] 

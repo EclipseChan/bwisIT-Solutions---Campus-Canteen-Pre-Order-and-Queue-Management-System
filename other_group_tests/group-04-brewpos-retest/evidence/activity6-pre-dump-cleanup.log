@@ -1,0 +1,11 @@
+DELETE 1
+         ?column?          
+---------------------------
+ marker_rows_before_dump=0
+(1 row)
+
+         ?column?         
+--------------------------
+ categories_before_dump=4
+(1 row)
+

@@ -1,0 +1,4 @@
+Activity 3 browser check
+Date: 2026-11-05 (Asia/Manila, UTC+08:00)
+
+The integrated browser opened `http://127.0.0.1:8000/` during the retest. The HabalGo title, navigation, dashboard, and empty-state content rendered; no database error was visible. The browser capture tool did not expose a workspace file path, so no screenshot file is claimed in this evidence folder.

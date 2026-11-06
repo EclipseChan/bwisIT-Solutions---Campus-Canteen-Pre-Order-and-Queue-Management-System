@@ -1,0 +1,15 @@
+# Activities 4–6 Current Blockers
+
+**Status: BLOCKED / INPUTS REQUIRED.** This list records unknowns, not assumptions. Do not invent project facts or mark a dependent task complete.
+
+| Activity | Blocker | Impact | Safe fallback | Action needed |
+|---|---|---|---|---|
+| 4–6 | Other groups' confirmed project inventory is unknown. | Cannot establish the in-scope projects, repositories, databases, owners, or correct project folders. | Keep `group-01`–`group-03` explicitly provisional; prepare generic templates only; do not connect or claim coverage. | Course team/instructor supplies tracker access and confirmed project list. |
+| 6 | CREATEDB/setup account for disposable restore databases is unknown. | Cannot safely create restore/recovery databases or run a real restore test. | Keep restore/recovery preview-only and report `BLOCKED`; never use the original database as a target. | Database owner/instructor confirms least-privilege setup account and isolated disposable-database procedure. |
+| 5 | Permission to change PostgreSQL logging is unknown. | Cannot enable or alter logging to collect Activity 5 evidence. | Review only existing authorized logs; otherwise record logging access as `BLOCKED`. | Owner/instructor confirms whether local test logging changes are permitted and which log source is approved. |
+| 4–6 | Credential rotation remains pending for `DB_PASSWORD`, `DB_ADMIN_PASSWORD`, `DB_READONLY_PASSWORD`, and `JWT_SECRET`. | Prior shared ZIP exposure means final distribution cannot be considered safe until rotation and verification. | Do not include any values; restrict/remove old archives from access where authorized; keep submission pending. | Authorized owners rotate, verify old credentials fail/new credentials work without recording values, rebuild and scan the clean ZIP, and remove or securely retain the old ZIP. |
+| 4–6 | Class tracker URL and PDF location are unknown. | Cannot update required activity tabs, link evidence, or verify PDF completion. | Keep tracker/PDF status pending; do not invent URLs or claim submissions. | Team/course owner supplies the approved tracker and PDF locations and access. |
+| 4–6 | bwisIT Solutions group number is TBD. | Cannot complete the README metadata or final group identification. | Retain `TBD`; do not infer a number from provisional folder labels. | Team/course source confirms the assigned group number. |
+| 4–6 | Per-project database names/versions, role mappings, reachability, contacts, and authorization are unknown. | Cannot adapt SQL/scripts or perform authorized checks for a real project. | Static template review and safe dry-runs only; no target connection or execution. | Confirm each fact with that project’s documentation, owner, and authorized environment. |
+
+The project directories are **TEMPLATE — replace with real project data** only after authoritative confirmation. The canteen application/database is not an other-group target. See the [credential rotation checklist](CREDENTIAL_ROTATION_CHECKLIST.md) and [template status](../activity-5-6/BLOCKERS.md).

@@ -1,21 +1,26 @@
 # Database documentation
 
 PostgreSQL 16 or newer (developed on 18). Database name comes from `DB_NAME` in `.env`
-(default `canteen_db`). Single schema: `public`. Owner: the login in `DB_USER`
-(default `canteen_admin`).
+(default `canteen_db`). Single schema: `public`. Database and application-object owner:
+`canteen_admin` (`DB_ADMIN_USER`), never the runtime login `DB_USER` (`canteen_app`).
 
 ## How it is created
 
-`database/setup.ps1` (Windows) or `database/setup.sh` (Linux/macOS) runs, in order:
+First run `db-access-control/01-create-roles.sql` and
+`db-access-control/02-role-memberships.sql` as a PostgreSQL superuser. Then
+`database/setup.ps1` (Windows) or `database/setup.sh` (Linux/macOS) runs:
 
 | Order | File | What it does |
 |---|---|---|
-| 1 | `database/init/001_create_role_and_database.sql` | Creates the login and database if missing |
-| 2 | `database/migrations/001_create_tables.sql` | Creates the 7 tables |
+| 1 | `database/init/001_create_role_and_database.sql` | Creates the database owned by `canteen_admin` |
+| 2 | `database/migrations/001_create_tables.sql` | Creates the 7 tables as `canteen_admin` |
 | 3 | `database/migrations/002_auth_columns.sql` | Adds login columns (see "Changes from the approved design") |
 | 4 | `database/seed/001_sample_data.sql` | Loads sample accounts, stalls, menus and today's orders |
+| 5 | `db-access-control/03` through `06` | Applies database, schema, table, sequence, and default privileges |
 
-Every file can be run repeatedly without errors or duplicate rows.
+Run `db-access-control/07-security-restrictions.sql` separately only after
+reviewing all databases on the PostgreSQL cluster; it removes `PUBLIC CONNECT`
+cluster-wide. See [database-roles.md](database-roles.md) before applying it.
 `database/reset.sql` empties all tables and restarts the ID counters.
 
 ## ERD

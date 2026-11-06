@@ -1,40 +1,50 @@
-# Database user and role setup
+# Database users and roles
 
-No passwords appear in this file or anywhere in the repository.
+Activity 4's PostgreSQL access-control implementation is in
+[db-access-control/README.md](../db-access-control/README.md). It documents the
+role design, grants, SQL execution order, credential setup, verification
+queries, and executable test plan.
 
-## Activity 3 (current)
+## Database identity
 
-The API connects as `canteen_admin`, the database owner, created by `database/setup.*` with
-the password from `.env`. This is simple but gives the application more power than it needs.
+The database configured by default is `canteen_db`; the application schema is
+`public`. It has seven tables and their `SERIAL` sequences. Student, vendor,
+and application administrator accounts are application records, not database
+roles.
 
-## Intended setup for Activity 4
+## PostgreSQL accounts
 
-Not created yet. Names are fixed here so the application roles in
-[user-roles.md](user-roles.md) map to them consistently.
+| PostgreSQL account | Type | Use |
+|---|---|---|
+| `canteen_admin` | LOGIN, `CREATEROLE`, no `CREATEDB`/`SUPERUSER` | Owns database and objects; setup, migrations, maintenance |
+| `canteen_app` | LOGIN, member of `canteen_app_grp` | Spring Boot runtime only |
+| `canteen_readonly` | LOGIN, member of `canteen_readonly_grp` | Approved menu and sales reporting reads |
+| `canteen_app_grp` | NOLOGIN group | App-only table/sequence grants |
+| `canteen_readonly_grp` | NOLOGIN group | Column-limited SELECT grants, no writes |
 
-| Application role | Database role | Type | Intended privileges |
-|---|---|---|---|
-| Application runtime (all API traffic) | `canteen_app` | LOGIN, member of `canteen_app_grp` | Through the group role below |
-| (privileges of the runtime) | `canteen_app_grp` | NOLOGIN group | SELECT, INSERT, UPDATE on all 7 tables; DELETE on `menu_item` only; USAGE on all sequences |
-| Administrator reports (optional separate login) | `canteen_readonly_grp` | NOLOGIN group | SELECT on all tables |
-| Schema owner and migrations | `canteen_admin` | LOGIN, owner | Owns the database and tables; used only for setup, not by the running API |
+The API uses `DB_USER` and `DB_PASSWORD` from the process environment. The
+default account is `canteen_app`; it must not use `canteen_admin`. The setup
+scripts use `DB_ADMIN_USER` and `DB_ADMIN_PASSWORD` for database creation and
+migrations. `.env.example` contains placeholders only, and `.env` is ignored
+by Git.
 
-Why these privileges: the API deletes rows only in `menu_item` (when an item has no past
-orders). Everything else is inserts and updates. It also calls `pg_advisory_xact_lock`
-when assigning queue numbers, which needs no special grant.
+## Permission decisions based on current code
 
-Student, Vendor and Administrator users are rows in `student` and `vendor`, not database
-logins. The API checks their role itself and connects as `canteen_app`.
+All seven tables are read by application workflows. Runtime inserts occur in
+`student`, `vendor`, `menu_item`, `customer_order`, `order_item`, `queue_entry`,
+and `notification`. Updates are used for `vendor` (administrator enable/disable),
+`menu_item`, `customer_order`, `queue_entry`, and `notification`; student and
+order-item records are not updated by current application code. Deletion is
+only performed for `menu_item`; historical menu items are marked unavailable
+and foreign keys prevent removing items referenced by orders.
 
-## Sketch for Activity 4 (not executed in Activity 3)
+The read-only role is intended for reports, not account inspection. It can
+read only report-required columns of `vendor`, `menu_item`, `customer_order`,
+and `order_item`. Student/vendor password hashes, student data, queues, and
+notifications are not available to it. No default table SELECT is added for
+future tables.
 
-```sql
-CREATE ROLE canteen_app_grp NOLOGIN;
-CREATE ROLE canteen_readonly_grp NOLOGIN;
-CREATE ROLE canteen_app LOGIN PASSWORD '<set outside Git>' IN ROLE canteen_app_grp;
-
-GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO canteen_app_grp;
-GRANT DELETE ON menu_item TO canteen_app_grp;
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO canteen_app_grp;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO canteen_readonly_grp;
-```
+The complete privilege matrix and limitations are kept in
+[db-access-control/README.md](../db-access-control/README.md). Run its
+verification script and tests against the configured PostgreSQL cluster before
+claiming the permissions are active.

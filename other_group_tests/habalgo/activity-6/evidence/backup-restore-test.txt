@@ -1,0 +1,15 @@
+Activity 6 backup/restore test evidence
+Date: 2026-11-05 (Asia/Manila, UTC+08:00)
+Target: `habalgo_test_20261105` on local PostgreSQL 18.6.
+
+Observed:
+- `pg_dump -Fc` exited 0 and produced a 24,945-byte custom-format archive.
+- `pg_restore --list` exited 0 and listed 71 archive entries.
+- `pg_restore` exited 0 when restoring to a new temporary database.
+- Source and restored database structure matched: 8 tables, 17 indexes, and 58 constraints.
+- Each of the 8 source tables and its restored counterpart contained 0 rows. Source counts remained unchanged.
+- The temporary restore database was dropped and the archive was deleted after verification.
+
+The initial restore attempt lacked a matching local password-file entry for its temporary database; its temporary database and archive were cleaned up. The retry succeeded after the local connection entry was corrected.
+
+Verdict: **PASS with limitation** — schema and empty-database restoration verified; populated-data recovery and production behavior were not tested. No source database changes, credentials, or backup archive were retained.
