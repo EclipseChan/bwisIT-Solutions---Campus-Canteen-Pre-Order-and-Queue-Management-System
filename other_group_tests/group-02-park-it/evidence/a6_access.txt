@@ -1,0 +1,68 @@
+--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp_parkitdb%' order by 1
+       datname        |                               datacl                               
+----------------------+--------------------------------------------------------------------
+ grp_parkitdb         | {=Tc/postgres,postgres=CTc/postgres,parkit_runtime_grp=c/postgres}
+ grp_parkitdb_restore | 
+(2 rows)
+
+
+--- [postgres@grp_parkitdb] select rolname from pg_roles where rolname ~ '^parkit' order by 1
+      rolname       
+--------------------
+ parkit_app
+ parkit_runtime_grp
+(2 rows)
+
+
+--- table privileges of the roles: original vs restored copy
+--- [postgres@grp_parkitdb] select grantee, count(*) as grants from information_schema.role_table_grants where table_schema='public' and grantee ~ '^parkit' group by 1 order by 1
+      grantee       | grants 
+--------------------+--------
+ parkit_runtime_grp |     11
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select grantee, count(*) as grants from information_schema.role_table_grants where table_schema='public' and grantee ~ '^parkit' group by 1 order by 1
+      grantee       | grants 
+--------------------+--------
+ parkit_runtime_grp |     11
+(1 row)
+
+
+--- login as the application account against the restored copy
+--- [login parkit_app@grp_parkitdb_restore] select count(*) from public.vehicle
+ count 
+-------
+    66
+(1 row)
+
+
+--- [login parkit_app@grp_parkitdb_restore] delete from public.payment where false
+ERROR:  permission denied for table payment
+
+--- [login parkit_app@grp_parkitdb_restore] select count(*) from public.staff_user
+ count 
+-------
+     2
+(1 row)
+
+
+--- [login parkit_app@grp_parkitdb_restore] select usename, count(*) from pg_stat_activity where usename is not null group by 1
+  usename   | count 
+------------+-------
+ parkit_app |     1
+ postgres   |     3
+(2 rows)
+
+
+--- [postgres@grp_parkitdb_restore] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+  tablename   | tableowner 
+--------------+------------
+ parking_zone | postgres
+ payment      | postgres
+ staff_user   | postgres
+ transaction  | postgres
+ vehicle      | postgres
+(5 rows)
+
+

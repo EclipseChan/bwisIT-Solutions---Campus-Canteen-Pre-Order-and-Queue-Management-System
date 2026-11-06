@@ -1,5 +1,0 @@
- current_user | current_database 
---------------+------------------
- brewpos_app  | grp_brewposdb
-(1 row)
-

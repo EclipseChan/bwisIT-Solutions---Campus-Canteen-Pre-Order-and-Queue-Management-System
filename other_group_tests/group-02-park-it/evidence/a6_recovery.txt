@@ -1,0 +1,57 @@
+target table: payment (money records)
+== BEFORE (restored copy)
+--- [postgres@grp_parkitdb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+   12 | 2a58980a35c8e8682a0eda12e52ac7c3
+(1 row)
+
+
+== INCIDENT: a bad update sets every payment to 0.01 and a delete removes the cash ones from the restored copy
+--- [postgres@grp_parkitdb_restore] update public.payment set amount = 0.01
+UPDATE 12
+
+--- [postgres@grp_parkitdb_restore] delete from public.payment where payment_method = 'Cash'
+DELETE 8
+
+== AFTER LOSS
+--- [postgres@grp_parkitdb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    4 | 9e0f29f6349114f0832ab73a4ca690c5
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select coalesce(sum(amount),0) as total_collected from public.payment
+ total_collected 
+-----------------
+            0.04
+(1 row)
+
+
+== RECOVERY: restore the same dump into grp_parkitdb_recovery
+CREATE DATABASE
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@grp_parkitdb_recovery] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+   12 | 2a58980a35c8e8682a0eda12e52ac7c3
+(1 row)
+
+
+--- [postgres@grp_parkitdb_recovery] select coalesce(sum(amount),0) as total_collected from public.payment
+ total_collected 
+-----------------
+          720.00
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@grp_parkitdb] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+   12 | 2a58980a35c8e8682a0eda12e52ac7c3
+(1 row)
+
+

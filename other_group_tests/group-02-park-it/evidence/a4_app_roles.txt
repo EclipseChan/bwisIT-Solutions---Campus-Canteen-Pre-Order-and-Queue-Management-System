@@ -1,0 +1,100 @@
+run at 11/07/2026 00:40:43
+the first A4 run found the lot full (50 of 50) from the Activity 3 tests, so entries were refused for that reason. Capacity is freed here and the application tests are repeated
+stopped PHP server (pid 14608)
+--- [postgres@grp_parkitdb] delete from public.transaction where vehicle_id in (select vehicle_id from public.vehicle where license_plate ~ '^(FILL|FULL)-') and status='Active'
+DELETE 45
+
+--- [postgres@grp_parkitdb] select count(*) as active_now from public.transaction where status='Active'
+ active_now 
+------------
+          5
+(1 row)
+
+
+--- sequence rights taken away again so the document's grants are tested exactly as written
+--- [postgres@grp_parkitdb] REVOKE USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public FROM parkit_runtime_grp
+REVOKE
+
+--- [postgres@grp_parkitdb] select c.relname as sequence, has_sequence_privilege('parkit_app', c.oid, 'USAGE') as usage from pg_class c where c.relkind='S' and c.relnamespace='public'::regnamespace order by 1
+            sequence            | usage 
+--------------------------------+-------
+ parking_zone_zone_id_seq       | f
+ payment_payment_id_seq         | f
+ staff_user_user_id_seq         | f
+ transaction_transaction_id_seq | f
+ vehicle_vehicle_id_seq         | f
+(5 rows)
+
+
+=== PART C: the application running as parkit_app, privileges as documented (no sequence grant)
+php server: listening on http://localhost:8000/park-it/  (DB_NAME=grp_parkitdb DB_USER=parkit_app)
+POST /park-it/auth/login.php  data=username=admin&password=admin123  [admin]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, admin (Admin)!   <login (reads staff_user)>
+GET /park-it/dashboard.php  [admin]  ->  HTTP 200   <dashboard (reads and recounts the zone)>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=A4-0001&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message: SQLSTATE[42501]: Insufficient privilege: 7 ERROR: permission denied for sequence vehicle_vehicle_id_seq   <register a vehicle entry as parkit_app, no sequence grant>
+--- [postgres@grp_parkitdb] select count(*) as a4_vehicle_rows from public.vehicle where license_plate='A4-0001'
+ a4_vehicle_rows 
+-----------------
+               0
+(1 row)
+
+
+--- same grant added by the testing group (roles_fix.sql: GRANT USAGE, SELECT ON ALL SEQUENCES), steps repeated
+GRANT
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=A4-0001&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle A4-0001 (Car) entered successfully! Ticket #61 logged at Nov 07, 2026 12:40:48 AM.   <register a vehicle entry, with sequence grant>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=A4-0002&vehicle_type=Motorcycle&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle A4-0002 (Motorcycle) entered successfully! Ticket #62 logged at Nov 07, 2026 12:40:48 AM.   <second entry>
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '4 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='A4-0001' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+POST /park-it/modules/payments/process.php  data=transaction_id=61&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=11)  message: Payment of â‚±60.00 (Cash) recorded under Receipt #11! Vehicle A4-0001 is now cleared to exit.   <payment and exit as parkit_app (insert payment, update transaction and zone)>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=64&license_plate=A4-0002&vehicle_type=Car  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle #64 updated to A4-0002 (Car).   <edit a vehicle (UPDATE is granted)>
+GET /park-it/modules/payments/history.php  [admin]  ->  HTTP 200   <payment history>
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":6,"available_spaces":44,"active_vehicles":6,"status_code":"available","status_text":"OPEN \/ SPACES AVAILABLE","warning_type":"none","warning_message":"","occupancy_percent":12,"zones":[{"zone_id":1,"zone_name":"Main Parking Lot","max_capacity":50,"current_active_count":6,"av...
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) values ('A4-LONE','Car')
+ERROR:  duplicate key value violates unique constraint "vehicle_license_plate_key"
+DETAIL:  Key (license_plate)=(A4-LONE) already exists.
+
+POST /park-it/modules/vehicles/delete.php  data=vehicle_id=62  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Error deleting vehicle: SQLSTATE[42501]: Insufficient privilege: 7 ERROR: permission denied for table vehicle   <delete a vehicle with no transactions (DELETE not granted)>
+--- [postgres@grp_parkitdb] select count(*) as a4_lone_left from public.vehicle where license_plate='A4-LONE'
+ a4_lone_left 
+--------------
+            1
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select usename, application_name, count(*) from pg_stat_activity where datname='grp_parkitdb' and usename is not null group by 1,2
+ usename  | application_name | count 
+----------+------------------+-------
+ postgres | psql             |     1
+(1 row)
+
+
+=== PART D: application roles. user-role.md says only the Administrator registers vehicles
+POST /park-it/auth/login.php  data=username=staff&password=staff123  [staff]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, staff (Staff)!   <staff login>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=STAFF-1&vehicle_type=Car&zone_id=1  [staff]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle STAFF-1 (Car) entered successfully! Ticket #63 logged at Nov 07, 2026 12:40:49 AM.   <staff registers a vehicle>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=66&license_plate=STAFF-1&vehicle_type=Motorcycle  [staff]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle #66 updated to STAFF-1 (Motorcycle).   <staff edits a vehicle>
+GET /park-it/modules/vehicles/index.php  [staff]  ->  HTTP 200   <staff opens Module 1>
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) values ('STAFF-LONE','Car')
+INSERT 0 1
+
+POST /park-it/modules/payments/process.php  data=transaction_id=63&payment_method=Cash&is_lost_ticket=0  [staff]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=12)  message: Payment of â‚±30.00 (Cash) recorded under Receipt #12! Vehicle STAFF-1 is now cleared to exit.   <staff takes a payment and exits the vehicle>
+--- logout, then use the old session
+GET /park-it/auth/logout.php  [staff]  ->  HTTP 200 (redirected to /park-it/auth/login.php)   <logout>
+GET /park-it/modules/vehicles/index.php  [staff]  ->  HTTP 302   <after logout, same cookie>
+--- a request from another website: form post with an Origin header and no token
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=CSRF-1&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle CSRF-1 (Car) entered successfully! Ticket #64 logged at Nov 07, 2026 12:40:50 AM.   <Origin: http://evil.example>
+--- [postgres@grp_parkitdb] select count(*) as csrf_rows from public.vehicle where license_plate='CSRF-1'
+ csrf_rows 
+-----------
+         1
+(1 row)
+
+
+=== database state
+--- [postgres@grp_parkitdb] select (select count(*) from public.vehicle) vehicles, (select count(*) from public.transaction) transactions, (select count(*) from public.payment) payments
+ vehicles | transactions | payments 
+----------+--------------+----------
+       66 |           19 |       12
+(1 row)
+
+
+stopped PHP server (pid 25568)

@@ -1,0 +1,201 @@
+run at 11/07/2026 00:21:33
+extracting C:\Users\Marcos\dba\hg\HabalGo-main.zip
+--- prerequisites
+psql (PostgreSQL) 18.6
+PHP 8.2.12 (cli) (built: Oct 24 2023 21:15:15) (ZTS Visual C++ 2019 x64)
+php extensions: pdo_pgsql, pgsql
+--- README Step 3: create the database named in the README, then schema.sql and 'sample data.sql'
+CREATE DATABASE
+--- psql -U postgres -d grp00_habalgodb -f schema.sql
+CREATE SCHEMA
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+--- psql -U postgres -d grp00_habalgodb -f "sample data.sql"
+SET
+INSERT 0 10
+--- the database\ folder holds a second copy of the schema and a seed, not mentioned in the README. Same content?
+schema.sql identical to database\01_schema.sql (ignoring outer blank lines): False
+driver rows from sample data.sql: 10 ; from database 02_seed.sql: 2
+--- second run of schema.sql (README does not say it is repeatable; script uses IF NOT EXISTS)
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/schema.sql:1: NOTICE:  schema "habalgo" already exists, skipping
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/schema.sql:8: NOTICE:  relation "customer" already exists, skipping
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/schema.sql:15: NOTICE:  relation "driver" already exists, skipping
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/schema.sql:22: NOTICE:  relation "vehicle" already exists, skipping
+--- second run of 'sample data.sql' (duplicates?)
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/sample data.sql:14: ERROR:  duplicate key value violates unique constraint "driver_license_no_key"
+DETAIL:  Key (license_no)=(N01-23-000001) already exists.
+--- [postgres@grp00_habalgodb] select count(*) as drivers, count(distinct license_no) as distinct_licenses from habalgo.driver
+ drivers | distinct_licenses 
+---------+-------------------
+      10 |                10
+(1 row)
+
+
+--- README Step 2: cp .env.example .env, fill in the credentials
+README .env block asks for: DB_HOST DB_PORT DB_NAME=grp00_habalgodb DB_SCHEMA=habalgo DB_USER DB_PASS
+repository .env.example actually contains:
+# Makikita mo to sa config.php. You just need to change the DB_PASSWORD sa password ng sql mo.
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=grp00_habalgodb
+DB_USER=postgres
+DB_PASSWORD=(placeholder)
+config.php reads: 'host'   => getenv('DB_HOST') ?: 'localhost', | 'port'   => getenv('DB_PORT') ?: '5432', | 'dbname' => getenv('DB_NAME') ?: 'habalgo', | 'user'   => getenv('DB_USER') ?: 'postgres', | 'pass'   => getenv('DB_PASS') ?: '',
+PHP files that look like they read a .env file (parse_ini, dotenv, file_get_contents): 1
+--- README Step 4 Option A exactly as written: php -S localhost:8000 (the .env file above is in place, no variables set)
+php server: listening on http://localhost:8000  (no DB_* variables set, README way)
+GET /
+HTTP 200
+
+GET api.php?t=dashboard  ->  HTTP 500  {"error":"Database connection failed: SQLSTATE[08006] [7] fe_sendauth: no password supplied"}   <README way: what does the app say?>
+--- same start with the variable names config.php really reads (DB_NAME, DB_USER, DB_PASS, postgres account)
+php server: listening on http://localhost:8000  (DB_NAME=grp00_habalgodb DB_USER=postgres)
+GET api.php?t=dashboard  ->  HTTP 200  {"stats":{"customers":0,"active":0,"revenue":"0","avg_rating":null},"byStatus":[],"recent":[]}
+GET api.php?t=options  ->  HTTP 200  {"cities":[["Manila","Manila"],["Quezon City","Quezon City"],["Caloocan","Caloocan"],["Davao City","Davao City"],["Cebu City","Ceb... (676 chars)
+=== database verification (grp00_habalgodb)
+--- [postgres@grp00_habalgodb] select table_schema, table_name from information_schema.tables where table_schema not in ('pg_catalog','information_schema') order by 1,2
+ table_schema |   table_name    
+--------------+-----------------
+ habalgo      | booking
+ habalgo      | customer
+ habalgo      | driver
+ habalgo      | driver_vehicle
+ habalgo      | location
+ habalgo      | payment
+ habalgo      | rating_feedback
+ habalgo      | vehicle
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select contype, count(*) from pg_constraint where connamespace='habalgo'::regnamespace group by 1 order by 1
+ contype | count 
+---------+-------
+ c       |     4
+ f       |     9
+ n       |    33
+ p       |     8
+ u       |     4
+(5 rows)
+
+
+--- [postgres@grp00_habalgodb] select conrelid::regclass as tbl, conname, pg_get_constraintdef(oid) from pg_constraint where connamespace='habalgo'::regnamespace and contype in ('c','f','u') order by 1,2
+           tbl           |             conname              |                                                                                                   pg_get_constraintdef                                                                                                   
+-------------------------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ habalgo.customer        | customer_email_key               | UNIQUE (email)
+ habalgo.driver          | driver_license_no_key            | UNIQUE (license_no)
+ habalgo.vehicle         | vehicle_plate_no_key             | UNIQUE (plate_no)
+ habalgo.driver_vehicle  | ck_assignment_dates              | CHECK (((assigned_to IS NULL) OR (assigned_to >= assigned_from)))
+ habalgo.driver_vehicle  | driver_vehicle_driver_id_fkey    | FOREIGN KEY (driver_id) REFERENCES habalgo.driver(driver_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.driver_vehicle  | driver_vehicle_vehicle_id_fkey   | FOREIGN KEY (vehicle_id) REFERENCES habalgo.vehicle(vehicle_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.booking         | booking_customer_id_fkey         | FOREIGN KEY (customer_id) REFERENCES habalgo.customer(customer_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.booking         | booking_driver_id_fkey           | FOREIGN KEY (driver_id) REFERENCES habalgo.driver(driver_id) ON UPDATE CASCADE ON DELETE SET NULL
+ habalgo.booking         | booking_dropoff_location_id_fkey | FOREIGN KEY (dropoff_location_id) REFERENCES habalgo.location(location_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.booking         | booking_pickup_location_id_fkey  | FOREIGN KEY (pickup_location_id) REFERENCES habalgo.location(location_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.booking         | ck_booking_status                | CHECK (((booking_status)::text = ANY ((ARRAY['Pending'::character varying, 'Confirmed'::character varying, 'In Progress'::character varying, 'Completed'::character varying, 'Cancelled'::character varying])::text[])))
+ habalgo.payment         | payment_amount_check             | CHECK ((amount > (0)::numeric))
+ habalgo.payment         | payment_booking_id_fkey          | FOREIGN KEY (booking_id) REFERENCES habalgo.booking(booking_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.rating_feedback | rating_feedback_booking_id_fkey  | FOREIGN KEY (booking_id) REFERENCES habalgo.booking(booking_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.rating_feedback | rating_feedback_customer_id_fkey | FOREIGN KEY (customer_id) REFERENCES habalgo.customer(customer_id) ON UPDATE CASCADE ON DELETE RESTRICT
+ habalgo.rating_feedback | rating_feedback_rating_check     | CHECK (((rating >= 1) AND (rating <= 5)))
+ habalgo.rating_feedback | uq_rating_booking_customer       | UNIQUE (booking_id, customer_id)
+(17 rows)
+
+
+--- [postgres@grp00_habalgodb] select indexname, tablename from pg_indexes where schemaname='habalgo' order by 2,1
+         indexname          |    tablename    
+----------------------------+-----------------
+ booking_pkey               | booking
+ idx_booking_customer       | booking
+ idx_booking_date           | booking
+ idx_booking_driver         | booking
+ customer_email_key         | customer
+ customer_pkey              | customer
+ driver_license_no_key      | driver
+ driver_pkey                | driver
+ driver_vehicle_pkey        | driver_vehicle
+ location_pkey              | location
+ idx_payment_booking        | payment
+ payment_pkey               | payment
+ idx_rating_booking         | rating_feedback
+ rating_feedback_pkey       | rating_feedback
+ uq_rating_booking_customer | rating_feedback
+ vehicle_pkey               | vehicle
+ vehicle_plate_no_key       | vehicle
+(17 rows)
+
+
+--- [postgres@grp00_habalgodb] select count(*) as triggers from pg_trigger where not tgisinternal
+ triggers 
+----------
+        0
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from habalgo.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='habalgo' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ booking         |         0
+ customer        |         0
+ driver          |        10
+ driver_vehicle  |         0
+ location        |         0
+ payment         |         0
+ rating_feedback |         0
+ vehicle         |         0
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select usename, application_name, state, count(*) from pg_stat_activity where datname='grp00_habalgodb' group by 1,2,3
+ usename  | application_name | state  | count 
+----------+------------------+--------+-------
+ postgres | psql             | active |     1
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select datname, datacl from pg_database where datname='grp00_habalgodb'
+     datname     | datacl 
+-----------------+--------
+ grp00_habalgodb | 
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select schemaname, tablename, tableowner from pg_tables where schemaname='habalgo' order by 2
+ schemaname |    tablename    | tableowner 
+------------+-----------------+------------
+ habalgo    | booking         | postgres
+ habalgo    | customer        | postgres
+ habalgo    | driver          | postgres
+ habalgo    | driver_vehicle  | postgres
+ habalgo    | location        | postgres
+ habalgo    | payment         | postgres
+ habalgo    | rating_feedback | postgres
+ habalgo    | vehicle         | postgres
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select rolname, rolsuper from pg_roles where rolname = 'postgres' or rolname ~ '^(habalgo|app_)' order by 1
+     rolname      | rolsuper 
+------------------+----------
+ app_admin_grp    | f
+ app_readonly_grp | f
+ app_runtime_grp  | f
+ postgres         | t
+(4 rows)
+
+
+=== front end and api.php, source facts
+innerHTML uses in js app.js: 9 ; esc() definition:
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;N'}[c]));
+external resources loaded by index.html:
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap">

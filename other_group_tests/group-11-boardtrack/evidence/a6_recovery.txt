@@ -1,0 +1,39 @@
+﻿target table: payment
+== BEFORE
+--- [postgres@boardtrack_db_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    7 | f41104ce34dcc2914fbcbcb10a61b8a5
+(1 row)
+
+
+== INCIDENT: delete one row
+--- [postgres@boardtrack_db_restore] delete from public.payment where ctid = (select min(ctid) from public.payment)
+DELETE 1
+
+== AFTER LOSS
+--- [postgres@boardtrack_db_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    6 | b98f991bd602d9064c6f2a828a48b5c7
+(1 row)
+
+
+== RECOVERY: restore the same dump into boardtrack_db_recovery
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@boardtrack_db_recovery] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    7 | f41104ce34dcc2914fbcbcb10a61b8a5
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@boardtrack_db] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    7 | f41104ce34dcc2914fbcbcb10a61b8a5
+(1 row)
+
+

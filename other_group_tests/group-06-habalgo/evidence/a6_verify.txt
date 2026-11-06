@@ -1,0 +1,188 @@
+################ grp00_habalgodb
+--- [postgres@grp00_habalgodb] select (select count(*) from pg_tables where schemaname='habalgo') tables,(select count(*) from pg_sequences where schemaname='habalgo') sequences, (select count(*) from pg_indexes where schemaname='habalgo') indexes
+ tables | sequences | indexes 
+--------+-----------+---------
+      8 |         7 |      17
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from habalgo.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='habalgo' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ booking         |         6
+ customer        |        11
+ driver          |        10
+ driver_vehicle  |         0
+ location        |        10
+ payment         |         2
+ rating_feedback |         1
+ vehicle         |         1
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select contype,count(*) from pg_constraint where connamespace='habalgo'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     4
+ f       |     9
+ n       |    33
+ p       |     8
+ u       |     4
+(5 rows)
+
+
+--- [postgres@grp00_habalgodb] select grantee, count(*) as table_grants from information_schema.role_table_grants where table_schema='habalgo' group by 1 order by 1
+     grantee      | table_grants 
+------------------+--------------
+ app_readonly_grp |            8
+ app_runtime_grp  |           32
+ postgres         |           56
+(3 rows)
+
+
+--- [postgres@grp00_habalgodb] select md5(string_agg(t::text, '' order by t::text)) as payment_checksum from habalgo.payment t
+         payment_checksum         
+----------------------------------
+ a2788a2952cab450fb389debae9413a2
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select md5(string_agg(t::text, '' order by t::text)) as booking_checksum from habalgo.booking t
+         booking_checksum         
+----------------------------------
+ db97ec5e31a8b24ae2027633c4bf0c9e
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select sequencename, last_value from pg_sequences where schemaname='habalgo' order by 1
+         sequencename          | last_value 
+-------------------------------+------------
+ booking_booking_id_seq        |         10
+ customer_customer_id_seq      |         17
+ driver_driver_id_seq          |         11
+ location_location_id_seq      |         13
+ payment_payment_id_seq        |          8
+ rating_feedback_rating_id_seq |          5
+ vehicle_vehicle_id_seq        |          4
+(7 rows)
+
+
+--- [postgres@grp00_habalgodb] select count(*) as default_acl_entries from pg_default_acl
+ default_acl_entries 
+---------------------
+                   2
+(1 row)
+
+
+--- constraint still enforced
+--- [postgres@grp00_habalgodb] insert into habalgo.payment(booking_id,amount,method,status) select booking_id,0,'x','x' from habalgo.booking limit 1
+ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+DETAIL:  Failing row contains (9, 2, 0.00, x, x).
+
+--- [postgres@grp00_habalgodb] insert into habalgo.rating_feedback(booking_id,customer_id,rating) select booking_id,customer_id,9 from habalgo.booking limit 1
+ERROR:  new row for relation "rating_feedback" violates check constraint "rating_feedback_rating_check"
+DETAIL:  Failing row contains (6, 2, 10, 9, null).
+
+################ grp00_habalgodb_restore
+--- [postgres@grp00_habalgodb_restore] select (select count(*) from pg_tables where schemaname='habalgo') tables,(select count(*) from pg_sequences where schemaname='habalgo') sequences, (select count(*) from pg_indexes where schemaname='habalgo') indexes
+ tables | sequences | indexes 
+--------+-----------+---------
+      8 |         7 |      17
+(1 row)
+
+
+--- [postgres@grp00_habalgodb_restore] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from habalgo.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='habalgo' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ booking         |         6
+ customer        |        11
+ driver          |        10
+ driver_vehicle  |         0
+ location        |        10
+ payment         |         2
+ rating_feedback |         1
+ vehicle         |         1
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb_restore] select contype,count(*) from pg_constraint where connamespace='habalgo'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     4
+ f       |     9
+ n       |    33
+ p       |     8
+ u       |     4
+(5 rows)
+
+
+--- [postgres@grp00_habalgodb_restore] select grantee, count(*) as table_grants from information_schema.role_table_grants where table_schema='habalgo' group by 1 order by 1
+     grantee      | table_grants 
+------------------+--------------
+ app_readonly_grp |            8
+ app_runtime_grp  |           32
+ postgres         |           56
+(3 rows)
+
+
+--- [postgres@grp00_habalgodb_restore] select md5(string_agg(t::text, '' order by t::text)) as payment_checksum from habalgo.payment t
+         payment_checksum         
+----------------------------------
+ a2788a2952cab450fb389debae9413a2
+(1 row)
+
+
+--- [postgres@grp00_habalgodb_restore] select md5(string_agg(t::text, '' order by t::text)) as booking_checksum from habalgo.booking t
+         booking_checksum         
+----------------------------------
+ db97ec5e31a8b24ae2027633c4bf0c9e
+(1 row)
+
+
+--- [postgres@grp00_habalgodb_restore] select sequencename, last_value from pg_sequences where schemaname='habalgo' order by 1
+         sequencename          | last_value 
+-------------------------------+------------
+ booking_booking_id_seq        |         10
+ customer_customer_id_seq      |         17
+ driver_driver_id_seq          |         11
+ location_location_id_seq      |         13
+ payment_payment_id_seq        |          8
+ rating_feedback_rating_id_seq |          5
+ vehicle_vehicle_id_seq        |          4
+(7 rows)
+
+
+--- [postgres@grp00_habalgodb_restore] select count(*) as default_acl_entries from pg_default_acl
+ default_acl_entries 
+---------------------
+                   2
+(1 row)
+
+
+--- constraint still enforced
+--- [postgres@grp00_habalgodb_restore] insert into habalgo.payment(booking_id,amount,method,status) select booking_id,0,'x','x' from habalgo.booking limit 1
+ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+DETAIL:  Failing row contains (9, 2, 0.00, x, x).
+
+--- [postgres@grp00_habalgodb_restore] insert into habalgo.rating_feedback(booking_id,customer_id,rating) select booking_id,customer_id,9 from habalgo.booking limit 1
+ERROR:  new row for relation "rating_feedback" violates check constraint "rating_feedback_rating_check"
+DETAIL:  Failing row contains (6, 2, 10, 9, null).
+
+=== the application against the restored database (as habalgo_app_user)
+php server: listening on http://localhost:8000  (DB_NAME=grp00_habalgodb_restore DB_USER=habalgo_app_user)
+--- [postgres@postgres] select datname, usename, count(*) from pg_stat_activity where datname like 'grp00_habalgodb%' and usename is not null group by 1,2 order by 1
+ datname | usename | count 
+---------+---------+-------
+(0 rows)
+
+
+GET api.php?t=dashboard  ->  HTTP 200  {"stats":{"customers":11,"active":4,"revenue":"250.5","avg_rating":"4"},"byStatus":[{"s":"Pending","n":3},{"s":"Completed","n":2},... (1229 chars)
+bookings returned by the app: 6
+--- [postgres@grp00_habalgodb_restore] select count(*) as bookings_in_restored_copy from habalgo.booking
+ bookings_in_restored_copy 
+---------------------------
+                         6
+(1 row)
+
+
+stopped PHP server (pid 23992)

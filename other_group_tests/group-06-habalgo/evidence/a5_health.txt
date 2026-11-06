@@ -1,0 +1,131 @@
+run at 11/07/2026 00:24:34
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select pg_size_pretty(pg_database_size('grp00_habalgodb')) as db_size
+ db_size 
+---------
+ 8654 kB
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='grp00_habalgodb'
+     datname     | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+-----------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ grp00_habalgodb |           1 |         521 |            57 |        17 |    68916 |         0 |          0
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select pid,usename,application_name,state,left(query,60) as query from pg_stat_activity where datname='grp00_habalgodb'
+  pid  | usename  | application_name | state  |                            query                             
+-------+----------+------------------+--------+--------------------------------------------------------------
+ 25788 | postgres | psql             | active | select pid,usename,application_name,state,left(query,60) as 
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze from pg_stat_user_tables order by relname
+     relname     | n_live_tup | n_dead_tup | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+-----------------+------------+------------+-------------+-----------------+--------------+------------------
+ booking         |          6 |          7 |             |                 |              | 
+ customer        |         11 |          5 |             |                 |              | 
+ driver          |         10 |          1 |             |                 |              | 
+ driver_vehicle  |          0 |          0 |             |                 |              | 
+ location        |         10 |          3 |             |                 |              | 
+ payment         |          2 |          5 |             |                 |              | 
+ rating_feedback |          1 |          3 |             |                 |              | 
+ vehicle         |          1 |          3 |             |                 |              | 
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select relname, pg_size_pretty(pg_total_relation_size(relid)) total, pg_size_pretty(pg_indexes_size(relid)) idx from pg_stat_user_tables order by pg_total_relation_size(relid) desc
+     relname     |   total    |    idx     
+-----------------+------------+------------
+ booking         | 72 kB      | 64 kB
+ rating_feedback | 64 kB      | 48 kB
+ payment         | 40 kB      | 32 kB
+ customer        | 40 kB      | 32 kB
+ vehicle         | 40 kB      | 32 kB
+ driver          | 40 kB      | 32 kB
+ location        | 24 kB      | 16 kB
+ driver_vehicle  | 8192 bytes | 8192 bytes
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from habalgo.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='habalgo' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ booking         |         6
+ customer        |        11
+ driver          |        10
+ driver_vehicle  |         0
+ location        |        10
+ payment         |         2
+ rating_feedback |         1
+ vehicle         |         1
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select indexrelname, relname, idx_scan from pg_stat_user_indexes order by relname, indexrelname
+        indexrelname        |     relname     | idx_scan 
+----------------------------+-----------------+----------
+ booking_pkey               | booking         |       24
+ idx_booking_customer       | booking         |       48
+ idx_booking_date           | booking         |        0
+ idx_booking_driver         | booking         |        0
+ customer_email_key         | customer        |        2
+ customer_pkey              | customer        |       13
+ driver_license_no_key      | driver          |        0
+ driver_pkey                | driver          |        3
+ driver_vehicle_pkey        | driver_vehicle  |        4
+ location_pkey              | location        |       12
+ idx_payment_booking        | payment         |        1
+ payment_pkey               | payment         |        7
+ idx_rating_booking         | rating_feedback |        0
+ rating_feedback_pkey       | rating_feedback |        2
+ uq_rating_booking_customer | rating_feedback |        0
+ vehicle_pkey               | vehicle         |        2
+ vehicle_plate_no_key       | vehicle         |        0
+(17 rows)
+
+
+--- [postgres@postgres] show log_statement
+ log_statement 
+---------------
+ none
+(1 row)
+
+
+--- [postgres@postgres] show log_min_duration_statement
+ log_min_duration_statement 
+----------------------------
+ -1
+(1 row)
+
+
+--- [postgres@postgres] show max_connections
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+
+--- [postgres@postgres] show autovacuum
+ autovacuum 
+------------
+ on
+(1 row)
+
+
+--- can habalgo_app_user run maintenance?
+--- [login habalgo_app_user@grp00_habalgodb] VACUUM habalgo.booking
+WARNING:  permission denied to vacuum "booking", skipping it
+VACUUM
+
+--- [login habalgo_app_user@grp00_habalgodb] ANALYZE habalgo.booking
+WARNING:  permission denied to analyze "booking", skipping it
+ANALYZE
+

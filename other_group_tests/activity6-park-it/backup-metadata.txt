@@ -1,9 +1,0 @@
-Backup file: park_it_a4a6_test.dump
-Size bytes: 17846
-SHA-256: B3F7112225DEDB81D16D8891CE5A2FC1E824CF1B89B21B37F812AD65281C525A
-Format: custom (-Fc)
-Source database: park_it_a4a6_test
-Backup role: park_it_backup
-PostgreSQL/pg_dump: 18.6
-Storage during test: C:\Users\Marcos\AppData\Local\Temp\park-it-a4a6-20261105-0939\backup\park_it_a4a6_test.dump
-Storage note: outside the repository; temporary dump removed after restore and recovery verification.

@@ -1,0 +1,76 @@
+run at 11/07/2026 00:03:23
+no dedicated backup role exists in the project, so the dump is taken as postgres
+pg_dump exit code: 0
+Name          : grp_brewposdb_activity6.dump
+Length        : 19076
+LastWriteTime : 07/11/2026 12:03:23 am
+Algorithm : SHA256
+Hash      : 852F2971705598958506ACB08BFE386B45A40575F6C917B60F5D5F67EEEC0DE3
+Path      : C:\Users\Marcos\dba\backups\grp_brewposdb_activity6.dump
+--- pg_restore --list (first 70 lines)
+;
+; Archive created at 2026-11-07 00:03:23
+;     dbname: grp_brewposdb
+;     TOC Entries: 55
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+5070; 0 0 ACL - SCHEMA public pg_database_owner
+222; 1259 28884 TABLE public menu_category postgres
+5071; 0 0 ACL public TABLE menu_category postgres
+221; 1259 28883 SEQUENCE public menu_category_category_id_seq postgres
+5072; 0 0 SEQUENCE OWNED BY public menu_category_category_id_seq postgres
+5073; 0 0 ACL public SEQUENCE menu_category_category_id_seq postgres
+224; 1259 28895 TABLE public menu_item postgres
+5074; 0 0 ACL public TABLE menu_item postgres
+223; 1259 28894 SEQUENCE public menu_item_item_id_seq postgres
+5075; 0 0 SEQUENCE OWNED BY public menu_item_item_id_seq postgres
+5076; 0 0 ACL public SEQUENCE menu_item_item_id_seq postgres
+227; 1259 28933 TABLE public order_line_item postgres
+5077; 0 0 ACL public TABLE order_line_item postgres
+226; 1259 28916 TABLE public order_ticket postgres
+5078; 0 0 ACL public TABLE order_ticket postgres
+225; 1259 28915 SEQUENCE public order_ticket_order_id_seq postgres
+5079; 0 0 SEQUENCE OWNED BY public order_ticket_order_id_seq postgres
+5080; 0 0 ACL public SEQUENCE order_ticket_order_id_seq postgres
+220; 1259 28873 TABLE public staff postgres
+5081; 0 0 ACL public TABLE staff postgres
+219; 1259 28872 SEQUENCE public staff_staff_id_seq postgres
+5082; 0 0 SEQUENCE OWNED BY public staff_staff_id_seq postgres
+5083; 0 0 ACL public SEQUENCE staff_staff_id_seq postgres
+4876; 2604 28887 DEFAULT public menu_category category_id postgres
+4877; 2604 28898 DEFAULT public menu_item item_id postgres
+4879; 2604 28919 DEFAULT public order_ticket order_id postgres
+4875; 2604 28876 DEFAULT public staff staff_id postgres
+5056; 0 28884 TABLE DATA public menu_category postgres
+5058; 0 28895 TABLE DATA public menu_item postgres
+5061; 0 28933 TABLE DATA public order_line_item postgres
+5060; 0 28916 TABLE DATA public order_ticket postgres
+5054; 0 28873 TABLE DATA public staff postgres
+5084; 0 0 SEQUENCE SET public menu_category_category_id_seq postgres
+5085; 0 0 SEQUENCE SET public menu_item_item_id_seq postgres
+5086; 0 0 SEQUENCE SET public order_ticket_order_id_seq postgres
+5087; 0 0 SEQUENCE SET public staff_staff_id_seq postgres
+4889; 2606 28891 CONSTRAINT public menu_category menu_category_pkey postgres
+4893; 2606 28907 CONSTRAINT public menu_item menu_item_pkey postgres
+4898; 2606 28927 CONSTRAINT public order_ticket order_ticket_pkey postgres
+4901; 2606 28943 CONSTRAINT public order_line_item pk_order_line_item postgres
+4887; 2606 28882 CONSTRAINT public staff staff_pkey postgres
+4891; 2606 28893 CONSTRAINT public menu_category uq_menu_category_name postgres
+4895; 2606 28909 CONSTRAINT public menu_item uq_menu_item_category_name postgres
+4899; 1259 28955 INDEX public idx_order_line_item_item_id postgres
+4896; 1259 28954 INDEX public idx_order_ticket_timestamp postgres
+4902; 2606 28910 FK CONSTRAINT public menu_item fk_menu_item_category postgres
+4904; 2606 28949 FK CONSTRAINT public order_line_item fk_order_line_item postgres
+4905; 2606 28944 FK CONSTRAINT public order_line_item fk_order_line_order postgres
+4903; 2606 28928 FK CONSTRAINT public order_ticket fk_order_ticket_staff postgres
+TABLE DATA entries in archive: 5
+--- README's own command from database\README.md: pg_dump -U postgres -Fc -d grp_brewposdb -f brewpos_backup.dump (same format as used here)

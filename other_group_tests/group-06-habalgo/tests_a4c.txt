@@ -1,0 +1,15 @@
+M|||GET|||dashboard
+M|||POST|||customers|||{"name":"A4 Customer","phone":"09170000002","email":"a4@example.com"}
+CAP|||c4
+M|||POST|||vehicles|||{"plate_no":"A4 0001","vehicle_type":"Sedan","model":"Vios"}
+CAP|||v4
+M|||PUT|||vehicles|||{"driver_id":4}|||assign driver|||&id=@v4@
+M|||POST|||bookings|||{"customer_name":"A4 Rider","driver_id":4,"pickup":"A4 St","pickup_city":"Manila","dropoff":"A4 Ave","dropoff_city":"Manila"}
+CAP|||b4
+M|||PUT|||bookings|||{"booking_status":"Completed"}||||||&id=@b4@
+M|||POST|||payments|||{"booking_id":@b4@,"amount":120,"method":"GCash","status":"Paid"}
+CAP|||p4
+M|||POST|||ratings|||{"booking_id":@b4@,"rating":4,"feedback":"ok"}
+M|||DELETE|||vehicles||||||delete vehicle (needs DELETE on driver_vehicle)|||&id=@v4@
+M|||PUT|||payments|||{"amount":1}|||the app can edit a payment amount|||&id=@p4@
+M|||DELETE|||payments||||||the app can delete a payment|||&id=@p4@

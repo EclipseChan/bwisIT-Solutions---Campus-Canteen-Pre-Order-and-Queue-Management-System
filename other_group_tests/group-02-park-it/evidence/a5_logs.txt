@@ -1,0 +1,245 @@
+data_directory=C:/Program Files/PostgreSQL/18/data
+log_directory=log
+== C:\Program Files\PostgreSQL\18\data\log\postgresql-2026-11-07_000000.log (23303 bytes, 11/07/2026 00:24:35)
+2026-11-07 00:00:26 +08 ERROR:  canceling statement due to statement timeout
+2026-11-07 00:00:26 +08 FATAL:  permission denied for database "postgres"
+2026-11-07 00:00:27 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:00:27 +08 ERROR:  permission denied for sequence order_ticket_order_id_seq
+2026-11-07 00:00:27 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:00:27 +08 ERROR:  permission denied for table order_line_item
+2026-11-07 00:00:28 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:00:28 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:03:22 +08 WARNING:  permission denied to vacuum "order_ticket", skipping it
+2026-11-07 00:03:22 +08 WARNING:  permission denied to analyze "order_ticket", skipping it
+2026-11-07 00:03:24 +08 ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+2026-11-07 00:03:24 +08 ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+2026-11-07 00:03:25 +08 ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+2026-11-07 00:03:25 +08 ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+2026-11-07 00:03:41 +08 ERROR:  type "regdatabase" does not exist at character 23
+2026-11-07 00:03:42 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:21:35 +08 ERROR:  duplicate key value violates unique constraint "driver_license_no_key"
+2026-11-07 00:22:14 +08 ERROR:  duplicate key value violates unique constraint "customer_email_key"
+2026-11-07 00:22:14 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:14 +08 ERROR:  null value in column "email" of relation "customer" violates not-null constraint
+2026-11-07 00:22:14 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:14 +08 ERROR:  value too long for type character varying(100)
+2026-11-07 00:22:14 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:14 +08 ERROR:  syntax error at or near "WHERE" at character 22
+2026-11-07 00:22:14 +08 ERROR:  null value in column "name" of relation "customer" violates not-null constraint
+2026-11-07 00:22:14 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:15 +08 ERROR:  duplicate key value violates unique constraint "vehicle_plate_no_key"
+2026-11-07 00:22:15 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:15 +08 ERROR:  syntax error at or near "WHERE" at character 21
+2026-11-07 00:22:15 +08 ERROR:  syntax error at or near "WHERE" at character 21
+2026-11-07 00:22:15 +08 ERROR:  syntax error at or near "WHERE" at character 21
+2026-11-07 00:22:15 +08 ERROR:  syntax error at or near "WHERE" at character 21
+2026-11-07 00:22:15 +08 ERROR:  duplicate key value violates unique constraint "customer_email_key"
+2026-11-07 00:22:15 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:15 +08 ERROR:  insert or update on table "booking" violates foreign key constraint "booking_driver_id_fkey"
+2026-11-07 00:22:15 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:15 +08 ERROR:  insert or update on table "booking" violates foreign key constraint "booking_customer_id_fkey"
+2026-11-07 00:22:15 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:15 +08 ERROR:  new row for relation "booking" violates check constraint "ck_booking_status"
+2026-11-07 00:22:15 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:16 +08 ERROR:  null value in column "pickup_location_id" of relation "booking" violates not-null constraint
+2026-11-07 00:22:16 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:16 +08 ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+2026-11-07 00:22:16 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:16 +08 ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+2026-11-07 00:22:16 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:16 +08 ERROR:  numeric field overflow
+2026-11-07 00:22:16 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:16 +08 ERROR:  insert or update on table "payment" violates foreign key constraint "payment_booking_id_fkey"
+2026-11-07 00:22:16 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:16 +08 ERROR:  null value in column "booking_id" of relation "payment" violates not-null constraint
+2026-11-07 00:22:16 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:17 +08 ERROR:  duplicate key value violates unique constraint "uq_rating_booking_customer"
+2026-11-07 00:22:17 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:17 +08 ERROR:  new row for relation "rating_feedback" violates check constraint "rating_feedback_rating_check"
+2026-11-07 00:22:17 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:17 +08 ERROR:  new row for relation "rating_feedback" violates check constraint "rating_feedback_rating_check"
+2026-11-07 00:22:17 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:17 +08 ERROR:  update or delete on table "customer" violates RESTRICT setting of foreign key constraint "booking_customer_id_fkey" on table "booking"
+2026-11-07 00:22:17 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:17 +08 ERROR:  update or delete on table "booking" violates RESTRICT setting of foreign key constraint "payment_booking_id_fkey" on table "payment"
+2026-11-07 00:22:17 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:22:18 +08 ERROR:  syntax error at or near ")" at character 23
+2026-11-07 00:23:33 +08 ERROR:  role "app_runtime_grp" already exists
+2026-11-07 00:23:33 +08 ERROR:  role "app_readonly_grp" already exists
+2026-11-07 00:23:33 +08 ERROR:  role "app_runtime_grp" already exists
+2026-11-07 00:23:33 +08 ERROR:  role "app_readonly_grp" already exists
+2026-11-07 00:23:33 +08 ERROR:  role "habalgo_app_user" already exists
+2026-11-07 00:23:33 +08 ERROR:  role "habalgo_readonly_user" already exists
+2026-11-07 00:23:34 +08 ERROR:  permission denied for table booking
+2026-11-07 00:23:34 +08 ERROR:  permission denied for schema habalgo at character 14
+2026-11-07 00:23:34 +08 ERROR:  permission denied for schema public at character 14
+2026-11-07 00:23:34 +08 ERROR:  must be owner of table payment
+2026-11-07 00:23:34 +08 ERROR:  must be owner of table payment
+2026-11-07 00:23:34 +08 ERROR:  must be owner of table payment
+2026-11-07 00:23:34 +08 ERROR:  permission denied to create role
+2026-11-07 00:23:34 +08 ERROR:  permission denied for table pg_authid
+2026-11-07 00:23:34 +08 WARNING:  permission denied to vacuum "payment", skipping it
+2026-11-07 00:23:35 +08 ERROR:  permission denied for table customer
+2026-11-07 00:23:35 +08 ERROR:  permission denied for table payment
+2026-11-07 00:23:35 +08 ERROR:  permission denied for table booking
+2026-11-07 00:23:35 +08 ERROR:  permission denied for sequence customer_customer_id_seq
+2026-11-07 00:23:35 +08 ERROR:  permission denied for schema habalgo at character 14
+2026-11-07 00:23:35 +08 FATAL:  permission denied for database "postgres"
+2026-11-07 00:23:37 +08 ERROR:  syntax error at or near "WHERE" at character 21
+2026-11-07 00:23:41 +08 ERROR:  permission denied for table customer
+2026-11-07 00:23:41 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:23:41 +08 ERROR:  permission denied for table customer
+2026-11-07 00:23:41 +08 ERROR:  current transaction is aborted, commands ignored until end of transaction block
+2026-11-07 00:24:35 +08 WARNING:  permission denied to vacuum "booking", skipping it
+2026-11-07 00:24:35 +08 WARNING:  permission denied to analyze "booking", skipping it
+2026-11-07 00:24:38 +08 ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+2026-11-07 00:24:38 +08 ERROR:  new row for relation "rating_feedback" violates check constraint "rating_feedback_rating_check"
+2026-11-07 00:24:39 +08 ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+2026-11-07 00:24:39 +08 ERROR:  new row for relation "rating_feedback" violates check constraint "rating_feedback_rating_check"
+2026-11-07 00:24:44 +08 ERROR:  permission denied for table customer
+2026-11-07 00:35:14 +08 ERROR:  new row for relation "parking_zone" violates check constraint "parking_zone_check"
+2026-11-07 00:36:35 +08 ERROR:  role "parkit_runtime_grp" already exists
+2026-11-07 00:36:35 +08 ERROR:  role "parkit_app" already exists
+2026-11-07 00:36:35 +08 ERROR:  permission denied for table staff_user
+2026-11-07 00:36:35 +08 ERROR:  permission denied for sequence vehicle_vehicle_id_seq
+2026-11-07 00:36:35 +08 ERROR:  permission denied for sequence vehicle_vehicle_id_seq
+2026-11-07 00:36:36 +08 ERROR:  permission denied for table payment
+2026-11-07 00:36:36 +08 ERROR:  permission denied for table payment
+2026-11-07 00:36:36 +08 ERROR:  permission denied for table transaction
+2026-11-07 00:36:36 +08 ERROR:  permission denied for table vehicle
+2026-11-07 00:36:36 +08 ERROR:  permission denied for table payment
+2026-11-07 00:36:36 +08 ERROR:  permission denied for schema public at character 14
+2026-11-07 00:36:36 +08 ERROR:  must be owner of table payment
+2026-11-07 00:36:36 +08 ERROR:  permission denied to create role
+2026-11-07 00:36:36 +08 ERROR:  permission denied for table pg_authid
+2026-11-07 00:36:36 +08 WARNING:  permission denied to vacuum "vehicle", skipping it
+2026-11-07 00:36:36 +08 FATAL:  permission denied for database "postgres"
+2026-11-07 00:36:40 +08 ERROR:  permission denied for table vehicle
+2026-11-07 00:40:48 +08 ERROR:  permission denied for sequence vehicle_vehicle_id_seq
+2026-11-07 00:40:48 +08 ERROR:  duplicate key value violates unique constraint "vehicle_license_plate_key"
+2026-11-07 00:40:49 +08 ERROR:  permission denied for table vehicle
+2026-11-07 00:41:32 +08 WARNING:  permission denied to vacuum "vehicle", skipping it
+2026-11-07 00:41:32 +08 WARNING:  permission denied to analyze "vehicle", skipping it
+== C:\Program Files\PostgreSQL\18\data\log\postgresql-2026-11-06_082645.log (43506 bytes, 11/06/2026 23:59:56)
+2026-11-06 22:31:50 +08 ERROR:  permission denied to create temporary tables in database "grp_binarysisters_projectdb" at character 19
+2026-11-06 22:46:28 +08 ERROR:  syntax error at or near ")" at character 1
+2026-11-06 22:46:28 +08 ERROR:  syntax error at or near "â€‹" at character 1
+2026-11-06 22:48:18 +08 ERROR:  column "employee_number" of relation "academic_supervisors" does not exist at character 63
+2026-11-06 23:03:46 +08 FATAL:  password authentication failed for user "postgres"
+2026-11-06 23:03:57 +08 ERROR:  permission denied for table users
+2026-11-06 23:03:57 +08 ERROR:  permission denied for table students
+2026-11-06 23:03:57 +08 ERROR:  permission denied for table users
+2026-11-06 23:03:57 +08 ERROR:  permission denied for table attendance
+2026-11-06 23:03:57 +08 ERROR:  permission denied for table company_supervisors
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table student_requirements
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table ojt_placements
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table companies
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table ojt_applications
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table users
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table users
+2026-11-06 23:03:58 +08 ERROR:  permission denied for table companies
+2026-11-06 23:03:58 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:03:58 +08 ERROR:  must be owner of table students
+2026-11-06 23:03:58 +08 ERROR:  permission denied to create role
+2026-11-06 23:03:58 +08 ERROR:  permission denied to create database
+2026-11-06 23:03:58 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:03:58 +08 ERROR:  must be owner of table students
+2026-11-06 23:03:58 +08 ERROR:  permission denied to create role
+2026-11-06 23:03:58 +08 ERROR:  permission denied to create database
+2026-11-06 23:04:09 +08 WARNING:  permission denied to vacuum "users", skipping it
+2026-11-06 23:04:09 +08 WARNING:  permission denied to analyze "users", skipping it
+2026-11-06 23:04:12 +08 ERROR:  permission denied for table students
+2026-11-06 23:15:21 +08 FATAL:  role "lostandfound_public" is not permitted to log in
+2026-11-06 23:15:21 +08 FATAL:  role "lostandfound_app" is not permitted to log in
+2026-11-06 23:21:54 +08 ERROR:  permission denied for table lost_reports
+2026-11-06 23:21:54 +08 ERROR:  permission denied for table claims
+2026-11-06 23:21:54 +08 ERROR:  permission denied for table items
+2026-11-06 23:21:54 +08 ERROR:  permission denied for table items
+2026-11-06 23:21:54 +08 ERROR:  permission denied for table lost_reports
+2026-11-06 23:21:54 +08 ERROR:  permission denied for table claim_images
+2026-11-06 23:21:55 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:21:55 +08 ERROR:  permission denied to create role
+2026-11-06 23:21:55 +08 ERROR:  must be owner of table items
+2026-11-06 23:21:55 +08 ERROR:  permission denied for table items
+2026-11-06 23:21:55 +08 ERROR:  permission denied for table claims
+2026-11-06 23:21:55 +08 ERROR:  permission denied for table lost_reports
+2026-11-06 23:21:55 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:21:55 +08 ERROR:  must be owner of table items
+2026-11-06 23:21:55 +08 ERROR:  permission denied to create role
+2026-11-06 23:21:55 +08 WARNING:  permission denied to vacuum "items", skipping it
+2026-11-06 23:21:56 +08 FATAL:  password authentication failed for user "lostandfound_public"
+2026-11-06 23:22:22 +08 WARNING:  permission denied to vacuum "items", skipping it
+2026-11-06 23:22:22 +08 WARNING:  permission denied to analyze "items", skipping it
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:48 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:49 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:49 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:14 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:37:17 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:38:46 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:38:46 +08 ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+2026-11-06 23:38:46 +08 ERROR:  update or delete on table "lease" violates foreign key constraint "payment_lease_id_fkey" on table "payment"
+2026-11-06 23:38:47 +08 ERROR:  new row for relation "lease" violates check constraint "ck_lease_dates"
+2026-11-06 23:38:47 +08 ERROR:  new row for relation "lease" violates check constraint "lease_monthly_rent_check"
+2026-11-06 23:38:47 +08 ERROR:  invalid input syntax for type date: "notadate"
+2026-11-06 23:38:47 +08 ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+2026-11-06 23:38:47 +08 ERROR:  duplicate key value violates unique constraint "tenant_email_key"
+2026-11-06 23:41:43 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:41:56 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:42:14 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:43:34 +08 ERROR:  permission denied for table lease
+2026-11-06 23:43:35 +08 ERROR:  permission denied for table payment
+2026-11-06 23:43:35 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:43:35 +08 ERROR:  must be owner of table lease
+2026-11-06 23:43:35 +08 ERROR:  permission denied to create role
+2026-11-06 23:43:35 +08 ERROR:  permission denied for table property
+2026-11-06 23:43:35 +08 ERROR:  permission denied for table lease
+2026-11-06 23:44:12 +08 WARNING:  permission denied to vacuum "lease", skipping it
+2026-11-06 23:44:15 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:44:15 +08 ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+2026-11-06 23:44:15 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:44:16 +08 ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+2026-11-06 23:48:24 +08 ERROR:  database "boardtrack_dbup" does not exist
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "order_ticket" violates check constraint "chk_order_ticket_payment"
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "staff" violates check constraint "chk_staff_role"
+2026-11-06 23:57:02 +08 ERROR:  update or delete on table "menu_category" violates foreign key constraint "fk_menu_item_category" on table "menu_item"
+2026-11-06 23:57:02 +08 ERROR:  update or delete on table "menu_item" violates foreign key constraint "fk_order_line_item" on table "order_line_item"
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table staff
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table staff
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_ticket
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_ticket
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_line_item
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_line_item
+2026-11-06 23:59:55 +08 ERROR:  update or delete on table "menu_category" violates foreign key constraint "fk_menu_item_category" on table "menu_item"
+2026-11-06 23:59:56 +08 ERROR:  permission denied for table order_line_item
+2026-11-06 23:59:56 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:59:56 +08 ERROR:  must be owner of table menu_item
+2026-11-06 23:59:56 +08 ERROR:  must be owner of table menu_item
+2026-11-06 23:59:56 +08 ERROR:  permission denied to create role
+2026-11-06 23:59:56 +08 WARNING:  permission denied to vacuum "menu_item", skipping it
+2026-11-06 23:59:56 +08 ERROR:  permission denied for table pg_authid
+== PHP server output (warnings, notices, fatal errors)
+requests in the PHP log: 32

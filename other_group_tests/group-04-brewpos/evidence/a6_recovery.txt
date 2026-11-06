@@ -1,0 +1,55 @@
+target table: order_line_item (sales history)
+== BEFORE (restored copy)
+--- [postgres@grp_brewposdb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.order_line_item t
+ rows |          table_checksum          
+------+----------------------------------
+   16 | d222bce18cce2aed0782380808618c02
+(1 row)
+
+
+== INCIDENT: someone deletes the lines of the newest order directly in the database
+--- [postgres@grp_brewposdb_restore] delete from public.order_line_item where order_id = (select max(order_id) from public.order_ticket)
+DELETE 1
+
+== AFTER LOSS
+--- [postgres@grp_brewposdb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.order_line_item t
+ rows |          table_checksum          
+------+----------------------------------
+   15 | 184077723566364adda396a423c0b968
+(1 row)
+
+
+== daily sales as the app would now report it
+--- [postgres@grp_brewposdb_restore] select coalesce(sum(quantity*sold_price),0) as net_sales from order_line_item
+    net_sales    
+-----------------
+ 162135017310.50
+(1 row)
+
+
+== RECOVERY: restore the same dump into grp_brewposdb_recovery
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@grp_brewposdb_recovery] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.order_line_item t
+ rows |          table_checksum          
+------+----------------------------------
+   16 | d222bce18cce2aed0782380808618c02
+(1 row)
+
+
+--- [postgres@grp_brewposdb_recovery] select coalesce(sum(quantity*sold_price),0) as net_sales from order_line_item
+    net_sales    
+-----------------
+ 162135017386.00
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@grp_brewposdb] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from public.order_line_item t
+ rows |          table_checksum          
+------+----------------------------------
+   16 | d222bce18cce2aed0782380808618c02
+(1 row)
+
+
+== whole-table recovery alternative: copy only the lost rows back (row-level repair from the recovery copy is not possible across databases without dblink, so the full restore was used)

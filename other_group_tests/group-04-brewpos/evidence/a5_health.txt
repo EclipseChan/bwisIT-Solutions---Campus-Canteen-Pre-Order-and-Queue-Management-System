@@ -1,0 +1,124 @@
+run at 11/07/2026 00:03:20
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select pg_size_pretty(pg_database_size('grp_brewposdb')) as db_size
+ db_size 
+---------
+ 8406 kB
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='grp_brewposdb'
+    datname    | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+---------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ grp_brewposdb |          11 |         439 |            52 |         9 |    57889 |         0 |          0
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select pid,usename,application_name,state,left(query,60) as query from pg_stat_activity where datname='grp_brewposdb'
+  pid  |   usename   |    application_name    | state  |                            query                             
+-------+-------------+------------------------+--------+--------------------------------------------------------------
+ 26952 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+  2848 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+ 25516 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+  5904 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+ 17876 | postgres    | psql                   | active | select pid,usename,application_name,state,left(query,60) as 
+ 16676 | brewpos_app | PostgreSQL JDBC Driver | idle   | COMMIT
+ 21000 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+ 27904 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+  3860 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+  7160 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+ 20364 | brewpos_app | PostgreSQL JDBC Driver | idle   | 
+(11 rows)
+
+
+--- [postgres@grp_brewposdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze from pg_stat_user_tables order by relname
+     relname     | n_live_tup | n_dead_tup | last_vacuum | last_autovacuum |         last_analyze          | last_autoanalyze 
+-----------------+------------+------------+-------------+-----------------+-------------------------------+------------------
+ menu_category   |          5 |         12 |             |                 | 2026-11-06 23:54:48.100358+08 | 
+ menu_item       |         15 |         21 |             |                 | 2026-11-06 23:54:48.102208+08 | 
+ order_line_item |         16 |          5 |             |                 | 2026-11-06 23:54:48.104365+08 | 
+ order_ticket    |         11 |          6 |             |                 | 2026-11-06 23:54:48.102774+08 | 
+ staff           |          2 |          0 |             |                 | 2026-11-06 23:54:48.099509+08 | 
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select relname, pg_size_pretty(pg_total_relation_size(relid)) total, pg_size_pretty(pg_indexes_size(relid)) idx from pg_stat_user_tables order by pg_total_relation_size(relid) desc
+     relname     | total |  idx  
+-----------------+-------+-------
+ order_line_item | 40 kB | 32 kB
+ order_ticket    | 40 kB | 32 kB
+ menu_category   | 40 kB | 32 kB
+ menu_item       | 40 kB | 32 kB
+ staff           | 24 kB | 16 kB
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ menu_category   |         5
+ menu_item       |        15
+ order_line_item |        16
+ order_ticket    |        11
+ staff           |         2
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select indexrelname, relname, idx_scan from pg_stat_user_indexes order by relname, indexrelname
+        indexrelname         |     relname     | idx_scan 
+-----------------------------+-----------------+----------
+ menu_category_pkey          | menu_category   |       40
+ uq_menu_category_name       | menu_category   |        6
+ menu_item_pkey              | menu_item       |       18
+ uq_menu_item_category_name  | menu_item       |       22
+ idx_order_line_item_item_id | order_line_item |       18
+ pk_order_line_item          | order_line_item |       68
+ idx_order_ticket_timestamp  | order_ticket    |       19
+ order_ticket_pkey           | order_ticket    |       34
+ staff_pkey                  | staff           |       48
+(9 rows)
+
+
+--- [postgres@postgres] show log_statement
+ log_statement 
+---------------
+ none
+(1 row)
+
+
+--- [postgres@postgres] show log_min_duration_statement
+ log_min_duration_statement 
+----------------------------
+ -1
+(1 row)
+
+
+--- [postgres@postgres] show max_connections
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+
+--- [postgres@postgres] show autovacuum
+ autovacuum 
+------------
+ on
+(1 row)
+
+
+--- can brewpos_app run maintenance?
+--- [login brewpos_app@grp_brewposdb] VACUUM public.order_ticket
+WARNING:  permission denied to vacuum "order_ticket", skipping it
+VACUUM
+
+--- [login brewpos_app@grp_brewposdb] ANALYZE public.order_ticket
+WARNING:  permission denied to analyze "order_ticket", skipping it
+ANALYZE
+

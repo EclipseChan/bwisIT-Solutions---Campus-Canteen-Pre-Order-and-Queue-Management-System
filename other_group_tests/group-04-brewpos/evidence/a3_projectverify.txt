@@ -1,0 +1,126 @@
+   table_name    
+-----------------
+ menu_category
+ menu_item
+ order_line_item
+ order_ticket
+ staff
+(5 rows)
+
+   table_name    | ordinal_position |   column_name   |          data_type          | character_maximum_length | numeric_precision | numeric_scale | is_nullable |                   column_default                   
+-----------------+------------------+-----------------+-----------------------------+--------------------------+-------------------+---------------+-------------+----------------------------------------------------
+ menu_category   |                1 | category_id     | integer                     |                          |                32 |             0 | NO          | nextval('menu_category_category_id_seq'::regclass)
+ menu_category   |                2 | category_name   | character varying           |                       50 |                   |               | NO          | 
+ menu_item       |                1 | item_id         | integer                     |                          |                32 |             0 | NO          | nextval('menu_item_item_id_seq'::regclass)
+ menu_item       |                2 | category_id     | integer                     |                          |                32 |             0 | NO          | 
+ menu_item       |                3 | item_name       | character varying           |                      100 |                   |               | NO          | 
+ menu_item       |                4 | price           | numeric                     |                          |                10 |             2 | NO          | 
+ menu_item       |                5 | is_active       | boolean                     |                          |                   |               | NO          | true
+ order_line_item |                1 | order_id        | integer                     |                          |                32 |             0 | NO          | 
+ order_line_item |                2 | item_id         | integer                     |                          |                32 |             0 | NO          | 
+ order_line_item |                3 | quantity        | integer                     |                          |                32 |             0 | NO          | 
+ order_line_item |                4 | sold_price      | numeric                     |                          |                10 |             2 | NO          | 
+ order_ticket    |                1 | order_id        | integer                     |                          |                32 |             0 | NO          | nextval('order_ticket_order_id_seq'::regclass)
+ order_ticket    |                2 | staff_id        | integer                     |                          |                32 |             0 | NO          | 
+ order_ticket    |                3 | order_timestamp | timestamp without time zone |                          |                   |               | NO          | CURRENT_TIMESTAMP
+ order_ticket    |                4 | payment_method  | character varying           |                       20 |                   |               | NO          | 
+ staff           |                1 | staff_id        | integer                     |                          |                32 |             0 | NO          | nextval('staff_staff_id_seq'::regclass)
+ staff           |                2 | full_name       | character varying           |                      100 |                   |               | NO          | 
+ staff           |                3 | role            | character varying           |                       20 |                   |               | NO          | 
+(18 rows)
+
+   table_name    |  constraint_name   |    pk_columns     
+-----------------+--------------------+-------------------
+ menu_category   | menu_category_pkey | category_id
+ menu_item       | menu_item_pkey     | item_id
+ order_line_item | pk_order_line_item | order_id, item_id
+ order_ticket    | order_ticket_pkey  | order_id
+ staff           | staff_pkey         | staff_id
+(5 rows)
+
+   child_table   |        conname        |                           definition                            
+-----------------+-----------------------+-----------------------------------------------------------------
+ menu_item       | fk_menu_item_category | FOREIGN KEY (category_id) REFERENCES menu_category(category_id)
+ order_ticket    | fk_order_ticket_staff | FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
+ order_line_item | fk_order_line_item    | FOREIGN KEY (item_id) REFERENCES menu_item(item_id)
+ order_line_item | fk_order_line_order   | FOREIGN KEY (order_id) REFERENCES order_ticket(order_id)
+(4 rows)
+
+   table_name    |          conname           | contype |                                                    definition                                                    
+-----------------+----------------------------+---------+------------------------------------------------------------------------------------------------------------------
+ staff           | chk_staff_role             | c       | CHECK (((role)::text = ANY ((ARRAY['CASHIER'::character varying, 'MANAGER'::character varying])::text[])))
+ menu_category   | uq_menu_category_name      | u       | UNIQUE (category_name)
+ menu_item       | chk_menu_item_price        | c       | CHECK ((price >= (0)::numeric))
+ menu_item       | uq_menu_item_category_name | u       | UNIQUE (category_id, item_name)
+ order_ticket    | chk_order_ticket_payment   | c       | CHECK (((payment_method)::text = ANY ((ARRAY['CASH'::character varying, 'ONLINE'::character varying])::text[])))
+ order_line_item | chk_order_line_quantity    | c       | CHECK ((quantity > 0))
+ order_line_item | chk_order_line_sold_price  | c       | CHECK ((sold_price >= (0)::numeric))
+(7 rows)
+
+       tbl       | count 
+-----------------+-------
+ staff           |     2
+ menu_category   |     3
+ menu_item       |    11
+ order_ticket    |     5
+ order_line_item |     9
+(5 rows)
+
+ order_id |   order_timestamp   | payment_method | order_total 
+----------+---------------------+----------------+-------------
+        3 | 2026-11-06 13:05:00 | CASH           |      360.00
+        2 | 2026-11-06 10:40:00 | ONLINE         |      300.00
+        1 | 2026-11-06 09:15:00 | CASH           |      255.50
+        4 | 2026-11-05 16:30:00 | ONLINE         |      280.00
+        5 | 2026-11-05 08:20:00 | CASH           |      160.00
+(5 rows)
+
+ total_sales | order_count 
+-------------+-------------
+      915.50 |           3
+(1 row)
+
+ payment_method | total_sales | order_count 
+----------------+-------------+-------------
+ CASH           |      615.50 |           2
+ ONLINE         |      300.00 |           1
+(2 rows)
+
+    tablename    |          indexname          |                                                indexdef                                                 
+-----------------+-----------------------------+---------------------------------------------------------------------------------------------------------
+ menu_category   | menu_category_pkey          | CREATE UNIQUE INDEX menu_category_pkey ON public.menu_category USING btree (category_id)
+ menu_category   | uq_menu_category_name       | CREATE UNIQUE INDEX uq_menu_category_name ON public.menu_category USING btree (category_name)
+ menu_item       | menu_item_pkey              | CREATE UNIQUE INDEX menu_item_pkey ON public.menu_item USING btree (item_id)
+ menu_item       | uq_menu_item_category_name  | CREATE UNIQUE INDEX uq_menu_item_category_name ON public.menu_item USING btree (category_id, item_name)
+ order_line_item | idx_order_line_item_item_id | CREATE INDEX idx_order_line_item_item_id ON public.order_line_item USING btree (item_id)
+ order_line_item | pk_order_line_item          | CREATE UNIQUE INDEX pk_order_line_item ON public.order_line_item USING btree (order_id, item_id)
+ order_ticket    | idx_order_ticket_timestamp  | CREATE INDEX idx_order_ticket_timestamp ON public.order_ticket USING btree (order_timestamp)
+ order_ticket    | order_ticket_pkey           | CREATE UNIQUE INDEX order_ticket_pkey ON public.order_ticket USING btree (order_id)
+ staff           | staff_pkey                  | CREATE UNIQUE INDEX staff_pkey ON public.staff USING btree (staff_id)
+(9 rows)
+
+ rolname | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | rolinherit | rolreplication 
+---------+-------------+----------+-------------+---------------+------------+----------------
+(0 rows)
+
+ table_name | privileges 
+------------+------------
+(0 rows)
+
+ sequence_name | privileges 
+---------------+------------
+(0 rows)
+
+                                                    QUERY PLAN                                                    
+------------------------------------------------------------------------------------------------------------------
+ Aggregate
+   ->  Sort
+         Sort Key: t.order_id
+         ->  Hash Join
+               Hash Cond: (l.order_id = t.order_id)
+               ->  Seq Scan on order_line_item l
+               ->  Hash
+                     ->  Seq Scan on order_ticket t
+                           Filter: ((order_timestamp >= CURRENT_DATE) AND (order_timestamp < (CURRENT_DATE + 1)))
+(9 rows)
+

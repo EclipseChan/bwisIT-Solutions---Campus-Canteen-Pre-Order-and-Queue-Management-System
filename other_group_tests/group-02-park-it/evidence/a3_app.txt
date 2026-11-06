@@ -1,0 +1,265 @@
+run at 11/07/2026 00:35:03
+php server: listening on http://localhost:8000/park-it/  (DB_NAME=grp_parkitdb DB_USER=postgres)
+--- [postgres@grp_parkitdb] select count(*) from public.vehicle
+ count 
+-------
+     0
+(1 row)
+
+
+==== login
+POST /park-it/auth/login.php  data=username=admin&password=wrong  [admin]  ->  HTTP 200  message: Invalid username or password.   <wrong password>
+POST /park-it/auth/login.php  data=username=nobody&password=x  [admin]  ->  HTTP 200  message: Invalid username or password.   <unknown user>
+POST /park-it/auth/login.php  data=username=' OR 1=1 --&password=x  [admin]  ->  HTTP 200  message: Invalid username or password.   <SQL text as username>
+POST /park-it/auth/login.php  data=username=&password=  [admin]  ->  HTTP 200  message: Please enter both your username and password.   <empty fields>
+GET /park-it/dashboard.php  [admin]  ->  HTTP 302   <still not logged in>
+POST /park-it/auth/login.php  data=username=admin&password=admin123  [admin]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, admin (Admin)!   <default admin account from the README>
+POST /park-it/auth/login.php  data=username=staff&password=staff123  [staff]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, staff (Staff)!   <default staff account>
+GET /park-it/dashboard.php  [admin]  ->  HTTP 200   <dashboard>
+==== Module 1: vehicle entry (as admin)
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=ABC-1234&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle ABC-1234 (Car) entered successfully! Ticket #1 logged at Nov 07, 2026 12:35:07 AM.   <valid car>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=MOT-001&vehicle_type=Motorcycle&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle MOT-001 (Motorcycle) entered successfully! Ticket #2 logged at Nov 07, 2026 12:35:07 AM.   <valid motorcycle>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=abc-1234&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message: Duplicate Entry Blocked: Vehicle ABC-1234 already has an active parking transaction (Ticket #1).   <same plate, lower case, vehicle still parked>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=XYZ 777&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle XYZ 777 (Car) entered successfully! Ticket #3 logged at Nov 07, 2026 12:35:07 AM.   <plate with a space>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=AB@#1&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message: License plate may only contain letters, numbers, spaces, and hyphens.   <invalid characters>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message: License plate number is required.   <empty plate>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=AAAAAAAAAAAAAAAAAAAAA&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message: License plate number must not exceed 20 characters.   <21 characters>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=TRK-001&vehicle_type=Truck&zone_id=1  [admin]  ->  HTTP 200  message: Please select a valid vehicle type (Car or Motorcycle).   <type not allowed>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=ZON-001&vehicle_type=Car&zone_id=0  [admin]  ->  HTTP 200  message: Please select a valid parking zone.   <zone 0>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=ZON-002&vehicle_type=Car&zone_id=999  [admin]  ->  HTTP 200  message: The selected parking zone was not found.   <zone that does not exist>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=X'); DROP TABLE public.vehicle;--&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message: License plate number must not exceed 20 characters.   <SQL text in the plate>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=---&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle --- (Car) entered successfully! Ticket #4 logged at Nov 07, 2026 12:35:07 AM.   <plate made only of hyphens>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate= - &vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle - (Car) entered successfully! Ticket #5 logged at Nov 07, 2026 12:35:08 AM.   <plate made of spaces and a hyphen>
+--- [postgres@grp_parkitdb] select vehicle_id, license_plate, vehicle_type from public.vehicle order by 1
+ vehicle_id | license_plate | vehicle_type 
+------------+---------------+--------------
+          1 | ABC-1234      | Car
+          2 | MOT-001       | Motorcycle
+          3 | XYZ 777       | Car
+          4 | ---           | Car
+          5 | -             | Car
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select transaction_id, vehicle_id, zone_id, status, is_lost_ticket from public.transaction order by 1
+ transaction_id | vehicle_id | zone_id | status | is_lost_ticket 
+----------------+------------+---------+--------+----------------
+              1 |          1 |       1 | Active | f
+              2 |          2 |       1 | Active | f
+              3 |          3 |       1 | Active | f
+              4 |          4 |       1 | Active | f
+              5 |          5 |       1 | Active | f
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select zone_name, max_capacity, current_active_count from public.parking_zone
+    zone_name     | max_capacity | current_active_count 
+------------------+--------------+----------------------
+ Main Parking Lot |           50 |                    5
+(1 row)
+
+
+==== vehicle edit and delete
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=1&license_plate=abc-9999&vehicle_type=Car  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle #1 updated to ABC-9999 (Car).   <valid edit>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=1&license_plate=MOT-001&vehicle_type=Car  [admin]  ->  HTTP 200  message: Another vehicle is already registered with license plate &#039;MOT-001&#039;.   <plate already used by another vehicle>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=1&license_plate=ABC-9999&vehicle_type=Bus  [admin]  ->  HTTP 200  message: Vehicle type must be Car or Motorcycle.   <invalid type>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=99999&license_plate=NEW-1&vehicle_type=Car  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle record not found.   <vehicle that does not exist>
+changing the type of a parked vehicle changes its fee: Car to Motorcycle
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=1&license_plate=ABC-9999&vehicle_type=Motorcycle  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle #1 updated to ABC-9999 (Motorcycle).   <edit type of a parked vehicle>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=1&license_plate=ABC-9999&vehicle_type=Car  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle #1 updated to ABC-9999 (Car).   <set it back>
+POST /park-it/modules/vehicles/delete.php  data=vehicle_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Cannot delete vehicle ABC-9999: It is linked to 1 parking transaction(s). Deletion is blocked to preserve transaction and payment history.   <delete a vehicle that has a transaction>
+GET /park-it/modules/vehicles/delete.php?vehicle_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)   <delete by GET>
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) values ('LONE-1','Car')
+INSERT 0 1
+
+POST /park-it/modules/vehicles/delete.php  data=vehicle_id=6  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle LONE-1 was safely deleted.   <delete a vehicle with no transactions>
+--- [postgres@grp_parkitdb] select count(*) as lone_vehicle_left from public.vehicle where license_plate='LONE-1'
+ lone_vehicle_left 
+-------------------
+                 0
+(1 row)
+
+
+==== Module 2: payment search and fee
+GET /park-it/modules/payments/index.php?plate=ABC-9999  [admin]  ->  HTTP 200   <search active vehicle>
+GET /park-it/modules/payments/index.php?plate=NOPE-1  [admin]  ->  HTTP 200  message: No active parking transaction found for license plate &#039;NOPE-1&#039;. Verify the plate number or check if the vehicle has already exited.   <search a plate that is not parked>
+GET /park-it/modules/payments/index.php?plate=ABC-9999&lost_ticket=1  [admin]  ->  HTTP 200   <lost ticket view>
+-- fee table, using entry times moved back in the database (the app has no way to enter a past time)
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=CAR-2H&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle CAR-2H (Car) entered successfully! Ticket #6 logged at Nov 07, 2026 12:35:10 AM.   <for 2 hours>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=CAR-3H&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle CAR-3H (Car) entered successfully! Ticket #7 logged at Nov 07, 2026 12:35:10 AM.   <for exactly 3 hours>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=CAR-31&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle CAR-31 (Car) entered successfully! Ticket #8 logged at Nov 07, 2026 12:35:10 AM.   <for 3 hours 1 minute>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=CAR-5H&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle CAR-5H (Car) entered successfully! Ticket #9 logged at Nov 07, 2026 12:35:10 AM.   <for 5 hours>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=MOT-2H&vehicle_type=Motorcycle&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle MOT-2H (Motorcycle) entered successfully! Ticket #10 logged at Nov 07, 2026 12:35:10 AM.   <for 2 hours>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=MOT-6H&vehicle_type=Motorcycle&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle MOT-6H (Motorcycle) entered successfully! Ticket #11 logged at Nov 07, 2026 12:35:10 AM.   <for 6 hours>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=LOST-1&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle LOST-1 (Car) entered successfully! Ticket #12 logged at Nov 07, 2026 12:35:10 AM.   <lost ticket>
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '2 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='CAR-2H' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '3 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='CAR-3H' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '3 hours 1 minute' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='CAR-31' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '5 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='CAR-5H' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '2 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='MOT-2H' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '6 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='MOT-6H' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '9 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='LOST-1' and t.status='Active' order by 1 desc limit 1)
+UPDATE 1
+
+POST /park-it/modules/payments/process.php  data=transaction_id=6&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=1)  message: Payment of â‚±50.00 (Cash) recorded under Receipt #1! Vehicle CAR-2H is now cleared to exit.   <expect 50>
+POST /park-it/modules/payments/process.php  data=transaction_id=7&payment_method=GCash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=2)  message: Payment of â‚±50.00 (GCash) recorded under Receipt #2! Vehicle CAR-3H is now cleared to exit.   <expect 50 or 60 (boundary)>
+POST /park-it/modules/payments/process.php  data=transaction_id=8&payment_method=Maya&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=3)  message: Payment of â‚±60.00 (Maya) recorded under Receipt #3! Vehicle CAR-31 is now cleared to exit.   <expect 60>
+POST /park-it/modules/payments/process.php  data=transaction_id=9&payment_method=Credit/Debit Card&is_lost_ticket=0  [staff]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=4)  message: Payment of â‚±70.00 (Credit/Debit Card) recorded under Receipt #4! Vehicle CAR-5H is now cleared to exit.   <expect 70, paid as staff>
+POST /park-it/modules/payments/process.php  data=transaction_id=10&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=5)  message: Payment of â‚±30.00 (Cash) recorded under Receipt #5! Vehicle MOT-2H is now cleared to exit.   <expect 30>
+POST /park-it/modules/payments/process.php  data=transaction_id=11&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=6)  message: Payment of â‚±70.00 (Cash) recorded under Receipt #6! Vehicle MOT-6H is now cleared to exit.   <expect 60>
+POST /park-it/modules/payments/process.php  data=transaction_id=12&payment_method=Cash&is_lost_ticket=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=7)  message: Payment of â‚±200.00 (Cash) recorded under Receipt #7! Vehicle LOST-1 is now cleared to exit.   <lost ticket, expect 200>
+--- [postgres@grp_parkitdb] select v.license_plate, v.vehicle_type, p.amount, p.payment_method, t.status, t.is_lost_ticket, t.exit_time - t.entry_time as parked from public.payment p join public.transaction t using (transaction_id) join public.vehicle v using (vehicle_id) order by p.payment_id
+ license_plate | vehicle_type | amount |  payment_method   |  status   | is_lost_ticket |     parked      
+---------------+--------------+--------+-------------------+-----------+----------------+-----------------
+ CAR-2H        | Car          |  50.00 | Cash              | Completed | f              | 02:00:00.029616
+ CAR-3H        | Car          |  50.00 | GCash             | Completed | f              | 02:59:59.974199
+ CAR-31        | Car          |  60.00 | Maya              | Completed | f              | 03:00:59.914817
+ CAR-5H        | Car          |  70.00 | Credit/Debit Card | Completed | f              | 04:59:59.858448
+ MOT-2H        | Motorcycle   |  30.00 | Cash              | Completed | f              | 02:00:00.798653
+ MOT-6H        | Motorcycle   |  70.00 | Cash              | Completed | f              | 06:00:00.744278
+ LOST-1        | Car          | 200.00 | Cash              | Completed | t              | 09:00:00.689561
+(7 rows)
+
+
+-- invalid payments
+POST /park-it/modules/payments/process.php  data=transaction_id=1&payment_method=Bitcoin&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)  message: Please select a valid payment method.   <method not allowed>
+POST /park-it/modules/payments/process.php  data=transaction_id=99999&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)  message: Cannot process payment: The specified parking transaction does not exist.   <transaction that does not exist>
+POST /park-it/modules/payments/process.php  data=transaction_id=0&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)  message: Invalid parking transaction ID.   <transaction id 0>
+POST /park-it/modules/payments/process.php  data=transaction_id=6&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)  message: Cannot process payment: Transaction #6 for vehicle CAR-2H is already marked as &#039;Completed&#039;.   <same transaction paid a second time>
+GET /park-it/modules/payments/process.php  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)   <process page opened with GET>
+POST /park-it/modules/payments/process.php  data=transaction_id=1&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=8)  message: Payment of â‚±50.00 (Cash) recorded under Receipt #8! Vehicle ABC-9999 is now cleared to exit.   <pay the parked car now (about 1 hour)>
+--- [postgres@grp_parkitdb] select count(*) as payments, sum(amount) as total from public.payment
+ payments | total  
+----------+--------
+        8 | 580.00
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select zone_name, max_capacity, current_active_count from public.parking_zone
+    zone_name     | max_capacity | current_active_count 
+------------------+--------------+----------------------
+ Main Parking Lot |           50 |                    4
+(1 row)
+
+
+GET /park-it/modules/payments/history.php  [admin]  ->  HTTP 200   <payment history>
+==== Module 3: monitoring and capacity
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":4,"available_spaces":46,"active_vehicles":4,"status_code":"available","status_text":"OPEN \/ SPACES AVAILABLE","warning_type":"none","warning_message":"","occupancy_percent":8,"zones":[{"zone_id":1,"zone_name":"Main Parking Lot","max_capacity":50,"current_active_count":4,"ava...
+--- [postgres@grp_parkitdb] select count(*) as active_now from public.transaction where status='Active'
+ active_now 
+------------
+          4
+(1 row)
+
+
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) select 'FILL-' || g, 'Car' from generate_series(1,40) g
+INSERT 0 40
+
+--- [postgres@grp_parkitdb] insert into public.transaction(vehicle_id, zone_id, entry_time, status, is_lost_ticket) select vehicle_id, 1, localtimestamp, 'Active', false from public.vehicle where license_plate like 'FILL-%'
+INSERT 0 40
+
+after adding 40 active vehicles directly in SQL, the zone counter still shows the old value until a page recounts it
+--- [postgres@grp_parkitdb] select current_active_count from public.parking_zone
+ current_active_count 
+----------------------
+                    4
+(1 row)
+
+
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":44,"available_spaces":6,"active_vehicles":44,"status_code":"warning","status_text":"LOW SPACE WARNING (6 Left)","warning_type":"low","warning_message":"LOW PARKING SPACE WARNING: Only 6 parking space(s) remain available out of 50!","occupancy_percent":88,"zones":[{"zone_id":1...
+--- [postgres@grp_parkitdb] select current_active_count from public.parking_zone
+ current_active_count 
+----------------------
+                   44
+(1 row)
+
+
+active vehicles now 44, adding 6 more to reach 50
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) select 'FULL-' || g, 'Car' from generate_series(1,6) g
+INSERT 0 6
+
+--- [postgres@grp_parkitdb] insert into public.transaction(vehicle_id, zone_id, entry_time, status, is_lost_ticket) select vehicle_id, 1, localtimestamp, 'Active', false from public.vehicle where license_plate like 'FULL-%'
+INSERT 0 6
+
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":50,"available_spaces":0,"active_vehicles":50,"status_code":"full","status_text":"FULL CAPACITY (No Spaces Available)","warning_type":"full","warning_message":"FULL CAPACITY WARNING: All 50 parking spaces are currently occupied (50\/50). Incoming vehicle registration is disabl...
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=OVER-1&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message:     <lot is full, entry should be refused>
+--- [postgres@grp_parkitdb] select count(*) as vehicle_rows_for_OVER1 from public.vehicle where license_plate='OVER-1'
+ vehicle_rows_for_over1 
+------------------------
+                      0
+(1 row)
+
+
+POST /park-it/modules/payments/process.php  data=transaction_id=53&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/history.php?receipt_id=9)  message: Payment of â‚±50.00 (Cash) recorded under Receipt #9! Vehicle FULL-1 is now cleared to exit.   <one car leaves, a space opens>
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":49,"available_spaces":1,"active_vehicles":49,"status_code":"warning","status_text":"LOW SPACE WARNING (1 Left)","warning_type":"low","warning_message":"LOW PARKING SPACE WARNING: Only 1 parking space(s) remain available out of 50!","occupancy_percent":98,"zones":[{"zone_id":1...
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=OVER-2&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle OVER-2 (Car) entered successfully! Ticket #59 logged at Nov 07, 2026 12:35:14 AM.   <entry after a space opened>
+==== direct database rules (what the database itself allows)
+--- [postgres@grp_parkitdb] insert into public.transaction(vehicle_id, zone_id, entry_time, status) select vehicle_id, 1, localtimestamp, 'Banana' from public.vehicle limit 1
+INSERT 0 1
+
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) values ('SQL-TRUCK','Truck')
+INSERT 0 1
+
+--- [postgres@grp_parkitdb] update public.transaction set exit_time = entry_time - interval '1 day' where transaction_id = (select max(transaction_id) from public.transaction)
+UPDATE 1
+
+--- [postgres@grp_parkitdb] insert into public.payment(transaction_id, amount, payment_method, payment_time) select max(transaction_id), 0, 'x', now() from public.transaction
+INSERT 0 1
+
+--- [postgres@grp_parkitdb] update public.parking_zone set current_active_count = -5
+UPDATE 1
+
+--- [postgres@grp_parkitdb] update public.parking_zone set current_active_count = 51
+ERROR:  new row for relation "parking_zone" violates check constraint "parking_zone_check"
+DETAIL:  Failing row contains (1, Main Parking Lot, 50, 51).
+
+--- [postgres@grp_parkitdb] select count(*) as two_active_transactions_for_one_vehicle from (select vehicle_id from public.transaction where status='Active' group by 1 having count(*)>1) x
+ two_active_transactions_for_one_vehicle 
+-----------------------------------------
+                                       0
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select count(*) as paid_but_still_active from public.transaction t join public.payment p using (transaction_id) where t.status='Active'
+ paid_but_still_active 
+-----------------------
+                     0
+(1 row)
+
+
+==== response headers and cookies
+HTTP/1.1 200 OK
+Host: localhost:8000
+Date: Fri, 06 Nov 2026 16:35:15 GMT
+Connection: close
+X-Powered-By: PHP/8.2.12
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-type: text/html; charset=UTF-8
+
+cookie jar (HttpOnly shows as a #HttpOnly_ prefix):
+localhost	FALSE	/	FALSE	0	PHPSESSID	lfs6hcra49marftoeitk29brke
+==== php server log
+requests logged: 98
+=== database after the tests
+--- [postgres@grp_parkitdb] select (select count(*) from public.vehicle) vehicles, (select count(*) from public.transaction) transactions, (select count(*) from public.payment) payments, (select current_active_count from public.parking_zone) zone_count
+ vehicles | transactions | payments | zone_count 
+----------+--------------+----------+------------
+       60 |           60 |       10 |         50
+(1 row)
+
+
+left running for screenshots: http://localhost:8000/park-it/  (admin / admin123)

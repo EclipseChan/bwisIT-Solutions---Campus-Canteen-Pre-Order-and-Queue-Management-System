@@ -1,0 +1,5 @@
+M|||GET|||dashboard
+M|||GET|||customers
+M|||GET|||bookings
+M|||POST|||customers|||{"name":"RO Customer","phone":"1","email":"ro@example.com"}|||write as the read-only account
+M|||DELETE|||customers||||||delete as the read-only account|||&id=@c4@

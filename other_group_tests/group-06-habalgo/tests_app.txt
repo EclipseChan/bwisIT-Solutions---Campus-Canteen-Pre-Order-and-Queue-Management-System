@@ -1,0 +1,100 @@
+==== empty database (only 10 drivers in the sample data)
+M|||GET|||dashboard
+M|||GET|||customers
+M|||GET|||vehicles
+M|||GET|||bookings
+M|||GET|||payments
+M|||GET|||ratings
+M|||GET|||options
+==== customers
+M|||POST|||customers|||{"name":"Maria Santos","phone":"09171234567","email":"maria@example.com"}
+CAP|||c1
+M|||POST|||customers|||{"name":"Other Maria","phone":"09170000000","email":"maria@example.com"}|||duplicate email
+M|||POST|||customers|||{"name":"No Email","phone":"09170000001"}|||missing email
+M|||POST|||customers|||{"name":"Bad Email","phone":"abc","email":"not-an-email"}|||letters in phone, no @ in email
+M|||POST|||customers|||{"name":"@N101@","phone":"1","email":"long@example.com"}|||101-character name
+M|||POST|||customers|||{"name":"Ann \"Bee\" Cruz","phone":"09175550000","email":"ann@example.com"}|||quotes in a name
+M|||POST|||customers|||{"name":"x'); DROP TABLE habalgo.customer;--","phone":"1","email":"inj@example.com"}|||SQL text in a name
+Q|||select count(*) as customer_table_still_there from habalgo.customer
+M|||POST|||customers|||{"customer_id":9999,"name":"Mass Assign","phone":"1","email":"mass@example.com"}|||client sends its own customer_id
+Q|||select customer_id, name from habalgo.customer where email='mass@example.com'
+M|||PUT|||customers|||{"phone":"09999999999"}|||update phone|||&id=@c1@
+M|||PUT|||customers|||{}|||update with an empty body|||&id=@c1@
+M|||PUT|||customers|||{"phone":"1"}|||update with no id
+M|||PATCH|||customers|||{"name":"Made By Patch","phone":"1","email":"patch@example.com"}|||PATCH method
+Q|||select name from habalgo.customer where email='patch@example.com'
+==== vehicles and driver assignment
+M|||POST|||vehicles|||{"plate_no":"ABC 1234","vehicle_type":"Sedan","model":"Vios"}
+CAP|||v1
+M|||POST|||vehicles|||{"plate_no":"ABC 1234","vehicle_type":"SUV","model":"Fortuner"}|||duplicate plate
+M|||POST|||vehicles|||{"plate_no":"XYZ 9876","vehicle_type":"Van","model":"Hiace"}
+CAP|||v2
+M|||PUT|||vehicles|||{"driver_id":1}|||assign driver 1 to vehicle 1|||&id=@v1@
+M|||PUT|||vehicles|||{"driver_id":1}|||assign the same driver to a second vehicle|||&id=@v2@
+Q|||select driver_id, vehicle_id, assigned_from, assigned_to from habalgo.driver_vehicle order by vehicle_id
+M|||PUT|||vehicles|||{"driver_id":2}|||reassign vehicle 1 to driver 2|||&id=@v1@
+Q|||select driver_id, vehicle_id, assigned_to is null as current from habalgo.driver_vehicle order by vehicle_id, driver_id
+M|||PUT|||vehicles|||{"driver_id":9999}|||unknown driver|||&id=@v1@
+==== bookings
+M|||POST|||bookings|||{"customer_name":"Juan Dela Cruz","pickup":"Mapua Station","pickup_city":"Manila","dropoff":"SM North","dropoff_city":"Quezon City"}|||customer created from the name
+CAP|||b1
+Q|||select customer_id, name, phone, email from habalgo.customer where name='Juan Dela Cruz'
+M|||POST|||bookings|||{"customer_name":"juan dela cruz","pickup":"A St","pickup_city":"Manila","dropoff":"B St","dropoff_city":"Manila"}|||same name, other case
+M|||POST|||bookings|||{"customer_name":"Ana Cruz","pickup":"A St","pickup_city":"Manila","dropoff":"B St","dropoff_city":"Manila"}
+M|||POST|||bookings|||{"customer_name":"AnaCruz","pickup":"A St","pickup_city":"Manila","dropoff":"B St","dropoff_city":"Manila"}|||a different person whose name gives the same generated email
+M|||POST|||bookings|||{"customer_name":"Same Place","pickup":"A St","pickup_city":"Manila","dropoff":"a st","dropoff_city":"manila"}|||pickup equals drop-off
+M|||POST|||bookings|||{"customer_name":"Pedro Driver","driver_id":3,"pickup":"A St","pickup_city":"Cebu City","dropoff":"B St","dropoff_city":"Cebu City"}|||with a driver
+CAP|||b2
+Q|||select booking_id, driver_id, booking_status from habalgo.booking where booking_id=@b2@
+M|||POST|||bookings|||{"customer_id":@c1@,"driver_id":9999,"pickup":"A St","pickup_city":"Manila","dropoff":"C St","dropoff_city":"Manila"}|||unknown driver
+M|||POST|||bookings|||{"customer_id":9999,"pickup":"A St","pickup_city":"Manila","dropoff":"C St","dropoff_city":"Manila"}|||unknown customer
+M|||POST|||bookings|||{"customer_id":@c1@,"booking_status":"Flying","pickup":"A St","pickup_city":"Manila","dropoff":"C St","dropoff_city":"Manila"}|||invalid status
+M|||POST|||bookings|||{"customer_id":@c1@,"pickup":"Nowhere Lane","pickup_city":"Atlantis","dropoff":"C St","dropoff_city":"Manila"}|||city that is not in the list
+M|||POST|||bookings|||{"customer_id":@c1@}|||no locations
+M|||PUT|||bookings|||{"booking_status":"Completed"}|||Pending to Completed|||&id=@b1@
+M|||PUT|||bookings|||{"booking_status":"Pending"}|||Completed back to Pending|||&id=@b1@
+M|||PUT|||bookings|||{"booking_status":"Cancelled"}|||Pending to Cancelled|||&id=@b1@
+M|||PUT|||bookings|||{"booking_status":"Completed"}|||Cancelled to Completed|||&id=@b1@
+==== payments
+M|||POST|||payments|||{"booking_id":@b1@,"amount":250.50,"method":"Cash","status":"Paid"}
+CAP|||p1
+M|||POST|||payments|||{"booking_id":@b1@,"amount":0,"method":"Cash","status":"Paid"}|||amount 0
+M|||POST|||payments|||{"booking_id":@b1@,"amount":-50,"method":"Cash","status":"Paid"}|||negative amount
+M|||POST|||payments|||{"booking_id":@b1@,"amount":99999999999,"method":"Cash","status":"Paid"}|||amount above numeric(10,2)
+M|||POST|||payments|||{"booking_id":@b1@,"amount":10,"method":"Bitcoin","status":"Whatever"}|||free text method and status
+M|||POST|||payments|||{"booking_id":@b1@,"amount":250.50,"method":"Cash","status":"Paid"}|||same booking paid twice
+M|||POST|||payments|||{"booking_id":9999,"amount":10,"method":"Cash","status":"Paid"}|||unknown booking
+M|||POST|||payments|||{"amount":10,"method":"Cash","status":"Paid"}|||no booking
+Q|||select booking_id, count(*) payments, sum(amount) total from habalgo.payment group by 1
+M|||GET|||dashboard
+==== ratings
+M|||POST|||ratings|||{"booking_id":@b2@,"rating":5,"feedback":"x"}|||booking that is not completed
+M|||POST|||ratings|||{"booking_id":@b1@,"rating":5,"feedback":"Smooth ride"}
+CAP|||r1
+M|||POST|||ratings|||{"booking_id":@b1@,"rating":4,"feedback":"again"}|||second rating, same booking
+M|||POST|||ratings|||{"booking_id":@b1@,"rating":6}|||rating 6
+M|||POST|||ratings|||{"booking_id":@b1@,"rating":0}|||rating 0
+M|||POST|||ratings|||{"booking_id":9999,"rating":5}|||unknown booking
+M|||PUT|||ratings|||{"rating":2}|||edit rating without booking_id|||&id=@r1@
+M|||PUT|||ratings|||{"booking_id":@b1@,"rating":2}|||edit rating|||&id=@r1@
+==== deletes and referential integrity
+M|||DELETE|||customers||||||customer with bookings|||&id=@c1@
+M|||DELETE|||bookings||||||booking with payments and a rating|||&id=@b1@
+M|||DELETE|||payments|||||||||&id=@p1@
+M|||DELETE|||ratings|||||||||&id=@r1@
+M|||DELETE|||customers||||||id that does not exist|||&id=424242
+M|||DELETE|||bookings||||||no id given
+M|||DELETE|||vehicles||||||vehicle with assignment history|||&id=@v2@
+Q|||select (select count(*) from habalgo.vehicle) as vehicles_left, (select count(*) from habalgo.driver_vehicle) as assignments_left
+Q|||select booking_id, driver_id, booking_status from habalgo.booking order by 1
+==== routing and other
+M|||GET|||drivers||||||drivers have no endpoint
+M|||GET|||customers;drop%20table%20habalgo.payment||||||SQL text in t
+M|||POST|||customers|||{bad json|||malformed JSON
+M|||GET|||bookings||||||long query string|||&q=@A5000@
+==== response headers and cross-origin
+M|||GET|||customers
+HDR
+M|||GET|||customers||||||cross-origin read||||||-H^Origin: http://evil.example
+HDR
+SAY|||no credentials of any kind were sent in any call above

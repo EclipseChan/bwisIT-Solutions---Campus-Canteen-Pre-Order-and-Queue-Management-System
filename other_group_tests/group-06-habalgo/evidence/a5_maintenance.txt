@@ -1,0 +1,318 @@
+--- [postgres@grp00_habalgodb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+     relname     | n_live_tup | n_dead_tup | last_vacuum | last_analyze 
+-----------------+------------+------------+-------------+--------------
+ booking         |          6 |          7 |             | 
+ customer        |         11 |          5 |             | 
+ driver          |         10 |          1 |             | 
+ driver_vehicle  |          0 |          0 |             | 
+ location        |         10 |          3 |             | 
+ payment         |          2 |          5 |             | 
+ rating_feedback |          1 |          3 |             | 
+ vehicle         |          1 |          3 |             | 
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] ANALYZE
+ANALYZE
+
+--- [postgres@grp00_habalgodb] VACUUM (VERBOSE, ANALYZE) habalgo.booking
+INFO:  vacuuming "grp00_habalgodb.habalgo.booking"
+INFO:  finished vacuuming "grp00_habalgodb.habalgo.booking": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 7 removed, 6 remain, 0 are dead but not yet removable
+removable cutoff: 3231, which was 0 XIDs old when operation ended
+new relfrozenxid: 3117, which is 39 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 2 dead item identifiers removed
+index "booking_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "idx_booking_customer": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "idx_booking_driver": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "idx_booking_date": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 7.281 MB/s
+buffer usage: 112 hits, 0 reads, 4 dirtied
+WAL usage: 11 records, 4 full page images, 33652 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "habalgo.booking"
+INFO:  "booking": scanned 1 of 1 pages, containing 6 live rows and 0 dead rows; 6 rows in sample, 6 estimated total rows
+INFO:  finished analyzing table "grp00_habalgodb.habalgo.booking"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 308 hits, 0 reads, 0 dirtied
+WAL usage: 11 records, 0 full page images, 951 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.01 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp00_habalgodb] VACUUM (VERBOSE, ANALYZE) habalgo.customer
+INFO:  vacuuming "grp00_habalgodb.habalgo.customer"
+INFO:  finished vacuuming "grp00_habalgodb.habalgo.customer": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 5 removed, 11 remain, 0 are dead but not yet removable
+removable cutoff: 3232, which was 0 XIDs old when operation ended
+new relfrozenxid: 3107, which is 34 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 4 dead item identifiers removed
+index "customer_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "customer_email_key": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 8.127 MB/s
+buffer usage: 86 hits, 0 reads, 4 dirtied
+WAL usage: 9 records, 4 full page images, 33544 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "habalgo.customer"
+INFO:  "customer": scanned 1 of 1 pages, containing 11 live rows and 0 dead rows; 11 rows in sample, 11 estimated total rows
+INFO:  finished analyzing table "grp00_habalgodb.habalgo.customer"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 207 hits, 0 reads, 0 dirtied
+WAL usage: 5 records, 0 full page images, 382 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp00_habalgodb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+     relname     | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+-----------------+------------+------------+-------------------------------+-------------------------------
+ booking         |          6 |          0 | 2026-11-07 00:24:36.360983+08 | 2026-11-07 00:24:36.362875+08
+ customer        |         11 |          0 | 2026-11-07 00:24:36.422295+08 | 2026-11-07 00:24:36.423599+08
+ driver          |         10 |          1 |                               | 2026-11-07 00:24:36.156828+08
+ driver_vehicle  |          0 |          0 |                               | 2026-11-07 00:24:36.152814+08
+ location        |         10 |          3 |                               | 2026-11-07 00:24:36.166949+08
+ payment         |          2 |          5 |                               | 2026-11-07 00:24:36.170639+08
+ rating_feedback |          1 |          3 |                               | 2026-11-07 00:24:36.168818+08
+ vehicle         |          1 |          3 |                               | 2026-11-07 00:24:36.154974+08
+(8 rows)
+
+
+--- query 1: the bookings list (api.php BK query)
+--- [postgres@grp00_habalgodb] EXPLAIN (ANALYZE, BUFFERS) select b.booking_id as id, c.name, lp.address, ld.address, d.name, b.booking_status from habalgo.booking b join habalgo.customer c on c.customer_id=b.customer_id join habalgo.location lp on lp.location_id=b.pickup_location_id join habalgo.location ld on ld.location_id=b.dropoff_location_id left join habalgo.driver d on d.driver_id=b.driver_id order by b.booking_id desc
+                                                                QUERY PLAN                                                                 
+-------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=6.17..6.19 rows=6 width=56) (actual time=0.126..0.128 rows=6.00 loops=1)
+   Sort Key: b.booking_id DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=8
+   ->  Hash Join  (cost=4.83..6.10 rows=6 width=56) (actual time=0.098..0.107 rows=6.00 loops=1)
+         Hash Cond: (b.dropoff_location_id = ld.location_id)
+         Buffers: shared hit=5
+         ->  Hash Join  (cost=3.61..4.84 rows=6 width=53) (actual time=0.075..0.083 rows=6.00 loops=1)
+               Hash Cond: (b.pickup_location_id = lp.location_id)
+               Buffers: shared hit=4
+               ->  Hash Join  (cost=2.38..3.59 rows=6 width=50) (actual time=0.054..0.061 rows=6.00 loops=1)
+                     Hash Cond: (b.customer_id = c.customer_id)
+                     Buffers: shared hit=3
+                     ->  Hash Right Join  (cost=1.14..2.32 rows=6 width=40) (actual time=0.034..0.040 rows=6.00 loops=1)
+                           Hash Cond: (d.driver_id = b.driver_id)
+                           Buffers: shared hit=2
+                           ->  Seq Scan on driver d  (cost=0.00..1.10 rows=10 width=19) (actual time=0.008..0.009 rows=10.00 loops=1)
+                                 Buffers: shared hit=1
+                           ->  Hash  (cost=1.06..1.06 rows=6 width=29) (actual time=0.015..0.015 rows=6.00 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                 Buffers: shared hit=1
+                                 ->  Seq Scan on booking b  (cost=0.00..1.06 rows=6 width=29) (actual time=0.009..0.010 rows=6.00 loops=1)
+                                       Buffers: shared hit=1
+                     ->  Hash  (cost=1.11..1.11 rows=11 width=18) (actual time=0.012..0.013 rows=11.00 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                           Buffers: shared hit=1
+                           ->  Seq Scan on customer c  (cost=0.00..1.11 rows=11 width=18) (actual time=0.006..0.008 rows=11.00 loops=1)
+                                 Buffers: shared hit=1
+               ->  Hash  (cost=1.10..1.10 rows=10 width=11) (actual time=0.013..0.013 rows=10.00 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on location lp  (cost=0.00..1.10 rows=10 width=11) (actual time=0.007..0.008 rows=10.00 loops=1)
+                           Buffers: shared hit=1
+         ->  Hash  (cost=1.10..1.10 rows=10 width=11) (actual time=0.017..0.017 rows=10.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=1
+               ->  Seq Scan on location ld  (cost=0.00..1.10 rows=10 width=11) (actual time=0.010..0.011 rows=10.00 loops=1)
+                     Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=296
+ Planning Time: 6.527 ms
+ Execution Time: 0.234 ms
+(42 rows)
+
+
+--- query 2: dashboard statistics
+--- [postgres@grp00_habalgodb] EXPLAIN (ANALYZE, BUFFERS) select (select count(*) from habalgo.customer)::int, (select count(*) from habalgo.booking where booking_status in ('Pending','Confirmed','In Progress'))::int, (select coalesce(sum(amount),0) from habalgo.payment where status='Paid')::float, (select round(avg(rating),1) from habalgo.rating_feedback)::float
+                                                        QUERY PLAN                                                        
+--------------------------------------------------------------------------------------------------------------------------
+ Result  (cost=4.32..4.34 rows=1 width=24) (actual time=0.073..0.074 rows=1.00 loops=1)
+   Buffers: shared hit=4
+   InitPlan 1
+     ->  Aggregate  (cost=1.14..1.15 rows=1 width=8) (actual time=0.014..0.015 rows=1.00 loops=1)
+           Buffers: shared hit=1
+           ->  Seq Scan on customer  (cost=0.00..1.11 rows=11 width=0) (actual time=0.010..0.010 rows=11.00 loops=1)
+                 Buffers: shared hit=1
+   InitPlan 2
+     ->  Aggregate  (cost=1.09..1.10 rows=1 width=8) (actual time=0.013..0.013 rows=1.00 loops=1)
+           Buffers: shared hit=1
+           ->  Seq Scan on booking  (cost=0.00..1.08 rows=5 width=0) (actual time=0.011..0.013 rows=4.00 loops=1)
+                 Filter: ((booking_status)::text = ANY ('{Pending,Confirmed,"In Progress"}'::text[]))
+                 Rows Removed by Filter: 2
+                 Buffers: shared hit=1
+   InitPlan 3
+     ->  Aggregate  (cost=1.03..1.04 rows=1 width=32) (actual time=0.013..0.013 rows=1.00 loops=1)
+           Buffers: shared hit=1
+           ->  Seq Scan on payment  (cost=0.00..1.02 rows=1 width=6) (actual time=0.008..0.008 rows=1.00 loops=1)
+                 Filter: ((status)::text = 'Paid'::text)
+                 Rows Removed by Filter: 1
+                 Buffers: shared hit=1
+   InitPlan 4
+     ->  Aggregate  (cost=1.01..1.03 rows=1 width=32) (actual time=0.020..0.020 rows=1.00 loops=1)
+           Buffers: shared hit=1
+           ->  Seq Scan on rating_feedback  (cost=0.00..1.01 rows=1 width=4) (actual time=0.014..0.014 rows=1.00 loops=1)
+                 Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=301
+ Planning Time: 6.356 ms
+ Execution Time: 0.111 ms
+(30 rows)
+
+
+--- query 3: the payments list
+--- [postgres@grp00_habalgodb] EXPLAIN (ANALYZE, BUFFERS) select p.payment_id, p.booking_id, c.name, p.amount, p.method, p.status from habalgo.payment p join habalgo.booking b on b.booking_id=p.booking_id join habalgo.customer c on c.customer_id=b.customer_id order by p.payment_id desc
+                                                             QUERY PLAN                                                              
+-------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=3.36..3.37 rows=2 width=41) (actual time=0.074..0.076 rows=2.00 loops=1)
+   Sort Key: p.payment_id DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=6
+   ->  Hash Join  (cost=2.18..3.35 rows=2 width=41) (actual time=0.056..0.058 rows=2.00 loops=1)
+         Hash Cond: (c.customer_id = b.customer_id)
+         Buffers: shared hit=3
+         ->  Seq Scan on customer c  (cost=0.00..1.11 rows=11 width=18) (actual time=0.009..0.009 rows=11.00 loops=1)
+               Buffers: shared hit=1
+         ->  Hash  (cost=2.15..2.15 rows=2 width=31) (actual time=0.036..0.037 rows=2.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=2
+               ->  Hash Join  (cost=1.04..2.15 rows=2 width=31) (actual time=0.031..0.032 rows=2.00 loops=1)
+                     Hash Cond: (b.booking_id = p.booking_id)
+                     Buffers: shared hit=2
+                     ->  Seq Scan on booking b  (cost=0.00..1.06 rows=6 width=8) (actual time=0.007..0.007 rows=6.00 loops=1)
+                           Buffers: shared hit=1
+                     ->  Hash  (cost=1.02..1.02 rows=2 width=27) (actual time=0.013..0.013 rows=2.00 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                           Buffers: shared hit=1
+                           ->  Seq Scan on payment p  (cost=0.00..1.02 rows=2 width=27) (actual time=0.007..0.007 rows=2.00 loops=1)
+                                 Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=252
+ Planning Time: 5.017 ms
+ Execution Time: 0.116 ms
+(26 rows)
+
+
+--- query 4: bookings by status
+--- [postgres@grp00_habalgodb] EXPLAIN (ANALYZE, BUFFERS) select booking_status, count(*) from habalgo.booking group by 1 order by 2 desc
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.14..1.15 rows=3 width=17) (actual time=0.039..0.039 rows=3.00 loops=1)
+   Sort Key: (count(*)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=4
+   ->  HashAggregate  (cost=1.09..1.12 rows=3 width=17) (actual time=0.023..0.023 rows=3.00 loops=1)
+         Group Key: booking_status
+         Batches: 1  Memory Usage: 32kB
+         Buffers: shared hit=1
+         ->  Seq Scan on booking  (cost=0.00..1.06 rows=6 width=9) (actual time=0.013..0.013 rows=6.00 loops=1)
+               Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=147
+ Planning Time: 2.357 ms
+ Execution Time: 0.090 ms
+(14 rows)
+
+
+--- the same bookings query with sequential scans disabled (one rolled back transaction)
+--- [postgres@grp00_habalgodb] BEGIN; SET LOCAL enable_seqscan = off; EXPLAIN (ANALYZE) select b.booking_id as id, c.name, lp.address, ld.address, d.name, b.booking_status from habalgo.booking b join habalgo.customer c on c.customer_id=b.customer_id join habalgo.location lp on lp.location_id=b.pickup_location_id join habalgo.location ld on ld.location_id=b.dropoff_location_id left join habalgo.driver d on d.driver_id=b.driver_id order by b.booking_id desc; ROLLBACK
+BEGIN
+SET
+                                                                          QUERY PLAN                                                                          
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop Left Join  (cost=0.71..47.72 rows=6 width=56) (actual time=0.199..0.227 rows=6.00 loops=1)
+   Buffers: shared hit=36
+   ->  Nested Loop  (cost=0.57..41.83 rows=6 width=45) (actual time=0.185..0.208 rows=6.00 loops=1)
+         Buffers: shared hit=32
+         ->  Nested Loop  (cost=0.42..31.95 rows=6 width=42) (actual time=0.179..0.195 rows=6.00 loops=1)
+               Buffers: shared hit=22
+               ->  Nested Loop  (cost=0.28..22.08 rows=6 width=39) (actual time=0.170..0.180 rows=6.00 loops=1)
+                     Buffers: shared hit=12
+                     ->  Index Scan Backward using booking_pkey on booking b  (cost=0.13..12.22 rows=6 width=29) (actual time=0.013..0.015 rows=6.00 loops=1)
+                           Index Searches: 1
+                           Buffers: shared hit=2
+                     ->  Memoize  (cost=0.15..2.16 rows=1 width=18) (actual time=0.027..0.027 rows=1.00 loops=6)
+                           Cache Key: b.customer_id
+                           Cache Mode: logical
+                           Hits: 1  Misses: 5  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                           Buffers: shared hit=10
+                           ->  Index Scan using customer_pkey on customer c  (cost=0.14..2.15 rows=1 width=18) (actual time=0.004..0.004 rows=1.00 loops=5)
+                                 Index Cond: (customer_id = b.customer_id)
+                                 Index Searches: 5
+                                 Buffers: shared hit=10
+               ->  Memoize  (cost=0.15..2.16 rows=1 width=11) (actual time=0.002..0.002 rows=1.00 loops=6)
+                     Cache Key: b.pickup_location_id
+                     Cache Mode: logical
+                     Hits: 1  Misses: 5  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                     Buffers: shared hit=10
+                     ->  Index Scan using location_pkey on location lp  (cost=0.14..2.15 rows=1 width=11) (actual time=0.002..0.002 rows=1.00 loops=5)
+                           Index Cond: (location_id = b.pickup_location_id)
+                           Index Searches: 5
+                           Buffers: shared hit=10
+         ->  Memoize  (cost=0.15..2.16 rows=1 width=11) (actual time=0.002..0.002 rows=1.00 loops=6)
+               Cache Key: b.dropoff_location_id
+               Cache Mode: logical
+               Hits: 1  Misses: 5  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+               Buffers: shared hit=10
+               ->  Index Scan using location_pkey on location ld  (cost=0.14..2.15 rows=1 width=11) (actual time=0.002..0.002 rows=1.00 loops=5)
+                     Index Cond: (location_id = b.dropoff_location_id)
+                     Index Searches: 5
+                     Buffers: shared hit=10
+   ->  Memoize  (cost=0.15..2.16 rows=1 width=19) (actual time=0.003..0.003 rows=0.33 loops=6)
+         Cache Key: b.driver_id
+         Cache Mode: logical
+         Hits: 3  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+         Buffers: shared hit=4
+         ->  Index Scan using driver_pkey on driver d  (cost=0.14..2.15 rows=1 width=19) (actual time=0.005..0.005 rows=0.67 loops=3)
+               Index Cond: (driver_id = b.driver_id)
+               Index Searches: 2
+               Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=294
+ Planning Time: 5.911 ms
+ Execution Time: 0.342 ms
+(51 rows)
+
+ROLLBACK
+
+--- [postgres@grp00_habalgodb] select indexname, tablename from pg_indexes where schemaname='habalgo' order by 2,1
+         indexname          |    tablename    
+----------------------------+-----------------
+ booking_pkey               | booking
+ idx_booking_customer       | booking
+ idx_booking_date           | booking
+ idx_booking_driver         | booking
+ customer_email_key         | customer
+ customer_pkey              | customer
+ driver_license_no_key      | driver
+ driver_pkey                | driver
+ driver_vehicle_pkey        | driver_vehicle
+ location_pkey              | location
+ idx_payment_booking        | payment
+ payment_pkey               | payment
+ idx_rating_booking         | rating_feedback
+ rating_feedback_pkey       | rating_feedback
+ uq_rating_booking_customer | rating_feedback
+ vehicle_pkey               | vehicle
+ vehicle_plate_no_key       | vehicle
+(17 rows)
+
+
+--- foreign key columns without an index
+--- [postgres@grp00_habalgodb] select c.conrelid::regclass as tbl, a.attname as fk_column from pg_constraint c join pg_attribute a on a.attrelid=c.conrelid and a.attnum = any(c.conkey) where c.contype='f' and c.connamespace='habalgo'::regnamespace and not exists (select 1 from pg_index i where i.indrelid=c.conrelid and i.indkey[0]=a.attnum) order by 1,2
+           tbl           |      fk_column      
+-------------------------+---------------------
+ habalgo.driver_vehicle  | vehicle_id
+ habalgo.booking         | dropoff_location_id
+ habalgo.booking         | pickup_location_id
+ habalgo.rating_feedback | customer_id
+(4 rows)
+
+

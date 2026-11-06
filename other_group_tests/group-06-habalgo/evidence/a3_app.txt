@@ -1,0 +1,215 @@
+run at 11/07/2026 00:22:10
+php server: listening on http://localhost:8000  (DB_NAME=grp00_habalgodb DB_USER=postgres)
+==== empty database (only 10 drivers in the sample data)
+GET api.php?t=dashboard  ->  HTTP 200  {"stats":{"customers":0,"active":0,"revenue":"0","avg_rating":null},"byStatus":[],"recent":[]}
+GET api.php?t=customers  ->  HTTP 200  []
+GET api.php?t=vehicles  ->  HTTP 200  []
+GET api.php?t=bookings  ->  HTTP 200  []
+GET api.php?t=payments  ->  HTTP 200  []
+GET api.php?t=ratings  ->  HTTP 200  []
+GET api.php?t=options  ->  HTTP 200  {"cities":[["Manila","Manila"],["Quezon City","Quezon City"],["Caloocan","Caloocan"],["Davao City","Davao City"],["Cebu City","Ceb... (676 chars)
+==== customers
+POST api.php?t=customers  body={"name":"Maria Santos","phone":"09171234567","email":"maria@example.com"}  ->  HTTP 200  {"ok":true,"id":1}
+   (c1 = 1)
+POST api.php?t=customers  body={"name":"Other Maria","phone":"09170000000","email":"maria@example.com"}  ->  HTTP 400  {"error":"That value already exists."}   <duplicate email>
+POST api.php?t=customers  body={"name":"No Email","phone":"09170000001"}  ->  HTTP 400  {"error":"Please fill in all required fields."}   <missing email>
+POST api.php?t=customers  body={"name":"Bad Email","phone":"abc","email":"not-an-email"}  ->  HTTP 200  {"ok":true,"id":4}   <letters in phone, no @ in email>
+POST api.php?t=customers  body={"name":"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN","phone":"1","email":"long@example.com"}  ->  HTTP 400  {"error":"Database error."}   <101-character name>
+POST api.php?t=customers  body={"name":"Ann \"Bee\" Cruz","phone":"09175550000","email":"ann@example.com"}  ->  HTTP 200  {"ok":true,"id":5}   <quotes in a name>
+POST api.php?t=customers  body={"name":"x'); DROP TABLE habalgo.customer;--","phone":"1","email":"inj@example.com"}  ->  HTTP 200  {"ok":true,"id":6}   <SQL text in a name>
+--- [postgres@grp00_habalgodb] select count(*) as customer_table_still_there from habalgo.customer
+ customer_table_still_there 
+----------------------------
+                          4
+(1 row)
+
+
+POST api.php?t=customers  body={"customer_id":9999,"name":"Mass Assign","phone":"1","email":"mass@example.com"}  ->  HTTP 200  {"ok":true,"id":7}   <client sends its own customer_id>
+--- [postgres@grp00_habalgodb] select customer_id, name from habalgo.customer where email='mass@example.com'
+ customer_id |    name     
+-------------+-------------
+           7 | Mass Assign
+(1 row)
+
+
+PUT api.php?t=customers&id=1  body={"phone":"09999999999"}  ->  HTTP 200  {"ok":true,"id":1}   <update phone>
+PUT api.php?t=customers&id=1  body={}  ->  HTTP 400  {"error":"Database error."}   <update with an empty body>
+PUT api.php?t=customers  body={"phone":"1"}  ->  HTTP 400  {"error":"Please fill in all required fields."}   <update with no id>
+PATCH api.php?t=customers  body={"name":"Made By Patch","phone":"1","email":"patch@example.com"}  ->  HTTP 200  {"ok":true,"id":9}   <PATCH method>
+--- [postgres@grp00_habalgodb] select name from habalgo.customer where email='patch@example.com'
+     name      
+---------------
+ Made By Patch
+(1 row)
+
+
+==== vehicles and driver assignment
+POST api.php?t=vehicles  body={"plate_no":"ABC 1234","vehicle_type":"Sedan","model":"Vios"}  ->  HTTP 200  {"ok":true,"id":1}
+   (v1 = 1)
+POST api.php?t=vehicles  body={"plate_no":"ABC 1234","vehicle_type":"SUV","model":"Fortuner"}  ->  HTTP 400  {"error":"That value already exists."}   <duplicate plate>
+POST api.php?t=vehicles  body={"plate_no":"XYZ 9876","vehicle_type":"Van","model":"Hiace"}  ->  HTTP 200  {"ok":true,"id":3}
+   (v2 = 3)
+PUT api.php?t=vehicles&id=1  body={"driver_id":1}  ->  HTTP 400  {"error":"Database error."}   <assign driver 1 to vehicle 1>
+PUT api.php?t=vehicles&id=3  body={"driver_id":1}  ->  HTTP 400  {"error":"Database error."}   <assign the same driver to a second vehicle>
+--- [postgres@grp00_habalgodb] select driver_id, vehicle_id, assigned_from, assigned_to from habalgo.driver_vehicle order by vehicle_id
+ driver_id | vehicle_id | assigned_from | assigned_to 
+-----------+------------+---------------+-------------
+(0 rows)
+
+
+PUT api.php?t=vehicles&id=1  body={"driver_id":2}  ->  HTTP 400  {"error":"Database error."}   <reassign vehicle 1 to driver 2>
+--- [postgres@grp00_habalgodb] select driver_id, vehicle_id, assigned_to is null as current from habalgo.driver_vehicle order by vehicle_id, driver_id
+ driver_id | vehicle_id | current 
+-----------+------------+---------
+(0 rows)
+
+
+PUT api.php?t=vehicles&id=1  body={"driver_id":9999}  ->  HTTP 400  {"error":"Database error."}   <unknown driver>
+==== bookings
+POST api.php?t=bookings  body={"customer_name":"Juan Dela Cruz","pickup":"Mapua Station","pickup_city":"Manila","dropoff":"SM North","dropoff_city":"Quezon City"}  ->  HTTP 200  {"ok":true,"id":1}   <customer created from the name>
+   (b1 = 1)
+--- [postgres@grp00_habalgodb] select customer_id, name, phone, email from habalgo.customer where name='Juan Dela Cruz'
+ customer_id |      name      |    phone    |         email         
+-------------+----------------+-------------+-----------------------
+          10 | Juan Dela Cruz | 09000000000 | juandelacruz@mail.com
+(1 row)
+
+
+POST api.php?t=bookings  body={"customer_name":"juan dela cruz","pickup":"A St","pickup_city":"Manila","dropoff":"B St","dropoff_city":"Manila"}  ->  HTTP 200  {"ok":true,"id":2}   <same name, other case>
+POST api.php?t=bookings  body={"customer_name":"Ana Cruz","pickup":"A St","pickup_city":"Manila","dropoff":"B St","dropoff_city":"Manila"}  ->  HTTP 200  {"ok":true,"id":3}
+POST api.php?t=bookings  body={"customer_name":"AnaCruz","pickup":"A St","pickup_city":"Manila","dropoff":"B St","dropoff_city":"Manila"}  ->  HTTP 400  {"error":"That value already exists."}   <a different person whose name gives the same generated email>
+POST api.php?t=bookings  body={"customer_name":"Same Place","pickup":"A St","pickup_city":"Manila","dropoff":"a st","dropoff_city":"manila"}  ->  HTTP 400  {"error":"Pickup and drop-off must be different locations."}   <pickup equals drop-off>
+POST api.php?t=bookings  body={"customer_name":"Pedro Driver","driver_id":3,"pickup":"A St","pickup_city":"Cebu City","dropoff":"B St","dropoff_city":"Cebu City"}  ->  HTTP 200  {"ok":true,"id":4}   <with a driver>
+   (b2 = 4)
+--- [postgres@grp00_habalgodb] select booking_id, driver_id, booking_status from habalgo.booking where booking_id=4
+ booking_id | driver_id | booking_status 
+------------+-----------+----------------
+          4 |         3 | Confirmed
+(1 row)
+
+
+POST api.php?t=bookings  body={"customer_id":1,"driver_id":9999,"pickup":"A St","pickup_city":"Manila","dropoff":"C St","dropoff_city":"Manila"}  ->  HTTP 400  {"error":"This record is linked to other records, so the change is not allowed."}   <unknown driver>
+POST api.php?t=bookings  body={"customer_id":9999,"pickup":"A St","pickup_city":"Manila","dropoff":"C St","dropoff_city":"Manila"}  ->  HTTP 400  {"error":"This record is linked to other records, so the change is not allowed."}   <unknown customer>
+POST api.php?t=bookings  body={"customer_id":1,"booking_status":"Flying","pickup":"A St","pickup_city":"Manila","dropoff":"C St","dropoff_city":"Manila"}  ->  HTTP 400  {"error":"One of the values is not allowed."}   <invalid status>
+POST api.php?t=bookings  body={"customer_id":1,"pickup":"Nowhere Lane","pickup_city":"Atlantis","dropoff":"C St","dropoff_city":"Manila"}  ->  HTTP 200  {"ok":true,"id":8}   <city that is not in the list>
+POST api.php?t=bookings  body={"customer_id":1}  ->  HTTP 400  {"error":"Please fill in all required fields."}   <no locations>
+PUT api.php?t=bookings&id=1  body={"booking_status":"Completed"}  ->  HTTP 200  {"ok":true,"id":1}   <Pending to Completed>
+PUT api.php?t=bookings&id=1  body={"booking_status":"Pending"}  ->  HTTP 200  {"ok":true,"id":1}   <Completed back to Pending>
+PUT api.php?t=bookings&id=1  body={"booking_status":"Cancelled"}  ->  HTTP 200  {"ok":true,"id":1}   <Pending to Cancelled>
+PUT api.php?t=bookings&id=1  body={"booking_status":"Completed"}  ->  HTTP 200  {"ok":true,"id":1}   <Cancelled to Completed>
+==== payments
+POST api.php?t=payments  body={"booking_id":1,"amount":250.50,"method":"Cash","status":"Paid"}  ->  HTTP 200  {"ok":true,"id":1}
+   (p1 = 1)
+POST api.php?t=payments  body={"booking_id":1,"amount":0,"method":"Cash","status":"Paid"}  ->  HTTP 400  {"error":"One of the values is not allowed."}   <amount 0>
+POST api.php?t=payments  body={"booking_id":1,"amount":-50,"method":"Cash","status":"Paid"}  ->  HTTP 400  {"error":"One of the values is not allowed."}   <negative amount>
+POST api.php?t=payments  body={"booking_id":1,"amount":99999999999,"method":"Cash","status":"Paid"}  ->  HTTP 400  {"error":"Database error."}   <amount above numeric(10,2)>
+POST api.php?t=payments  body={"booking_id":1,"amount":10,"method":"Bitcoin","status":"Whatever"}  ->  HTTP 200  {"ok":true,"id":4}   <free text method and status>
+POST api.php?t=payments  body={"booking_id":1,"amount":250.50,"method":"Cash","status":"Paid"}  ->  HTTP 200  {"ok":true,"id":5}   <same booking paid twice>
+POST api.php?t=payments  body={"booking_id":9999,"amount":10,"method":"Cash","status":"Paid"}  ->  HTTP 400  {"error":"This record is linked to other records, so the change is not allowed."}   <unknown booking>
+POST api.php?t=payments  body={"amount":10,"method":"Cash","status":"Paid"}  ->  HTTP 400  {"error":"Please fill in all required fields."}   <no booking>
+--- [postgres@grp00_habalgodb] select booking_id, count(*) payments, sum(amount) total from habalgo.payment group by 1
+ booking_id | payments | total  
+------------+----------+--------
+          1 |        3 | 511.00
+(1 row)
+
+
+GET api.php?t=dashboard  ->  HTTP 200  {"stats":{"customers":9,"active":4,"revenue":"501","avg_rating":null},"byStatus":[{"s":"Pending","n":3},{"s":"Completed","n":1},{"... (1239 chars)
+==== ratings
+POST api.php?t=ratings  body={"booking_id":4,"rating":5,"feedback":"x"}  ->  HTTP 400  {"error":"Only completed bookings can be rated."}   <booking that is not completed>
+POST api.php?t=ratings  body={"booking_id":1,"rating":5,"feedback":"Smooth ride"}  ->  HTTP 200  {"ok":true,"id":1}
+   (r1 = 1)
+POST api.php?t=ratings  body={"booking_id":1,"rating":4,"feedback":"again"}  ->  HTTP 400  {"error":"That value already exists."}   <second rating, same booking>
+POST api.php?t=ratings  body={"booking_id":1,"rating":6}  ->  HTTP 400  {"error":"One of the values is not allowed."}   <rating 6>
+POST api.php?t=ratings  body={"booking_id":1,"rating":0}  ->  HTTP 400  {"error":"One of the values is not allowed."}   <rating 0>
+POST api.php?t=ratings  body={"booking_id":9999,"rating":5}  ->  HTTP 400  {"error":"Only completed bookings can be rated."}   <unknown booking>
+PUT api.php?t=ratings&id=1  body={"rating":2}  ->  HTTP 400  {"error":"Only completed bookings can be rated."}   <edit rating without booking_id>
+PUT api.php?t=ratings&id=1  body={"booking_id":1,"rating":2}  ->  HTTP 200  {"ok":true,"id":1}   <edit rating>
+==== deletes and referential integrity
+DELETE api.php?t=customers&id=1  ->  HTTP 400  {"error":"Database error."}   <customer with bookings>
+DELETE api.php?t=bookings&id=1  ->  HTTP 400  {"error":"Database error."}   <booking with payments and a rating>
+DELETE api.php?t=payments&id=1  ->  HTTP 200  {"ok":true}
+DELETE api.php?t=ratings&id=1  ->  HTTP 200  {"ok":true}
+DELETE api.php?t=customers&id=424242  ->  HTTP 200  {"ok":true}   <id that does not exist>
+DELETE api.php?t=bookings  ->  HTTP 200  {"ok":true}   <no id given>
+DELETE api.php?t=vehicles&id=3  ->  HTTP 200  {"ok":true}   <vehicle with assignment history>
+--- [postgres@grp00_habalgodb] select (select count(*) from habalgo.vehicle) as vehicles_left, (select count(*) from habalgo.driver_vehicle) as assignments_left
+ vehicles_left | assignments_left 
+---------------+------------------
+             1 |                0
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select booking_id, driver_id, booking_status from habalgo.booking order by 1
+ booking_id | driver_id | booking_status 
+------------+-----------+----------------
+          1 |           | Completed
+          2 |           | Pending
+          3 |           | Pending
+          4 |         3 | Confirmed
+          8 |           | Pending
+(5 rows)
+
+
+==== routing and other
+GET api.php?t=drivers  ->  HTTP 404  {"error":"Unknown resource."}   <drivers have no endpoint>
+GET api.php?t=customers;drop%20table%20habalgo.payment  ->  HTTP 404  {"error":"Unknown resource."}   <SQL text in t>
+POST api.php?t=customers  body={bad json  ->  HTTP 400  {"error":"Database error."}   <malformed JSON>
+GET api.php?t=bookings&q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  ->  HTTP 200  [{"id":8,"customer_id":1,"customer":"Maria Santos","pickup":"Nowhere Lane","pickup_city":"Atlantis","dropoff":"C St","dropoff_city... (1076 chars)   <long query string>
+==== response headers and cross-origin
+GET api.php?t=customers  ->  HTTP 200  [{"id":1,"name":"Maria Santos","phone":"09999999999","email":"maria@example.com","bookings":1},{"id":4,"name":"Bad Email","phone":... (830 chars)
+HTTP/1.1 200 OK
+Host: localhost:8000
+Date: Fri, 06 Nov 2026 16:22:18 GMT
+Connection: close
+X-Powered-By: PHP/8.2.12
+Content-Type: application/json; charset=utf-8
+
+GET api.php?t=customers  ->  HTTP 200  [{"id":1,"name":"Maria Santos","phone":"09999999999","email":"maria@example.com","bookings":1},{"id":4,"name":"Bad Email","phone":... (830 chars)   <cross-origin read>
+HTTP/1.1 200 OK
+Host: localhost:8000
+Date: Fri, 06 Nov 2026 16:22:18 GMT
+Connection: close
+X-Powered-By: PHP/8.2.12
+Content-Type: application/json; charset=utf-8
+
+no credentials of any kind were sent in any call above
+=== php server log (errors and warnings only)
+requests logged: 71
+=== database after the tests
+--- [postgres@grp00_habalgodb] select (select count(*) from habalgo.customer) customers, (select count(*) from habalgo.booking) bookings, (select count(*) from habalgo.payment) payments, (select count(*) from habalgo.location) locations, (select count(*) from habalgo.rating_feedback) ratings
+ customers | bookings | payments | locations | ratings 
+-----------+----------+----------+-----------+---------
+         9 |        5 |        2 |         8 |       0
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select customer_id, name, phone, email from habalgo.customer order by 1
+ customer_id |                name                 |    phone    |         email         
+-------------+-------------------------------------+-------------+-----------------------
+           1 | Maria Santos                        | 09999999999 | maria@example.com
+           4 | Bad Email                           | abc         | not-an-email
+           5 | Ann "Bee" Cruz                      | 09175550000 | ann@example.com
+           6 | x'); DROP TABLE habalgo.customer;-- | 1           | inj@example.com
+           7 | Mass Assign                         | 1           | mass@example.com
+           9 | Made By Patch                       | 1           | patch@example.com
+          10 | Juan Dela Cruz                      | 09000000000 | juandelacruz@mail.com
+          11 | Ana Cruz                            | 09000000000 | anacruz@mail.com
+          14 | Pedro Driver                        | 09000000000 | pedrodriver@mail.com
+(9 rows)
+
+
+--- [postgres@grp00_habalgodb] select location_id, address, city from habalgo.location order by 1
+ location_id |    address    |    city     
+-------------+---------------+-------------
+           1 | Mapua Station | Manila
+           2 | SM North      | Quezon City
+           3 | A St          | Manila
+           4 | B St          | Manila
+           5 | A St          | Cebu City
+           6 | B St          | Cebu City
+          10 | Nowhere Lane  | Atlantis
+          11 | C St          | Manila
+(8 rows)
+
+

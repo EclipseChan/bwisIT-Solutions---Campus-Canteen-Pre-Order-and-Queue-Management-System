@@ -1,9 +1,0 @@
-table | source rows | restored rows | equal
-customer | 51 | 51 | True
-menu_item | 50 | 50 | True
-order_item | 167 | 167 | True
-orders | 60 | 60 | True
-payment | 56 | 56 | True
-reservation | 50 | 50 | True
-restaurant_table | 20 | 20 | True
-staff | 10 | 10 | True

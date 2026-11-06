@@ -1,0 +1,81 @@
+﻿run at 11/06/2026 23:44:13
+no dedicated backup role exists in the project, so the dump is taken as postgres
+pg_dump exit code: 0
+Name          : boardtrack_db_activity6.dump
+Length        : 29089
+LastWriteTime : 06/11/2026 11:44:13 pm
+Algorithm : SHA256
+Hash      : F733C9A01848F25611E17CC86C2F1E9A6B8B0498C1E32180379145E386A3F8E7
+Path      : C:\Users\Marcos\dba\backups\boardtrack_db_activity6.dump
+--- pg_restore --list (first 70 lines)
+;
+; Archive created at 2026-11-06 23:44:13
+;     dbname: boardtrack_db
+;     TOC Entries: 79
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+3; 3079 25124 EXTENSION - btree_gist 
+5457; 0 0 COMMENT - EXTENSION btree_gist 
+2; 3079 25850 EXTENSION - pgcrypto 
+5458; 0 0 COMMENT - EXTENSION pgcrypto 
+372; 1255 26039 FUNCTION public guard_room_status() postgres
+268; 1255 26037 FUNCTION public sync_room_status() postgres
+235; 1259 26010 TABLE public app_user postgres
+234; 1259 26009 SEQUENCE public app_user_user_id_seq postgres
+5459; 0 0 SEQUENCE OWNED BY public app_user_user_id_seq postgres
+229; 1259 25933 TABLE public lease postgres
+228; 1259 25932 SEQUENCE public lease_lease_id_seq postgres
+5460; 0 0 SEQUENCE OWNED BY public lease_lease_id_seq postgres
+231; 1259 25964 TABLE public payment postgres
+230; 1259 25963 SEQUENCE public payment_payment_id_seq postgres
+5461; 0 0 SEQUENCE OWNED BY public payment_payment_id_seq postgres
+223; 1259 25889 TABLE public property postgres
+222; 1259 25888 SEQUENCE public property_property_id_seq postgres
+5462; 0 0 SEQUENCE OWNED BY public property_property_id_seq postgres
+225; 1259 25899 TABLE public room postgres
+224; 1259 25898 SEQUENCE public room_room_id_seq postgres
+5463; 0 0 SEQUENCE OWNED BY public room_room_id_seq postgres
+221; 1259 25115 TABLE public schema_migrations postgres
+227; 1259 25921 TABLE public tenant postgres
+226; 1259 25920 SEQUENCE public tenant_tenant_id_seq postgres
+5464; 0 0 SEQUENCE OWNED BY public tenant_tenant_id_seq postgres
+233; 1259 25987 TABLE public utility_bill postgres
+232; 1259 25986 SEQUENCE public utility_bill_utility_bill_id_seq postgres
+5465; 0 0 SEQUENCE OWNED BY public utility_bill_utility_bill_id_seq postgres
+236; 1259 26041 VIEW public v_lease_summary postgres
+5235; 2604 26013 DEFAULT public app_user user_id postgres
+5228; 2604 25936 DEFAULT public lease lease_id postgres
+5230; 2604 25967 DEFAULT public payment payment_id postgres
+5224; 2604 25892 DEFAULT public property property_id postgres
+5225; 2604 25902 DEFAULT public room room_id postgres
+5227; 2604 25924 DEFAULT public tenant tenant_id postgres
+5233; 2604 25990 DEFAULT public utility_bill utility_bill_id postgres
+5450; 0 26010 TABLE DATA public app_user postgres
+5444; 0 25933 TABLE DATA public lease postgres
+5446; 0 25964 TABLE DATA public payment postgres
+5438; 0 25889 TABLE DATA public property postgres
+5440; 0 25899 TABLE DATA public room postgres
+5436; 0 25115 TABLE DATA public schema_migrations postgres
+5442; 0 25921 TABLE DATA public tenant postgres
+5448; 0 25987 TABLE DATA public utility_bill postgres
+5466; 0 0 SEQUENCE SET public app_user_user_id_seq postgres
+5467; 0 0 SEQUENCE SET public lease_lease_id_seq postgres
+5468; 0 0 SEQUENCE SET public payment_payment_id_seq postgres
+5469; 0 0 SEQUENCE SET public property_property_id_seq postgres
+5470; 0 0 SEQUENCE SET public room_room_id_seq postgres
+5471; 0 0 SEQUENCE SET public tenant_tenant_id_seq postgres
+5472; 0 0 SEQUENCE SET public utility_bill_utility_bill_id_seq postgres
+5277; 2606 26025 CONSTRAINT public app_user app_user_pkey postgres
+5279; 2606 26027 CONSTRAINT public app_user app_user_username_key postgres
+5265; 2606 25952 CONSTRAINT public lease ex_lease_no_overlap postgres
+5269; 2606 25950 CONSTRAINT public lease lease_pkey postgres
+TABLE DATA entries in archive: 8

@@ -1,0 +1,154 @@
+﻿################ boardtrack_db
+--- [postgres@boardtrack_db] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+      8 |     1 |         7
+(1 row)
+
+
+--- [postgres@boardtrack_db] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+    table_name     | row_count 
+-------------------+-----------
+ app_user          |         3
+ lease             |         4
+ payment           |         7
+ property          |         2
+ room              |         6
+ schema_migrations |         1
+ tenant            |         4
+ utility_bill      |         4
+(8 rows)
+
+
+--- [postgres@boardtrack_db] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |    15
+ f       |     6
+ n       |    36
+ p       |     8
+ u       |     3
+ x       |     1
+(6 rows)
+
+
+--- [postgres@boardtrack_db] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+           63
+(1 row)
+
+
+--- [postgres@boardtrack_db] select tgname from pg_trigger where not tgisinternal order by 1
+        tgname         
+-----------------------
+ trg_lease_sync_room
+ trg_room_status_guard
+(2 rows)
+
+
+--- [postgres@boardtrack_db] select extname from pg_extension order by 1
+  extname   
+------------
+ btree_gist
+ pgcrypto
+ plpgsql
+(3 rows)
+
+
+--- business rule 2 still enforced (duplicate of an ACTIVE lease, rolled back)
+--- [postgres@boardtrack_db] BEGIN; INSERT INTO lease(tenant_id,room_id,start_date,end_date,monthly_rent,status) SELECT tenant_id, room_id, start_date, end_date, monthly_rent, 'ACTIVE' FROM lease WHERE status='ACTIVE' LIMIT 1; ROLLBACK
+BEGIN
+ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+DETAIL:  Key (room_id, daterange(start_date, end_date, '[]'::text))=(1, [2026-01-01,2027-01-01)) conflicts with existing key (room_id, daterange(start_date, end_date, '[]'::text))=(1, [2026-01-01,2027-01-01)).
+
+--- room status guard still enforced
+--- [postgres@boardtrack_db] update room set status='AVAILABLE' where room_id = (select room_id from lease where status='ACTIVE' order by lease_id limit 1)
+ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+CONTEXT:  PL/pgSQL function guard_room_status() line 8 at RAISE
+
+--- demo login still works from the restored data
+--- [postgres@boardtrack_db] select count(*) as landlord_login_ok from app_user where username='landlord' and password_hash = crypt('ChangeMe123!', password_hash)
+ landlord_login_ok 
+-------------------
+                 1
+(1 row)
+
+
+################ boardtrack_db_restore
+--- [postgres@boardtrack_db_restore] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_views where schemaname='public') views,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | views | sequences 
+--------+-------+-----------
+      8 |     1 |         7
+(1 row)
+
+
+--- [postgres@boardtrack_db_restore] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+    table_name     | row_count 
+-------------------+-----------
+ app_user          |         3
+ lease             |         4
+ payment           |         7
+ property          |         2
+ room              |         6
+ schema_migrations |         1
+ tenant            |         4
+ utility_bill      |         4
+(8 rows)
+
+
+--- [postgres@boardtrack_db_restore] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |    15
+ f       |     6
+ n       |    36
+ p       |     8
+ u       |     3
+ x       |     1
+(6 rows)
+
+
+--- [postgres@boardtrack_db_restore] select count(*) as table_grants from information_schema.role_table_grants where table_schema='public'
+ table_grants 
+--------------
+           63
+(1 row)
+
+
+--- [postgres@boardtrack_db_restore] select tgname from pg_trigger where not tgisinternal order by 1
+        tgname         
+-----------------------
+ trg_lease_sync_room
+ trg_room_status_guard
+(2 rows)
+
+
+--- [postgres@boardtrack_db_restore] select extname from pg_extension order by 1
+  extname   
+------------
+ btree_gist
+ pgcrypto
+ plpgsql
+(3 rows)
+
+
+--- business rule 2 still enforced (duplicate of an ACTIVE lease, rolled back)
+--- [postgres@boardtrack_db_restore] BEGIN; INSERT INTO lease(tenant_id,room_id,start_date,end_date,monthly_rent,status) SELECT tenant_id, room_id, start_date, end_date, monthly_rent, 'ACTIVE' FROM lease WHERE status='ACTIVE' LIMIT 1; ROLLBACK
+BEGIN
+ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+DETAIL:  Key (room_id, daterange(start_date, end_date, '[]'::text))=(1, [2026-01-01,2027-01-01)) conflicts with existing key (room_id, daterange(start_date, end_date, '[]'::text))=(1, [2026-01-01,2027-01-01)).
+
+--- room status guard still enforced
+--- [postgres@boardtrack_db_restore] update room set status='AVAILABLE' where room_id = (select room_id from lease where status='ACTIVE' order by lease_id limit 1)
+ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+CONTEXT:  PL/pgSQL function guard_room_status() line 8 at RAISE
+
+--- demo login still works from the restored data
+--- [postgres@boardtrack_db_restore] select count(*) as landlord_login_ok from app_user where username='landlord' and password_hash = crypt('ChangeMe123!', password_hash)
+ landlord_login_ok 
+-------------------
+                 1
+(1 row)
+
+

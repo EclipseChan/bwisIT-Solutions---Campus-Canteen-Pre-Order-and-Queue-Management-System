@@ -1,0 +1,233 @@
+--- [postgres@grp_parkitdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+   relname    | n_live_tup | n_dead_tup | last_vacuum | last_analyze 
+--------------+------------+------------+-------------+--------------
+ parking_zone |          1 |         33 |             | 
+ payment      |         12 |          0 |             | 
+ staff_user   |          2 |          0 |             | 
+ transaction  |         19 |          0 |             | 
+ vehicle      |         66 |          7 |             | 
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] ANALYZE
+ANALYZE
+
+--- [postgres@grp_parkitdb] VACUUM (VERBOSE, ANALYZE) public.parking_zone
+INFO:  vacuuming "grp_parkitdb.public.parking_zone"
+INFO:  finished vacuuming "grp_parkitdb.public.parking_zone": index scans: 0
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 33 removed, 1 remain, 0 are dead but not yet removable
+removable cutoff: 3627, which was 0 XIDs old when operation ended
+new relfrozenxid: 3578, which is 131 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan not needed: 0 pages from table (0.00% of total) had 0 dead item identifiers removed
+avg read rate: 0.000 MB/s, avg write rate: 10.081 MB/s
+buffer usage: 65 hits, 0 reads, 4 dirtied
+WAL usage: 6 records, 4 full page images, 33414 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.parking_zone"
+INFO:  "parking_zone": scanned 1 of 1 pages, containing 1 live rows and 0 dead rows; 1 rows in sample, 1 estimated total rows
+INFO:  finished analyzing table "grp_parkitdb.public.parking_zone"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 228 hits, 0 reads, 0 dirtied
+WAL usage: 12 records, 0 full page images, 1088 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp_parkitdb] VACUUM (VERBOSE, ANALYZE) public.vehicle
+INFO:  vacuuming "grp_parkitdb.public.vehicle"
+INFO:  finished vacuuming "grp_parkitdb.public.vehicle": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 7 removed, 66 remain, 0 are dead but not yet removable
+removable cutoff: 3628, which was 0 XIDs old when operation ended
+new relfrozenxid: 3491, which is 24 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 3 dead item identifiers removed
+index "vehicle_license_plate_key": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "vehicle_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 7.919 MB/s
+buffer usage: 88 hits, 0 reads, 4 dirtied
+WAL usage: 9 records, 4 full page images, 33532 bytes, 0 buffers full
+system usage: CPU: user: 0.01 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.vehicle"
+INFO:  "vehicle": scanned 1 of 1 pages, containing 66 live rows and 0 dead rows; 66 rows in sample, 66 estimated total rows
+INFO:  finished analyzing table "grp_parkitdb.public.vehicle"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 200 hits, 0 reads, 0 dirtied
+WAL usage: 5 records, 0 full page images, 372 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp_parkitdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+   relname    | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+--------------+------------+------------+-------------------------------+-------------------------------
+ parking_zone |          1 |          0 | 2026-11-07 00:41:33.352264+08 | 2026-11-07 00:41:33.35462+08
+ payment      |         12 |          0 |                               | 2026-11-07 00:41:33.154389+08
+ staff_user   |          2 |          0 |                               | 2026-11-07 00:41:33.151863+08
+ transaction  |         19 |          0 |                               | 2026-11-07 00:41:33.157048+08
+ vehicle      |         66 |          0 | 2026-11-07 00:41:33.41228+08  | 2026-11-07 00:41:33.414104+08
+(5 rows)
+
+
+--- query 1: search the active transaction for a plate (payments page)
+--- [postgres@grp_parkitdb] EXPLAIN (ANALYZE, BUFFERS) select t.transaction_id, t.vehicle_id, t.zone_id, t.entry_time, t.status, v.license_plate, v.vehicle_type from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='FILL-5' and t.status='Active'
+                                                    QUERY PLAN                                                     
+-------------------------------------------------------------------------------------------------------------------
+ Hash Join  (cost=1.84..3.09 rows=1 width=39) (actual time=0.034..0.034 rows=0.00 loops=1)
+   Hash Cond: (t.vehicle_id = v.vehicle_id)
+   Buffers: shared hit=2
+   ->  Seq Scan on transaction t  (cost=0.00..1.24 rows=7 width=28) (actual time=0.011..0.013 rows=7.00 loops=1)
+         Filter: ((status)::text = 'Active'::text)
+         Rows Removed by Filter: 12
+         Buffers: shared hit=1
+   ->  Hash  (cost=1.83..1.83 rows=1 width=15) (actual time=0.015..0.015 rows=1.00 loops=1)
+         Buckets: 1024  Batches: 1  Memory Usage: 9kB
+         Buffers: shared hit=1
+         ->  Seq Scan on vehicle v  (cost=0.00..1.83 rows=1 width=15) (actual time=0.007..0.010 rows=1.00 loops=1)
+               Filter: ((license_plate)::text = 'FILL-5'::text)
+               Rows Removed by Filter: 65
+               Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=244
+ Planning Time: 2.900 ms
+ Execution Time: 0.053 ms
+(18 rows)
+
+
+--- query 2: parking summary recount (runs on every dashboard and monitor refresh)
+--- [postgres@grp_parkitdb] EXPLAIN (ANALYZE, BUFFERS) select z.zone_id, z.max_capacity, z.current_active_count, count(t.transaction_id) from public.parking_zone z left join public.transaction t on z.zone_id=t.zone_id and t.status='Active' group by 1,2,3
+                                                       QUERY PLAN                                                       
+------------------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=2.37..2.38 rows=1 width=20) (actual time=0.035..0.036 rows=1.00 loops=1)
+   Group Key: z.zone_id
+   Batches: 1  Memory Usage: 32kB
+   Buffers: shared hit=2
+   ->  Nested Loop Left Join  (cost=0.00..2.33 rows=7 width=16) (actual time=0.026..0.030 rows=7.00 loops=1)
+         Join Filter: (z.zone_id = t.zone_id)
+         Buffers: shared hit=2
+         ->  Seq Scan on parking_zone z  (cost=0.00..1.01 rows=1 width=12) (actual time=0.011..0.012 rows=1.00 loops=1)
+               Buffers: shared hit=1
+         ->  Seq Scan on transaction t  (cost=0.00..1.24 rows=7 width=8) (actual time=0.012..0.014 rows=7.00 loops=1)
+               Filter: ((status)::text = 'Active'::text)
+               Rows Removed by Filter: 12
+               Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=152
+ Planning Time: 2.517 ms
+ Execution Time: 0.064 ms
+(17 rows)
+
+
+--- query 3: currently parked list
+--- [postgres@grp_parkitdb] EXPLAIN (ANALYZE, BUFFERS) select t.transaction_id, v.license_plate, v.vehicle_type, t.entry_time from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where t.status='Active' order by t.entry_time
+                                                         QUERY PLAN                                                          
+-----------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=3.48..3.50 rows=7 width=23) (actual time=0.068..0.069 rows=7.00 loops=1)
+   Sort Key: t.entry_time
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=5
+   ->  Hash Join  (cost=1.32..3.38 rows=7 width=23) (actual time=0.038..0.046 rows=7.00 loops=1)
+         Hash Cond: (v.vehicle_id = t.vehicle_id)
+         Buffers: shared hit=2
+         ->  Seq Scan on vehicle v  (cost=0.00..1.66 rows=66 width=15) (actual time=0.009..0.011 rows=66.00 loops=1)
+               Buffers: shared hit=1
+         ->  Hash  (cost=1.24..1.24 rows=7 width=16) (actual time=0.020..0.021 rows=7.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=1
+               ->  Seq Scan on transaction t  (cost=0.00..1.24 rows=7 width=16) (actual time=0.009..0.012 rows=7.00 loops=1)
+                     Filter: ((status)::text = 'Active'::text)
+                     Rows Removed by Filter: 12
+                     Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=243
+ Planning Time: 2.490 ms
+ Execution Time: 0.088 ms
+(20 rows)
+
+
+--- query 4: payment history
+--- [postgres@grp_parkitdb] EXPLAIN (ANALYZE, BUFFERS) select p.payment_id, v.license_plate, p.amount, p.payment_method, p.payment_time from public.payment p join public.transaction t using (transaction_id) join public.vehicle v using (vehicle_id) order by p.payment_time desc
+                                                              QUERY PLAN                                                               
+---------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=4.91..4.94 rows=12 width=28) (actual time=0.074..0.076 rows=12.00 loops=1)
+   Sort Key: p.payment_time DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=6
+   ->  Hash Join  (cost=2.67..4.70 rows=12 width=28) (actual time=0.049..0.055 rows=12.00 loops=1)
+         Hash Cond: (v.vehicle_id = t.vehicle_id)
+         Buffers: shared hit=3
+         ->  Seq Scan on vehicle v  (cost=0.00..1.66 rows=66 width=11) (actual time=0.008..0.009 rows=66.00 loops=1)
+               Buffers: shared hit=1
+         ->  Hash  (cost=2.52..2.52 rows=12 width=25) (actual time=0.033..0.033 rows=12.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=2
+               ->  Hash Join  (cost=1.27..2.52 rows=12 width=25) (actual time=0.025..0.029 rows=12.00 loops=1)
+                     Hash Cond: (t.transaction_id = p.transaction_id)
+                     Buffers: shared hit=2
+                     ->  Seq Scan on transaction t  (cost=0.00..1.19 rows=19 width=8) (actual time=0.006..0.007 rows=19.00 loops=1)
+                           Buffers: shared hit=1
+                     ->  Hash  (cost=1.12..1.12 rows=12 width=25) (actual time=0.013..0.013 rows=12.00 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                           Buffers: shared hit=1
+                           ->  Seq Scan on payment p  (cost=0.00..1.12 rows=12 width=25) (actual time=0.005..0.006 rows=12.00 loops=1)
+                                 Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=294
+ Planning Time: 4.066 ms
+ Execution Time: 0.108 ms
+(26 rows)
+
+
+--- the plate search with sequential scans disabled (one rolled back transaction)
+--- [postgres@grp_parkitdb] BEGIN; SET LOCAL enable_seqscan = off; EXPLAIN (ANALYZE) select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='FILL-5' and t.status='Active'; ROLLBACK
+BEGIN
+SET
+                                                                  QUERY PLAN                                                                  
+----------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.14..9.49 rows=1 width=4) (actual time=0.035..0.036 rows=0.00 loops=1)
+   Join Filter: (v.vehicle_id = t.vehicle_id)
+   Rows Removed by Join Filter: 7
+   Buffers: shared hit=3
+   ->  Index Scan using vehicle_license_plate_key on vehicle v  (cost=0.14..8.16 rows=1 width=4) (actual time=0.015..0.016 rows=1.00 loops=1)
+         Index Cond: ((license_plate)::text = 'FILL-5'::text)
+         Index Searches: 1
+         Buffers: shared hit=2
+   ->  Seq Scan on transaction t  (cost=0.00..1.24 rows=7 width=8) (actual time=0.015..0.017 rows=7.00 loops=1)
+         Disabled: true
+         Filter: ((status)::text = 'Active'::text)
+         Rows Removed by Filter: 12
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=229
+ Planning Time: 2.963 ms
+ Execution Time: 0.054 ms
+(17 rows)
+
+ROLLBACK
+
+--- [postgres@grp_parkitdb] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+         indexname          |  tablename   
+----------------------------+--------------
+ parking_zone_pkey          | parking_zone
+ parking_zone_zone_name_key | parking_zone
+ payment_pkey               | payment
+ payment_transaction_id_key | payment
+ staff_user_pkey            | staff_user
+ staff_user_username_key    | staff_user
+ transaction_pkey           | transaction
+ vehicle_license_plate_key  | vehicle
+ vehicle_pkey               | vehicle
+(9 rows)
+
+
+--- foreign key columns without an index
+--- [postgres@grp_parkitdb] select c.conrelid::regclass as tbl, a.attname as fk_column from pg_constraint c join pg_attribute a on a.attrelid=c.conrelid and a.attnum = any(c.conkey) where c.contype='f' and c.connamespace='public'::regnamespace and not exists (select 1 from pg_index i where i.indrelid=c.conrelid and (i.indkey::int2[])[0]=a.attnum) order by 1,2
+     tbl     | fk_column  
+-------------+------------
+ transaction | vehicle_id
+ transaction | zone_id
+(2 rows)
+
+

@@ -1,0 +1,90 @@
+﻿run at 11/06/2026 23:44:11
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@boardtrack_db] select pg_size_pretty(pg_database_size('boardtrack_db')) as db_size
+ db_size 
+---------
+ 9070 kB
+(1 row)
+
+
+--- [postgres@boardtrack_db] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='boardtrack_db'
+    datname    | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+---------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ boardtrack_db |           1 |         177 |            11 |        16 |    66139 |         0 |          0
+(1 row)
+
+
+--- [postgres@boardtrack_db] select pid,usename,application_name,state,left(query,60) as query from pg_stat_activity where datname='boardtrack_db'
+  pid  | usename  | application_name | state  |                            query                             
+-------+----------+------------------+--------+--------------------------------------------------------------
+ 30504 | postgres | psql             | active | select pid,usename,application_name,state,left(query,60) as 
+(1 row)
+
+
+--- [postgres@boardtrack_db] select relname,n_live_tup,n_dead_tup,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze from pg_stat_user_tables order by relname
+      relname      | n_live_tup | n_dead_tup | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+-------------------+------------+------------+-------------+-----------------+--------------+------------------
+ app_user          |          3 |          0 |             |                 |              | 
+ lease             |          4 |          6 |             |                 |              | 
+ payment           |          7 |          0 |             |                 |              | 
+ property          |          2 |          2 |             |                 |              | 
+ room              |          6 |          7 |             |                 |              | 
+ schema_migrations |          1 |          0 |             |                 |              | 
+ tenant            |          4 |          1 |             |                 |              | 
+ utility_bill      |          4 |          0 |             |                 |              | 
+(8 rows)
+
+
+--- [postgres@boardtrack_db] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+    table_name     | row_count 
+-------------------+-----------
+ app_user          |         3
+ lease             |         4
+ payment           |         7
+ property          |         2
+ room              |         6
+ schema_migrations |         1
+ tenant            |         4
+ utility_bill      |         4
+(8 rows)
+
+
+--- [postgres@postgres] show log_statement
+ log_statement 
+---------------
+ none
+(1 row)
+
+
+--- [postgres@postgres] show log_min_duration_statement
+ log_min_duration_statement 
+----------------------------
+ -1
+(1 row)
+
+
+--- [postgres@postgres] show max_connections
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+
+--- [postgres@postgres] show autovacuum
+ autovacuum 
+------------
+ on
+(1 row)
+
+
+--- can a non-owner role run maintenance? (boardtrack_app from the Activity 4 copy)
+--- [login boardtrack_app@boardtrack_plain] VACUUM public.lease
+WARNING:  permission denied to vacuum "lease", skipping it
+VACUUM
+

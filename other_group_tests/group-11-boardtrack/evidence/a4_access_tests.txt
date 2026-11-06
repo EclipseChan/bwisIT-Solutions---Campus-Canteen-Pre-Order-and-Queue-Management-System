@@ -1,0 +1,208 @@
+﻿run at 11/06/2026 23:43:32
+app already listening on port 3000
+=== PART A: the application's own roles, tested over HTTP (permission table in src/auth.js)
+--- landlord (admin): full create/update/delete on properties
+GET /properties/new   as landlord  ->  HTTP 200
+POST /properties   as landlord  ->  HTTP 302  redirect /properties
+POST /properties/3   as landlord  ->  HTTP 302  redirect /properties
+POST /properties/3/delete   as landlord  ->  HTTP 302  redirect /properties
+--- caretaker (staff): create/read/update, no delete, properties read-only, rooms update-only
+GET /properties   as caretaker  ->  HTTP 200  rows=2
+GET /rooms   as caretaker  ->  HTTP 200  rows=6
+GET /tenants   as caretaker  ->  HTTP 200  rows=4
+GET /leases   as caretaker  ->  HTTP 200  rows=4
+GET /payments   as caretaker  ->  HTTP 200  rows=7
+GET /bills   as caretaker  ->  HTTP 200  rows=4
+GET /properties/new   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /properties   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /properties/1   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /properties/1/delete   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+GET /rooms/new   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /rooms/1/delete   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+GET /tenants/new   as caretaker  ->  HTTP 200
+POST /tenants/1/delete   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /leases/1/delete   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /payments/1/delete   as caretaker  ->  HTTP 403  [page] Your role is not allowed to do that.
+--- juan (tenant, tenant_id 1): read-only, own rows only
+GET /   as juan  ->  HTTP 200
+GET /properties   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+GET /rooms   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+GET /tenants   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+GET /leases   as juan  ->  HTTP 200  rows=1
+GET /payments   as juan  ->  HTTP 200  rows=4
+GET /bills   as juan  ->  HTTP 200  rows=2
+--- [postgres@boardtrack_db] select (select count(*) from lease) all_leases, (select count(*) from lease where tenant_id=1) juan_leases, (select count(*) from payment) all_payments, (select count(*) from payment p join lease l using(lease_id) where l.tenant_id=1) juan_payments, (select count(*) from utility_bill) all_bills, (select count(*) from utility_bill b join lease l using(lease_id) where l.tenant_id=1) juan_bills
+ all_leases | juan_leases | all_payments | juan_payments | all_bills | juan_bills 
+------------+-------------+--------------+---------------+-----------+------------
+          4 |           1 |            7 |             4 |         4 |          2
+(1 row)
+
+
+GET /leases/new   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /leases   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+GET /leases/2/edit   as juan (another tenant lease)  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /leases/2/delete   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+POST /payments   as juan  ->  HTTP 403  [page] Your role is not allowed to do that.
+--- not logged in
+GET /leases   as (not logged in)  ->  HTTP 302  redirect /login
+POST /leases/1/delete   as (not logged in)  ->  HTTP 302  redirect /login
+=== PART B: database level
+The repository has no role script. docs/user-roles.md says roles are planned for Activity 4. Roles in this cluster that match the plan:
+--- [postgres@boardtrack_db] select rolname from pg_roles where rolname ~ '^(boardtrack|app_)' order by 1
+ rolname 
+---------
+(0 rows)
+
+
+The app connects with the account in DATABASE_URL (the tester used postgres):
+--- [postgres@boardtrack_db] select usename, rolsuper from pg_stat_activity a join pg_roles r on r.rolname=a.usename where datname='boardtrack_db' group by 1,2
+ usename  | rolsuper 
+----------+----------
+ postgres | t
+(1 row)
+
+
+--- [postgres@boardtrack_db] select datname, datacl from pg_database where datname='boardtrack_db'
+    datname    | datacl 
+---------------+--------
+ boardtrack_db | 
+(1 row)
+
+
+--- [postgres@boardtrack_db] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+     tablename     | tableowner 
+-------------------+------------
+ app_user          | postgres
+ lease             | postgres
+ payment           | postgres
+ property          | postgres
+ room              | postgres
+ schema_migrations | postgres
+ tenant            | postgres
+ utility_bill      | postgres
+(8 rows)
+
+
+=== PART C: the sketch from docs/user-roles.md applied to a COPY (boardtrack_plain, built from db/boardtrack_full_setup.sql)
+--- [postgres@boardtrack_plain] DO $$ BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_runtime_grp') THEN CREATE ROLE app_runtime_grp NOLOGIN; END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_readonly_grp') THEN CREATE ROLE app_readonly_grp NOLOGIN; END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='boardtrack_admin_grp') THEN CREATE ROLE boardtrack_admin_grp NOLOGIN; END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='boardtrack_app') THEN CREATE ROLE boardtrack_app LOGIN PASSWORD 'BtApp2026test' IN ROLE app_runtime_grp; END IF;
+END $$
+DO
+
+--- [postgres@boardtrack_plain] GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_readonly_grp
+GRANT
+
+--- [postgres@boardtrack_plain] GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO app_runtime_grp
+GRANT
+
+--- [postgres@boardtrack_plain] GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO app_runtime_grp
+GRANT
+
+--- privilege matrix after the sketch (S I U D)
+--- [postgres@boardtrack_plain] select tablename, concat(case when has_table_privilege('boardtrack_app',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('boardtrack_app',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('boardtrack_app',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('boardtrack_app',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as app, concat(case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as readonly, concat(case when has_table_privilege('boardtrack_admin_grp',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('boardtrack_admin_grp',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('boardtrack_admin_grp',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('boardtrack_admin_grp',format('public.%I',tablename),'DELETE') then 'D' else '-' end) as admin_grp from pg_tables where schemaname='public' order by 1
+     tablename     | app  | readonly | admin_grp 
+-------------------+------+----------+-----------
+ app_user          | SIU- | S---     | ----
+ lease             | SIU- | S---     | ----
+ payment           | SIU- | S---     | ----
+ property          | SIU- | S---     | ----
+ room              | SIU- | S---     | ----
+ schema_migrations | SIU- | S---     | ----
+ tenant            | SIU- | S---     | ----
+ utility_bill      | SIU- | S---     | ----
+(8 rows)
+
+
+--- behaviour tests (real login as boardtrack_app; NOLOGIN groups through SET ROLE)
+### [boardtrack_app] login query reads app_user and hashes
+--- [login boardtrack_app@boardtrack_plain] select username, left(password_hash,7) from app_user limit 1
+ username |  left   
+----------+---------
+ landlord | $2a$06$
+(1 row)
+
+
+### [boardtrack_app] login check with crypt()
+--- [login boardtrack_app@boardtrack_plain] select count(*) from app_user where username='landlord' and password_hash = crypt('ChangeMe123!', password_hash)
+ count 
+-------
+     1
+(1 row)
+
+
+### [boardtrack_app] lease update fires the room trigger (rolled back)
+--- [login boardtrack_app@boardtrack_plain] BEGIN; update lease set status='TERMINATED' where lease_id=1; select room_id, status from room where room_id=1; ROLLBACK
+BEGIN
+UPDATE 1
+ room_id |  status   
+---------+-----------
+       1 | AVAILABLE
+(1 row)
+
+ROLLBACK
+
+### [boardtrack_app] DELETE lease (the app admin delete button needs it)
+--- [login boardtrack_app@boardtrack_plain] delete from lease where false
+ERROR:  permission denied for table lease
+
+### [boardtrack_app] DELETE payment
+--- [login boardtrack_app@boardtrack_plain] delete from payment where false
+ERROR:  permission denied for table payment
+
+### [boardtrack_app] UPDATE app_user (role escalation)
+--- [login boardtrack_app@boardtrack_plain] update app_user set role='admin' where false
+UPDATE 0
+
+### [boardtrack_app] CREATE TABLE
+--- [login boardtrack_app@boardtrack_plain] create table public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: create table public.zz(x int)
+                     ^
+
+### [boardtrack_app] DROP TABLE lease
+--- [login boardtrack_app@boardtrack_plain] drop table lease
+ERROR:  must be owner of table lease
+
+### [boardtrack_app] CREATE ROLE
+--- [login boardtrack_app@boardtrack_plain] create role zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### [app_readonly_grp] read the password hashes
+--- [app_readonly_grp@boardtrack_plain] select username, left(password_hash,7) from app_user limit 1
+ username |  left   
+----------+---------
+ landlord | $2a$06$
+(1 row)
+
+
+### [app_readonly_grp] insert
+--- [app_readonly_grp@boardtrack_plain] insert into property(property_name,address) values ('zz','zz')
+ERROR:  permission denied for table property
+
+### [boardtrack_admin_grp] read a business table (no grants in the sketch)
+--- [boardtrack_admin_grp@boardtrack_plain] select count(*) from lease
+ERROR:  permission denied for table lease
+
+### the planned boardtrack_owner role from the plan table
+--- [postgres@boardtrack_plain] select count(*) as boardtrack_owner_exists from pg_roles where rolname='boardtrack_owner'
+ boardtrack_owner_exists 
+-------------------------
+                       0
+(1 row)
+
+
+### database connect for the sketch roles
+--- [postgres@boardtrack_plain] select datname, has_database_privilege('boardtrack_app', datname, 'CONNECT') as app_can_connect from pg_database where not datistemplate order by 1
+     datname      | app_can_connect 
+------------------+-----------------
+ boardtrack_db    | t
+ boardtrack_plain | t
+ canteen_db       | f
+ postgres         | f
+(4 rows)
+
+

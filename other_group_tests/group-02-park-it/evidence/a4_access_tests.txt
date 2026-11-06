@@ -1,0 +1,245 @@
+run at 11/07/2026 00:36:33
+stopped PHP server (pid 30344)
+=== PART A: the role SQL from user-role.md sections 4.1 to 4.3, copied as written (only the sample password replaced)
+--- [postgres@postgres] select rolname from pg_roles where rolname ~ '^parkit' order by 1
+ rolname 
+---------
+(0 rows)
+
+
+CREATE ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+CREATE ROLE
+GRANT ROLE
+--- second run (is it repeatable?)
+psql:C:/Users/Marcos/dba/pk/roles_doc.sql:2: ERROR:  role "parkit_runtime_grp" already exists
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+psql:C:/Users/Marcos/dba/pk/roles_doc.sql:34: ERROR:  role "parkit_app" already exists
+psql:C:/Users/Marcos/dba/pk/roles_doc.sql:37: NOTICE:  role "parkit_app" has already been granted membership in role "parkit_runtime_grp" by role "postgres"
+GRANT ROLE
+--- [postgres@grp_parkitdb] select rolname, rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolcanlogin, left(rolpassword,14) as pw_scheme from pg_authid where rolname ~ '^parkit' order by 1
+      rolname       | rolsuper | rolcreatedb | rolcreaterole | rolinherit | rolcanlogin |   pw_scheme    
+--------------------+----------+-------------+---------------+------------+-------------+----------------
+ parkit_app         | f        | f           | f             | t          | t           | SCRAM-SHA-256$
+ parkit_runtime_grp | f        | f           | f             | t          | f           | 
+(2 rows)
+
+
+--- [postgres@grp_parkitdb] select r.rolname as member, g.rolname as member_of from pg_auth_members m join pg_roles r on r.oid=m.member join pg_roles g on g.oid=m.roleid where r.rolname ~ '^parkit'
+   member   |     member_of      
+------------+--------------------
+ parkit_app | parkit_runtime_grp
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select tablename, concat(case when has_table_privilege('parkit_app',format('public.%I',tablename),'SELECT') then 'S' else '-' end, case when has_table_privilege('parkit_app',format('public.%I',tablename),'INSERT') then 'I' else '-' end, case when has_table_privilege('parkit_app',format('public.%I',tablename),'UPDATE') then 'U' else '-' end, case when has_table_privilege('parkit_app',format('public.%I',tablename),'DELETE') then 'D' else '-' end, case when has_table_privilege('parkit_app',format('public.%I',tablename),'TRUNCATE') then 'T' else '-' end) as parkit_app_SIUDT from pg_tables where schemaname='public' order by 1
+  tablename   | parkit_app_siudt 
+--------------+------------------
+ parking_zone | S-U--
+ payment      | SI---
+ staff_user   | S----
+ transaction  | SIU--
+ vehicle      | SIU--
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select c.relname as sequence, has_sequence_privilege('parkit_app', c.oid, 'USAGE') as usage from pg_class c where c.relkind='S' and c.relnamespace='public'::regnamespace order by 1
+            sequence            | usage 
+--------------------------------+-------
+ parking_zone_zone_id_seq       | f
+ payment_payment_id_seq         | f
+ staff_user_user_id_seq         | f
+ transaction_transaction_id_seq | f
+ vehicle_vehicle_id_seq         | f
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select has_schema_privilege('parkit_app','public','USAGE') schema_usage, has_schema_privilege('parkit_app','public','CREATE') schema_create, has_database_privilege('parkit_app','grp_parkitdb','CONNECT') db_connect
+ schema_usage | schema_create | db_connect 
+--------------+---------------+------------
+ t            | f             | t
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select datname, datacl from pg_database where datname='grp_parkitdb'
+   datname    |                               datacl                               
+--------------+--------------------------------------------------------------------
+ grp_parkitdb | {=Tc/postgres,postgres=CTc/postgres,parkit_runtime_grp=c/postgres}
+(1 row)
+
+
+=== PART B: real login as parkit_app, privileges exactly as the document grants them
+--- [login parkit_app@grp_parkitdb] select count(*) from public.staff_user
+ count 
+-------
+     2
+(1 row)
+
+
+--- [login parkit_app@grp_parkitdb] update public.staff_user set role='Admin' where username='staff'
+ERROR:  permission denied for table staff_user
+
+--- [login parkit_app@grp_parkitdb] select password_hash from public.staff_user limit 1
+                        password_hash                         
+--------------------------------------------------------------
+ $2y$10$C4vy4qEGZtKtKL8B6cJsGuCtxsXLnnGODqpj3aZIp/PdgLh2Pitc2
+(1 row)
+
+
+--- [login parkit_app@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) values ('ROLE-1','Car')
+ERROR:  permission denied for sequence vehicle_vehicle_id_seq
+
+--- [login parkit_app@grp_parkitdb] select nextval('public.vehicle_vehicle_id_seq')
+ERROR:  permission denied for sequence vehicle_vehicle_id_seq
+
+--- [login parkit_app@grp_parkitdb] update public.payment set amount = 0 where false
+ERROR:  permission denied for table payment
+
+--- [login parkit_app@grp_parkitdb] delete from public.payment where false
+ERROR:  permission denied for table payment
+
+--- [login parkit_app@grp_parkitdb] delete from public.transaction where false
+ERROR:  permission denied for table transaction
+
+--- [login parkit_app@grp_parkitdb] delete from public.vehicle where false
+ERROR:  permission denied for table vehicle
+
+--- [login parkit_app@grp_parkitdb] truncate public.payment
+ERROR:  permission denied for table payment
+
+--- [login parkit_app@grp_parkitdb] create table public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: create table public.zz(x int)
+                     ^
+
+--- [login parkit_app@grp_parkitdb] drop table public.payment
+ERROR:  must be owner of table payment
+
+--- [login parkit_app@grp_parkitdb] create role zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+--- [login parkit_app@grp_parkitdb] select rolname from pg_authid limit 1
+ERROR:  permission denied for table pg_authid
+
+--- [login parkit_app@grp_parkitdb] vacuum public.vehicle
+WARNING:  permission denied to vacuum "vehicle", skipping it
+VACUUM
+
+--- [login parkit_app@grp_parkitdb] create temp table zz_t(x int)
+CREATE TABLE
+
+--- [login parkit_app@postgres] select current_database()
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  permission denied for database "postgres"
+DETAIL:  User does not have CONNECT privilege.
+
+=== PART C: the application running as parkit_app, privileges as documented (no sequence grant)
+php server: listening on http://localhost:8000/park-it/  (DB_NAME=grp_parkitdb DB_USER=parkit_app)
+POST /park-it/auth/login.php  data=username=admin&password=admin123  [admin]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, admin (Admin)!   <login (reads staff_user)>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=A4-0001&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message:     <register a vehicle entry as parkit_app>
+--- [postgres@grp_parkitdb] select count(*) as a4_vehicle_rows from public.vehicle where license_plate='A4-0001'
+ a4_vehicle_rows 
+-----------------
+               0
+(1 row)
+
+
+GET /park-it/dashboard.php  [admin]  ->  HTTP 200   <dashboard>
+GET /park-it/modules/payments/history.php  [admin]  ->  HTTP 200   <payment history>
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":50,"available_spaces":0,"active_vehicles":50,"status_code":"full","status_text":"FULL CAPACITY (No Spaces Available)","warning_type":"full","warning_message":"FULL CAPACITY WARNING: All 50 parking spaces are currently occupied (50\/50). Incoming vehicle registration is disabl...
+--- the project does not say to grant sequence rights, so the same grant was added by the testing group (roles_fix.sql, GRANT USAGE, SELECT ON ALL SEQUENCES) and the same steps repeated
+GRANT
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=A4-0001&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message:     <register a vehicle entry, with sequence grant>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=A4-0002&vehicle_type=Motorcycle&zone_id=1  [admin]  ->  HTTP 200  message:     <second entry>
+--- [postgres@grp_parkitdb] update public.transaction set entry_time = localtimestamp - interval '4 hours' where transaction_id = (select t.transaction_id from public.transaction t join public.vehicle v on v.vehicle_id=t.vehicle_id where v.license_plate='A4-0001' and t.status='Active' order by 1 desc limit 1)
+UPDATE 0
+
+POST /park-it/modules/payments/process.php  data=transaction_id=&payment_method=Cash&is_lost_ticket=0  [admin]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)  message: Invalid parking transaction ID.   <payment and exit as parkit_app>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=&license_plate=A4-0002&vehicle_type=Car  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle record not found.   <edit a vehicle (UPDATE is granted)>
+--- [postgres@grp_parkitdb] insert into public.vehicle(license_plate, vehicle_type) values ('A4-LONE','Car')
+INSERT 0 1
+
+POST /park-it/modules/vehicles/delete.php  data=vehicle_id=62  [admin]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Error deleting vehicle: SQLSTATE[42501]: Insufficient privilege: 7 ERROR:  permission denied for table vehicle   <delete a vehicle with no transactions (DELETE not granted)>
+--- [postgres@grp_parkitdb] select count(*) as a4_lone_left from public.vehicle where license_plate='A4-LONE'
+ a4_lone_left 
+--------------
+            1
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select usename, application_name, count(*) from pg_stat_activity where datname='grp_parkitdb' and usename is not null group by 1,2
+ usename  | application_name | count 
+----------+------------------+-------
+ postgres | psql             |     1
+(1 row)
+
+
+=== PART D: application roles (Admin and Staff). user-role.md says only the Administrator registers vehicles
+POST /park-it/auth/login.php  data=username=staff&password=staff123  [staff]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, staff (Staff)!   <staff login>
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=STAFF-1&vehicle_type=Car&zone_id=1  [staff]  ->  HTTP 200  message:     <staff registers a vehicle>
+POST /park-it/modules/vehicles/edit.php  data=vehicle_id=&license_plate=STAFF-1&vehicle_type=Motorcycle  [staff]  ->  HTTP 200 (redirected to /park-it/modules/vehicles/index.php)  message: Vehicle record not found.   <staff edits a vehicle>
+GET /park-it/modules/vehicles/index.php  [staff]  ->  HTTP 200  message:     <staff opens Module 1>
+GET /park-it/modules/payments/index.php  [staff]  ->  HTTP 200   <staff opens Module 2>
+POST /park-it/modules/payments/process.php  data=transaction_id=&payment_method=Cash&is_lost_ticket=0  [staff]  ->  HTTP 200 (redirected to /park-it/modules/payments/index.php)  message: Invalid parking transaction ID.   <staff takes a payment>
+places in the PHP code that look at the role:
+login.php:38: $_SESSION['role']     = $user['role'];
+login.php:40: setFlash('success', 'Welcome back, ' . $user['username'] . ' (' . $user['role'] . ')!');
+seed.php:43: 'role'     => 'Admin'
+seed.php:48: 'role'     => 'Staff'
+seed.php:64: ':role'          => $u['role']
+seed.php:66: $messages[] = "Created {$u['role']} account: username '{$u['username']}' / password '{$u['password']}'.";
+functions.php:32: function isAdmin(): bool {
+functions.php:33: return isset($_SESSION['role']) && strtolower($_SESSION['role']) === 'admin';
+header.php:41: <span class="badge badge-role"><?= htmlspecialchars($_SESSION['role']) ?></span>
+--- logout, then use the old session
+GET /park-it/auth/logout.php  [staff]  ->  HTTP 200 (redirected to /park-it/auth/login.php)   <logout>
+GET /park-it/modules/vehicles/index.php  [staff]  ->  HTTP 302   <after logout, same cookie>
+--- a request from another website: forged form post with an Origin header and no token
+POST /park-it/modules/vehicles/index.php  data=action=register_entry&license_plate=CSRF-1&vehicle_type=Car&zone_id=1  [admin]  ->  HTTP 200  message:     <Origin: http://evil.example>
+--- [postgres@grp_parkitdb] select count(*) as csrf_rows from public.vehicle where license_plate='CSRF-1'
+ csrf_rows 
+-----------
+         0
+(1 row)
+
+
+--- repeated wrong passwords (6 tries), then the correct one
+POST /park-it/auth/login.php  data=username=admin&password=bad1  [brute]  ->  HTTP 200  message: Invalid username or password.   <wrong password try 1>
+POST /park-it/auth/login.php  data=username=admin&password=bad2  [brute]  ->  HTTP 200  message: Invalid username or password.   <wrong password try 2>
+POST /park-it/auth/login.php  data=username=admin&password=bad3  [brute]  ->  HTTP 200  message: Invalid username or password.   <wrong password try 3>
+POST /park-it/auth/login.php  data=username=admin&password=bad4  [brute]  ->  HTTP 200  message: Invalid username or password.   <wrong password try 4>
+POST /park-it/auth/login.php  data=username=admin&password=bad5  [brute]  ->  HTTP 200  message: Invalid username or password.   <wrong password try 5>
+POST /park-it/auth/login.php  data=username=admin&password=bad6  [brute]  ->  HTTP 200  message: Invalid username or password.   <wrong password try 6>
+POST /park-it/auth/login.php  data=username=admin&password=admin123  [brute]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, admin (Admin)!   <correct password right after>
+=== PART E: credentials and configuration
+config\database.php in the repository: define('DB_USER', 'postgres'); | define('DB_PASS', '12345678'); // <-- Replace with your PostgreSQL password | $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+default passwords written in config\seed.php: 'password' => 'admin123', | 'password' => 'staff123', | ':password_hash' => password_hash($u['password'], PASSWORD_DEFAULT), | $messages[] = "Created {$u['role']} account: username '{$u['username']}' / password '{$u['password']}'.";
+--- [postgres@grp_parkitdb] select username, role, left(password_hash,4) as algo, length(password_hash) as len from public.staff_user order by 1
+ username | role  | algo | len 
+----------+-------+------+-----
+ admin    | Admin | $2y$ |  60
+ staff    | Staff | $2y$ |  60
+(2 rows)
+
+
+--- pg_hba.conf rules
+--- [postgres@grp_parkitdb] select line_number, type, database, user_name, address, auth_method from pg_hba_file_rules order by line_number
+ line_number | type  |   database    | user_name |  address  |  auth_method  
+-------------+-------+---------------+-----------+-----------+---------------
+         113 | local | {all}         | {all}     |           | scram-sha-256
+         115 | host  | {all}         | {all}     | 127.0.0.1 | scram-sha-256
+         117 | host  | {all}         | {all}     | ::1       | scram-sha-256
+         120 | local | {replication} | {all}     |           | scram-sha-256
+         121 | host  | {replication} | {all}     | 127.0.0.1 | scram-sha-256
+         122 | host  | {replication} | {all}     | ::1       | scram-sha-256
+(6 rows)
+
+

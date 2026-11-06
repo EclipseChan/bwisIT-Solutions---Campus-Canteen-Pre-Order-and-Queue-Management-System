@@ -1,0 +1,172 @@
+﻿run at 11/06/2026 23:37:12
+--- prerequisites
+node: v26.13.0
+npm: 11.20.0
+psql (PostgreSQL) 18.6
+--- npm install
+added 94 packages, and audited 95 packages in 3s
+
+19 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+--- .env from .env.example (README step), DATABASE_URL points at the tester's postgres account
+--- first npm start (creates the database, tables and sample data automatically)
+app start: listening on port 3000
+--- start-up output
+
+> boardtrack@1.0.0 start
+> node src/server.js
+
+Created database "boardtrack_db"
+migrated 001_schema.sql
+seeded   001_sample_data.sql
+BoardTrack running at http://localhost:3000
+--- second setup run must change nothing (npm run db:setup)
+
+> boardtrack@1.0.0 db:setup
+> node scripts/db.js setup
+
+skip     001_schema.sql
+seed skipped (database already has data)
+--- other documented route: plain SQL on an empty database
+DROP DATABASE
+--- [postgres@boardtrack_db] select (select count(*) from pg_tables where schemaname='public') as tables_auto
+ tables_auto 
+-------------
+           8
+(1 row)
+
+
+--- [postgres@boardtrack_plain] select (select count(*) from pg_tables where schemaname='public') as tables_plain
+ tables_plain 
+--------------
+            8
+(1 row)
+
+
+=== database verification (boardtrack_db)
+--- [postgres@boardtrack_db] select tablename from pg_tables where schemaname='public' order by 1
+     tablename     
+-------------------
+ app_user
+ lease
+ payment
+ property
+ room
+ schema_migrations
+ tenant
+ utility_bill
+(8 rows)
+
+
+--- [postgres@boardtrack_db] select contype, count(*) from pg_constraint where connamespace='public'::regnamespace group by 1 order by 1
+ contype | count 
+---------+-------
+ c       |    15
+ f       |     6
+ n       |    36
+ p       |     8
+ u       |     3
+ x       |     1
+(6 rows)
+
+
+--- [postgres@boardtrack_db] select conname, pg_get_constraintdef(oid) from pg_constraint where contype='x'
+       conname       |                                                        pg_get_constraintdef                                                        
+---------------------+------------------------------------------------------------------------------------------------------------------------------------
+ ex_lease_no_overlap | EXCLUDE USING gist (room_id WITH =, daterange(start_date, end_date, '[]'::text) WITH &&) WHERE (((status)::text = 'ACTIVE'::text))
+(1 row)
+
+
+--- [postgres@boardtrack_db] select tgname, tgrelid::regclass as tbl from pg_trigger where not tgisinternal order by 1
+        tgname         |  tbl  
+-----------------------+-------
+ trg_lease_sync_room   | lease
+ trg_room_status_guard | room
+(2 rows)
+
+
+--- [postgres@boardtrack_db] select viewname from pg_views where schemaname='public'
+    viewname     
+-----------------
+ v_lease_summary
+(1 row)
+
+
+--- [postgres@boardtrack_db] select extname, extversion from pg_extension order by 1
+  extname   | extversion 
+------------+------------
+ btree_gist | 1.8
+ pgcrypto   | 1.4
+ plpgsql    | 1.0
+(3 rows)
+
+
+--- [postgres@boardtrack_db] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+       indexname        |     tablename     
+------------------------+-------------------
+ app_user_pkey          | app_user
+ app_user_username_key  | app_user
+ ex_lease_no_overlap    | lease
+ idx_lease_room         | lease
+ idx_lease_tenant       | lease
+ lease_pkey             | lease
+ idx_payment_lease      | payment
+ payment_pkey           | payment
+ property_pkey          | property
+ room_pkey              | room
+ uq_room_per_property   | room
+ schema_migrations_pkey | schema_migrations
+ tenant_email_key       | tenant
+ tenant_pkey            | tenant
+ idx_utility_lease      | utility_bill
+ utility_bill_pkey      | utility_bill
+(16 rows)
+
+
+--- [postgres@boardtrack_db] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+    table_name     | row_count 
+-------------------+-----------
+ app_user          |         3
+ lease             |         4
+ payment           |         6
+ property          |         2
+ room              |         6
+ schema_migrations |         1
+ tenant            |         4
+ utility_bill      |         4
+(8 rows)
+
+
+--- [postgres@boardtrack_db] select username, role, tenant_id, is_active, left(password_hash,7) as hash_prefix from app_user order by user_id
+ username  |  role  | tenant_id | is_active | hash_prefix 
+-----------+--------+-----------+-----------+-------------
+ landlord  | admin  |           | t         | $2a$06$
+ caretaker | staff  |           | t         | $2a$06$
+ juan      | tenant |         1 | t         | $2a$06$
+(3 rows)
+
+
+=== which database account does the app use?
+--- [postgres@boardtrack_db] select usename, application_name, state, count(*) from pg_stat_activity where datname='boardtrack_db' group by 1,2,3
+ usename  | application_name | state  | count 
+----------+------------------+--------+-------
+ postgres | psql             | active |     1
+(1 row)
+
+
+--- [postgres@boardtrack_db] select rolname, rolsuper, rolcreatedb, rolcreaterole from pg_roles where rolname = 'postgres' or rolname ~ '^(boardtrack|app_)'
+ rolname  | rolsuper | rolcreatedb | rolcreaterole 
+----------+----------+-------------+---------------
+ postgres | t        | t           | t
+(1 row)
+
+
+--- [postgres@boardtrack_db] select datname, datacl from pg_database where datname='boardtrack_db'
+    datname    | datacl 
+---------------+--------
+ boardtrack_db | 
+(1 row)
+
+

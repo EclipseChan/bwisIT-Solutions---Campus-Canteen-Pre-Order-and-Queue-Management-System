@@ -1,0 +1,7 @@
+NOTICE:  database "grp_parkitdb_restore" does not exist, skipping
+DROP DATABASE
+NOTICE:  database "grp_parkitdb_recovery" does not exist, skipping
+DROP DATABASE
+CREATE DATABASE
+pg_restore exit code: 0 ; elapsed seconds: 0.28
+no messages (no warnings or errors)

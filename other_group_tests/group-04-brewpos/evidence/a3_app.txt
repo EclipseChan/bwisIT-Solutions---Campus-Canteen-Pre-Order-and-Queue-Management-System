@@ -1,0 +1,157 @@
+run at 11/06/2026 23:56:59
+app already listening on port 8081
+ids: cashier staff_id=1, manager staff_id=2, category Coffee=1, Butter Croissant=11, Pumpkin Spice Latte=1
+=== pages and read endpoints
+GET /  ->  HTTP 200  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bre... (20356 chars)
+GET /api/staff  ->  HTTP 200  [{"staffId":1,"fullName":"Demo Cashier","role":"CASHIER"},{"staffId":2,"fullName":"Demo Manager","role":"MANAGER"}]
+GET /api/categories  ->  HTTP 200  [{"categoryId":1,"categoryName":"Coffee"},{"categoryId":2,"categoryName":"Non-Coffee"},{"categoryId":3,"categoryName":"Pastries"}]
+GET /api/menu/active  ->  HTTP 200  [{"categoryId":1,"categoryName":"Coffee","items":[{"itemId":5,"categoryId":1,"categoryName":"Coffee","itemName":"Americano","price":90.00,"isActive":t... (1265 chars)
+   Pumpkin Spice Latte in the active menu: False
+GET /api/menu-items?activeOnly=false  ->  HTTP 200  [{"itemId":5,"categoryId":1,"categoryName":"Coffee","itemName":"Americano","price":90.00,"isActive":true},{"itemId":4,"categoryId":1,"categoryName":"C... (1223 chars)
+   Pumpkin Spice Latte in the full list: True
+GET /api/orders  ->  HTTP 200  [{"orderId":3,"orderTimestamp":"2026-11-06T13:05:00","staffId":2,"staffName":"Demo Manager","paymentMethod":"CASH","total":360.00},{"orderId":2,"order... (655 chars)
+GET /api/reports/daily-sales?date=2026-11-06  ->  HTTP 200  {"date":"2026-11-06","totalSales":915.50,"orderCount":3}
+=== TESTING_GUIDE step 3: category and item
+POST /api/categories  body={"categoryName":"Tea Specials"}  ->  HTTP 201  {"categoryId":16,"categoryName":"Tea Specials"}
+POST /api/categories  body={"categoryName":"Coffee"}  ->  HTTP 409  {"timestamp":"2026-11-06T23:57:00.378055","status":409,"error":"Conflict","message":"A category named 'Coffee' already exists","path":"/api/categories... (152 chars)   <duplicate category>
+POST /api/categories  body={"categoryName":"   "}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.4009559","status":400,"error":"Bad Request","message":"Category name is required","path":"/api/categories"}   <blank name>
+POST /api/categories  body={"categoryName":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.4208422","status":400,"error":"Bad Request","message":"Category name must be at most 50 characters","path":"/api/cat... (159 chars)   <51 characters>
+POST /api/menu-items  body={"categoryId":16,"itemName":"Hojicha Latte","price":115.00,"isActive":true}  ->  HTTP 201  {"itemId":34,"categoryId":16,"categoryName":"Tea Specials","itemName":"Hojicha Latte","price":115.00,"isActive":true}
+POST /api/menu-items  body={"categoryId":16,"itemName":"Hojicha Latte","price":99.00}  ->  HTTP 409  {"timestamp":"2026-11-06T23:57:00.4955752","status":409,"error":"Conflict","message":"An item named 'Hojicha Latte' already exists in this category","... (174 chars)   <duplicate item name in the same category>
+POST /api/menu-items  body={"categoryId":16,"itemName":"Neg","price":-1}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.5160326","status":400,"error":"Bad Request","message":"Price must not be negative","path":"/api/menu-items"}   <negative price>
+POST /api/menu-items  body={"categoryId":16,"itemName":"Frac","price":10.999}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.5343361","status":400,"error":"Bad Request","message":"Price must have at most 2 decimal places (max 8 integer digit... (179 chars)   <3 decimals>
+POST /api/menu-items  body={"categoryId":16,"itemName":"Huge","price":123456789.00}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.5552647","status":400,"error":"Bad Request","message":"Price must have at most 2 decimal places (max 8 integer digit... (179 chars)   <9 integer digits>
+POST /api/menu-items  body={"categoryId":99999,"itemName":"NoCat","price":5}  ->  HTTP 404  {"timestamp":"2026-11-06T23:57:00.575329","status":404,"error":"Not Found","message":"Category 99999 not found","path":"/api/menu-items"}   <unknown category>
+POST /api/menu-items  body={"itemName":"NoCatField","price":5}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.594148","status":400,"error":"Bad Request","message":"Category is required","path":"/api/menu-items"}   <missing categoryId>
+POST /api/menu-items  body={"categoryId":16,"itemName":"<script>alert(1)</script>","price":5}  ->  HTTP 201  {"itemId":35,"categoryId":16,"categoryName":"Tea Specials","itemName":"<script>alert(1)</script>","price":5.00,"isActive":true}   <markup in a name>
+POST /api/menu-items  body={bad json  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:00.6351303","status":400,"error":"Bad Request","message":"Malformed or invalid request","path":"/api/menu-items"}   <malformed JSON>
+=== step 4: deactivate and reactivate
+PATCH /api/menu-items/34/active  body={"isActive":false}  ->  HTTP 200  {"itemId":34,"categoryId":16,"categoryName":"Tea Specials","itemName":"Hojicha Latte","price":115.00,"isActive":false}
+GET /api/menu/active  ->  HTTP 200  [{"categoryId":1,"categoryName":"Coffee","items":[{"itemId":5,"categoryId":1,"categoryName":"Coffee","itemName":"Americano","price":90.00,"isActive":t... (1451 chars)
+   Hojicha in the active menu: False
+PATCH /api/menu-items/34/active  body={"isActive":true}  ->  HTTP 200  {"itemId":34,"categoryId":16,"categoryName":"Tea Specials","itemName":"Hojicha Latte","price":115.00,"isActive":true}
+GET /api/menu/active  ->  HTTP 200  [{"categoryId":1,"categoryName":"Coffee","items":[{"itemId":5,"categoryId":1,"categoryName":"Coffee","itemName":"Americano","price":90.00,"isActive":t... (1569 chars)
+   Hojicha in the active menu: True
+=== step 5: cash order, same item on two lines must merge
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":34,"quantity":1},{"itemId":34,"quantity":1},{"itemId":11,"quantity":1}]}  ->  HTTP 201  {"orderId":10,"orderTimestamp":"2026-11-06T23:57:00.779901","staffId":1,"staffName":"Demo Cashier","paymentMethod":"CASH","lines":[{"itemId":11,"itemN... (330 chars)
+--- [postgres@grp_brewposdb] select order_id, item_id, quantity, sold_price from order_line_item where order_id=10 order by item_id
+ order_id | item_id | quantity | sold_price 
+----------+---------+----------+------------
+       10 |      11 |        1 |      75.50
+       10 |      34 |        2 |     115.00
+(2 rows)
+
+
+--- [postgres@grp_brewposdb] select sum(quantity*sold_price) as total from order_line_item where order_id=10
+ total  
+--------
+ 305.50
+(1 row)
+
+
+=== step 6: price change must not alter old receipts
+PUT /api/menu-items/34  body={"categoryId":16,"itemName":"Hojicha Latte","price":150.00,"isActive":true}  ->  HTTP 200  {"itemId":34,"categoryId":16,"categoryName":"Tea Specials","itemName":"Hojicha Latte","price":150.00,"isActive":true}
+GET /api/orders/10  ->  HTTP 200  {"orderId":10,"orderTimestamp":"2026-11-06T23:57:00.779901","staffId":1,"staffName":"Demo Cashier","paymentMethod":"CASH","lines":[{"itemId":11,"itemN... (330 chars)
+=== step 7: online order and daily sales
+POST /api/orders  body={"staffId":1,"paymentMethod":"ONLINE","items":[{"itemId":34,"quantity":1}]}  ->  HTTP 201  {"orderId":11,"orderTimestamp":"2026-11-06T23:57:01.007762","staffId":1,"staffName":"Demo Cashier","paymentMethod":"ONLINE","lines":[{"itemId":34,"ite... (240 chars)
+GET /api/reports/daily-sales?date=2026-11-06  ->  HTTP 200  {"date":"2026-11-06","totalSales":1371.00,"orderCount":5}
+GET /api/reports/daily-sales/by-payment?date=2026-11-06  ->  HTTP 200  [{"paymentMethod":"CASH","totalSales":921.00,"orderCount":3},{"paymentMethod":"ONLINE","totalSales":450.00,"orderCount":2}]
+--- [postgres@grp_brewposdb] select coalesce(sum(l.quantity*l.sold_price),0) as net_sales, count(distinct t.order_id) as orders from order_ticket t join order_line_item l using(order_id) where t.order_timestamp >= current_date and t.order_timestamp < current_date + 1
+ net_sales | orders 
+-----------+--------
+   1371.00 |      5
+(1 row)
+
+
+GET /api/orders?from=2026-11-06&to=2026-11-06  ->  HTTP 200  [{"orderId":11,"orderTimestamp":"2026-11-06T23:57:01.007762","staffId":1,"staffName":"Demo Cashier","paymentMethod":"ONLINE","total":150.00},{"orderId... (671 chars)
+=== step 8 and other order validation
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[]}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.1663095","status":400,"error":"Bad Request","message":"An order must contain at least one item","path":"/api/orders"... (151 chars)   <empty order>
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":11,"quantity":0}]}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.1866984","status":400,"error":"Bad Request","message":"Quantity must be greater than zero","path":"/api/orders"}   <quantity 0>
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":11,"quantity":-3}]}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.2072239","status":400,"error":"Bad Request","message":"Quantity must be greater than zero","path":"/api/orders"}   <negative quantity>
+POST /api/orders  body={"staffId":1,"paymentMethod":"CARD","items":[{"itemId":11,"quantity":1}]}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.2293903","status":400,"error":"Bad Request","message":"Payment method must be CASH or ONLINE","path":"/api/orders"}   <invalid payment method>
+POST /api/orders  body={"paymentMethod":"CASH","items":[{"itemId":11,"quantity":1}]}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.2489452","status":400,"error":"Bad Request","message":"Staff ID is required","path":"/api/orders"}   <missing staffId>
+POST /api/orders  body={"staffId":99999,"paymentMethod":"CASH","items":[{"itemId":11,"quantity":1}]}  ->  HTTP 404  {"timestamp":"2026-11-06T23:57:01.2699877","status":404,"error":"Not Found","message":"Staff 99999 not found","path":"/api/orders"}   <unknown staff>
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":99999,"quantity":1}]}  ->  HTTP 404  {"timestamp":"2026-11-06T23:57:01.2920709","status":404,"error":"Not Found","message":"Menu item 99999 not found","path":"/api/orders"}   <unknown item>
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":1,"quantity":1}]}  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.314116","status":400,"error":"Bad Request","message":"Menu item 'Pumpkin Spice Latte' is not active","path":"/api/or... (156 chars)   <inactive item (Pumpkin Spice Latte)>
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","price":0.01,"total":1,"items":[{"itemId":11,"quantity":1,"price":0.01}]}  ->  HTTP 201  {"orderId":12,"orderTimestamp":"2026-11-06T23:57:01.337822","staffId":1,"staffName":"Demo Cashier","paymentMethod":"CASH","lines":[{"itemId":11,"itemN... (238 chars)   <client sends its own price and total>
+--- [postgres@grp_brewposdb] select item_id, quantity, sold_price from order_line_item where order_id=12
+ item_id | quantity | sold_price 
+---------+----------+------------
+      11 |        1 |      75.50
+(1 row)
+
+
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":11,"quantity":2147483647}]}  ->  HTTP 201  {"orderId":13,"orderTimestamp":"2026-11-06T23:57:01.522486","staffId":1,"staffName":"Demo Cashier","paymentMethod":"CASH","lines":[{"itemId":11,"itemN... (267 chars)   <quantity 2147483647>
+--- [postgres@grp_brewposdb] select order_id, quantity, sold_price from order_line_item where quantity > 100000
+ order_id |  quantity  | sold_price 
+----------+------------+------------
+       13 | 2147483647 |      75.50
+(1 row)
+
+
+=== immutability and routing
+DELETE /api/orders/10  ->  HTTP 405  {"timestamp":"2026-11-06T23:57:01.5995249","status":405,"error":"Method Not Allowed","message":"Request method 'DELETE' is not supported","path":"/api... (162 chars)   <no delete endpoint>
+PUT /api/orders/10  body={"paymentMethod":"ONLINE"}  ->  HTTP 405  {"timestamp":"2026-11-06T23:57:01.6258496","status":405,"error":"Method Not Allowed","message":"Request method 'PUT' is not supported","path":"/api/or... (159 chars)   <no update endpoint>
+DELETE /api/menu-items/34  ->  HTTP 405  {"timestamp":"2026-11-06T23:57:01.6455765","status":405,"error":"Method Not Allowed","message":"Request method 'DELETE' is not supported","path":"/api... (166 chars)   <no delete endpoint for items>
+DELETE /api/categories/16  ->  HTTP 409  {"timestamp":"2026-11-06T23:57:01.6683131","status":409,"error":"Conflict","message":"Category is still in use by menu items and cannot be deleted","p... (176 chars)   <category that still has an item>
+POST /api/categories  body={"categoryName":"Temp Empty"}  ->  HTTP 201  {"categoryId":17,"categoryName":"Temp Empty"}
+DELETE /api/categories/17  ->  HTTP 204   <empty category>
+GET /api/orders/abc  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.738458","status":400,"error":"Bad Request","message":"Malformed or invalid request","path":"/api/orders/abc"}   <text id>
+GET /api/orders/999999  ->  HTTP 404  {"timestamp":"2026-11-06T23:57:01.7591487","status":404,"error":"Not Found","message":"Order 999999 not found","path":"/api/orders/999999"}   <unknown id>
+GET /api/reports/daily-sales?date=not-a-date  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.7795236","status":400,"error":"Bad Request","message":"Malformed or invalid request","path":"/api/reports/daily-sale... (153 chars)
+GET /api/reports/daily-sales  ->  HTTP 400  {"timestamp":"2026-11-06T23:57:01.7992225","status":400,"error":"Bad Request","message":"Malformed or invalid request","path":"/api/reports/daily-sale... (153 chars)   <no date>
+GET /api/menu-items/999999  ->  HTTP 404  {"timestamp":"2026-11-06T23:57:01.8185047","status":404,"error":"Not Found","message":"Menu item 999999 not found","path":"/api/menu-items/999999"}
+GET /actuator/health  ->  HTTP 404  {"timestamp":"2026-11-06T23:57:01.8406631","status":404,"error":"Not Found","message":"Resource not found","path":"/actuator/health"}   <actuator not exposed?>
+GET /api/staff/1  ->  HTTP 200  {"staffId":1,"fullName":"Demo Cashier","role":"CASHIER"}
+=== headers and cross-origin
+--- response headers of GET /api/menu/active
+HTTP/1.1 200 
+Content-Type: application/json
+Content-Length: 1569
+Date: Fri, 06 Nov 2026 15:57:01 GMT
+
+--- request with Origin: http://evil.example
+
+HTTP/1.1 200 
+--- credentials sent? none of the calls above carried a cookie, token or password
+=== database after the tests
+--- [postgres@grp_brewposdb] select (select count(*) from menu_item) items, (select count(*) from order_ticket) orders, (select count(*) from order_line_item) lines, (select count(*) from menu_item where item_name like '<script>%') script_named_items
+ items | orders | lines | script_named_items 
+-------+--------+-------+--------------------
+    13 |      9 |    14 |                  1
+(1 row)
+
+
+=== direct database constraint checks (each rolled back or rejected)
+--- [postgres@grp_brewposdb] insert into menu_item(category_id,item_name,price) values (1,'Neg',-1)
+ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+DETAIL:  Failing row contains (36, 1, Neg, -1.00, t).
+
+--- [postgres@grp_brewposdb] insert into order_line_item(order_id,item_id,quantity,sold_price) values (10,11,0,1)
+ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+DETAIL:  Failing row contains (10, 11, 0, 1.00).
+
+--- [postgres@grp_brewposdb] insert into order_ticket(staff_id,payment_method) values (1,'CARD')
+ERROR:  new row for relation "order_ticket" violates check constraint "chk_order_ticket_payment"
+DETAIL:  Failing row contains (14, 1, 2026-11-06 23:57:02.245573, CARD).
+
+--- [postgres@grp_brewposdb] insert into staff(full_name,role) values ('X','OWNER')
+ERROR:  new row for relation "staff" violates check constraint "chk_staff_role"
+DETAIL:  Failing row contains (3, X, OWNER).
+
+--- [postgres@grp_brewposdb] delete from menu_category where category_id=1
+ERROR:  update or delete on table "menu_category" violates foreign key constraint "fk_menu_item_category" on table "menu_item"
+DETAIL:  Key (category_id)=(1) is still referenced from table "menu_item".
+
+--- [postgres@grp_brewposdb] delete from menu_item where item_id=34
+ERROR:  update or delete on table "menu_item" violates foreign key constraint "fk_order_line_item" on table "order_line_item"
+DETAIL:  Key (item_id)=(34) is still referenced from table "order_line_item".
+
+=== app log
+
+

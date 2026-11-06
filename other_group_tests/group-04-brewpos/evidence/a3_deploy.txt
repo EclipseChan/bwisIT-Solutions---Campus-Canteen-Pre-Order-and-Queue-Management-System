@@ -1,0 +1,241 @@
+run at 11/06/2026 23:54:45
+extracting C:\Users\Marcos\dba\bp\brewpos-main.zip
+--- prerequisites
+java:
+openjdk version "21.0.13" 2026-10-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.13+9 (build 21.0.13+9-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.13+9 (build 21.0.13+9-LTS, mixed mode, sharing)
+javac:
+javac 21.0.13
+psql (PostgreSQL) 18.6
+--- clean start: drop any database left from earlier testing, then follow README Option B
+NOTICE:  database "grp_brewposdb" does not exist, skipping
+DROP DATABASE
+DROP DATABASE
+NOTICE:  database "grp_brewposdb_restore" does not exist, skipping
+NOTICE:  database "grp_brewposdb_recovery" does not exist, skipping
+DROP DATABASE
+CREATE DATABASE
+--- schema.sql
+BEGIN
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+COMMIT
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+--- seed.sql (first run)
+BEGIN
+INSERT 0 2
+INSERT 0 3
+INSERT 0 11
+psql:C:/Users/Marcos/dba/bp/brewpos-main/database/seed.sql:136: NOTICE:  Inserted 5 sample orders (Today total: 915.50 across 3 orders; Yesterday total: 440.00 across 2 orders).
+DO
+COMMIT
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+--- [postgres@grp_brewposdb] select 'staff' t,count(*) from staff union all select 'menu_category',count(*) from menu_category union all select 'menu_item',count(*) from menu_item union all select 'order_ticket',count(*) from order_ticket union all select 'order_line_item',count(*) from order_line_item
+        t        | count 
+-----------------+-------
+ staff           |     2
+ menu_category   |     3
+ menu_item       |    11
+ order_ticket    |     5
+ order_line_item |     9
+(5 rows)
+
+
+--- seed.sql again (README says it is safe to run twice)
+COMMIT
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+--- [postgres@grp_brewposdb] select 'staff' t,count(*) from staff union all select 'menu_category',count(*) from menu_category union all select 'menu_item',count(*) from menu_item union all select 'order_ticket',count(*) from order_ticket union all select 'order_line_item',count(*) from order_line_item
+        t        | count 
+-----------------+-------
+ staff           |     2
+ menu_category   |     3
+ menu_item       |    11
+ order_ticket    |     5
+ order_line_item |     9
+(5 rows)
+
+
+--- project's own database\03_verification_queries.sql (full output in a3_projectverify.txt, errors counted here)
+lines of output: 126 ; lines containing ERROR: 0
+--- .env from .env.example (README step 3), postgres account
+DB_URL=jdbc:postgresql://localhost:5432/grp_brewposdb
+DB_USERNAME=postgres
+DB_PASSWORD=********
+SERVER_PORT=8081
+--- database counts before the automated tests
+--- [postgres@grp_brewposdb] select 'staff' t,count(*) from staff union all select 'menu_category',count(*) from menu_category union all select 'menu_item',count(*) from menu_item union all select 'order_ticket',count(*) from order_ticket union all select 'order_line_item',count(*) from order_line_item
+        t        | count 
+-----------------+-------
+ staff           |     2
+ menu_category   |     3
+ menu_item       |    11
+ order_ticket    |     5
+ order_line_item |     9
+(5 rows)
+
+
+--- .\mvnw.cmd test (19 tests promised, needs the database)
+elapsed seconds: 17
+[INFO] Building BrewPos 0.0.1-SNAPSHOT
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.597 s -- in com.brewpos.BrewPosApplicationTests
+2026-11-06T23:55:04.183+08:00 ERROR 19424 --- [brewpos] [           main] c.b.exception.GlobalExceptionHandler     : Unexpected error on /api/categories
+	at com.brewpos.controller.BrewPosControllerTests.unknownPathReturns404AndUnexpectedErrorSanitizes500(BrewPosControllerTests.java:295) ~[test-classes/:na]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) ~[junit-platform-launcher-6.0.3.jar:6.0.3]
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.521 s -- in com.brewpos.controller.BrewPosControllerTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.557 s -- in com.brewpos.service.BrewPosServiceTests
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.904 s -- in com.brewpos.service.OrderRollbackTests
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+--- database counts after the automated tests (do the tests leave data behind?)
+--- [postgres@grp_brewposdb] select 'staff' t,count(*) from staff union all select 'menu_category',count(*) from menu_category union all select 'menu_item',count(*) from menu_item union all select 'order_ticket',count(*) from order_ticket union all select 'order_line_item',count(*) from order_line_item
+        t        | count 
+-----------------+-------
+ staff           |     2
+ menu_category   |     3
+ menu_item       |    11
+ order_ticket    |     5
+ order_line_item |     9
+(5 rows)
+
+
+--- start the app: .\mvnw.cmd spring-boot:run
+app start: listening on port 8081
+2026-11-06T23:55:15.654+08:00  INFO 26532 --- [brewpos] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-06T23:55:15.782+08:00  INFO 26532 --- [brewpos] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5d3b6585
+2026-11-06T23:55:15.783+08:00  INFO 26532 --- [brewpos] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-06T23:55:17.851+08:00  INFO 26532 --- [brewpos] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-11-06T23:55:17.856+08:00  INFO 26532 --- [brewpos] [           main] com.brewpos.BrewPosApplication           : Started BrewPosApplication in 3.938 seconds (process running for 4.239)
+=== database verification (grp_brewposdb)
+--- [postgres@grp_brewposdb] select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+   table_name    
+-----------------
+ menu_category
+ menu_item
+ order_line_item
+ order_ticket
+ staff
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select contype, count(*) from pg_constraint where connamespace='public'::regnamespace group by 1 order by 1
+ contype | count 
+---------+-------
+ c       |     5
+ f       |     4
+ n       |    18
+ p       |     5
+ u       |     2
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select conrelid::regclass as tbl, conname, pg_get_constraintdef(oid) from pg_constraint where connamespace='public'::regnamespace and contype in ('c','f','u') order by 1,2
+       tbl       |          conname           |                                               pg_get_constraintdef                                               
+-----------------+----------------------------+------------------------------------------------------------------------------------------------------------------
+ staff           | chk_staff_role             | CHECK (((role)::text = ANY ((ARRAY['CASHIER'::character varying, 'MANAGER'::character varying])::text[])))
+ menu_category   | uq_menu_category_name      | UNIQUE (category_name)
+ menu_item       | chk_menu_item_price        | CHECK ((price >= (0)::numeric))
+ menu_item       | fk_menu_item_category      | FOREIGN KEY (category_id) REFERENCES menu_category(category_id)
+ menu_item       | uq_menu_item_category_name | UNIQUE (category_id, item_name)
+ order_ticket    | chk_order_ticket_payment   | CHECK (((payment_method)::text = ANY ((ARRAY['CASH'::character varying, 'ONLINE'::character varying])::text[])))
+ order_ticket    | fk_order_ticket_staff      | FOREIGN KEY (staff_id) REFERENCES staff(staff_id)
+ order_line_item | chk_order_line_quantity    | CHECK ((quantity > 0))
+ order_line_item | chk_order_line_sold_price  | CHECK ((sold_price >= (0)::numeric))
+ order_line_item | fk_order_line_item         | FOREIGN KEY (item_id) REFERENCES menu_item(item_id)
+ order_line_item | fk_order_line_order        | FOREIGN KEY (order_id) REFERENCES order_ticket(order_id)
+(11 rows)
+
+
+--- [postgres@grp_brewposdb] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+          indexname          |    tablename    
+-----------------------------+-----------------
+ menu_category_pkey          | menu_category
+ uq_menu_category_name       | menu_category
+ menu_item_pkey              | menu_item
+ uq_menu_item_category_name  | menu_item
+ idx_order_line_item_item_id | order_line_item
+ pk_order_line_item          | order_line_item
+ idx_order_ticket_timestamp  | order_ticket
+ order_ticket_pkey           | order_ticket
+ staff_pkey                  | staff
+(9 rows)
+
+
+--- [postgres@grp_brewposdb] select sequencename from pg_sequences where schemaname='public' order by 1
+         sequencename          
+-------------------------------
+ menu_category_category_id_seq
+ menu_item_item_id_seq
+ order_ticket_order_id_seq
+ staff_staff_id_seq
+(4 rows)
+
+
+--- [postgres@grp_brewposdb] select count(*) as triggers, (select count(*) from pg_views where schemaname='public') as views from pg_trigger where not tgisinternal
+ triggers | views 
+----------+-------
+        0 |     0
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select staff_id, full_name, role from staff order by 1
+ staff_id |  full_name   |  role   
+----------+--------------+---------
+        1 | Demo Cashier | CASHIER
+        2 | Demo Manager | MANAGER
+(2 rows)
+
+
+--- [postgres@grp_brewposdb] select usename, application_name, state, count(*) from pg_stat_activity where datname='grp_brewposdb' group by 1,2,3
+ usename  |    application_name    | state  | count 
+----------+------------------------+--------+-------
+ postgres | PostgreSQL JDBC Driver | idle   |    10
+ postgres | psql                   | active |     1
+(2 rows)
+
+
+--- [postgres@grp_brewposdb] select rolname, rolsuper from pg_roles where rolname = 'postgres' or rolname ~ '^(brewpos|app_)' order by 1
+     rolname      | rolsuper 
+------------------+----------
+ app_readonly_grp | f
+ app_runtime_grp  | f
+ postgres         | t
+(3 rows)
+
+
+--- [postgres@grp_brewposdb] select datname, datacl from pg_database where datname='grp_brewposdb'
+    datname    | datacl 
+---------------+--------
+ grp_brewposdb | 
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+    tablename    | tableowner 
+-----------------+------------
+ menu_category   | postgres
+ menu_item       | postgres
+ order_line_item | postgres
+ order_ticket    | postgres
+ staff           | postgres
+(5 rows)
+
+

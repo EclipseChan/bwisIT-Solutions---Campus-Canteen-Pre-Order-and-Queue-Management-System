@@ -1,0 +1,168 @@
+################ grp_brewposdb
+--- [postgres@grp_brewposdb] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | sequences 
+--------+-----------
+      5 |         4
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ menu_category   |         5
+ menu_item       |        15
+ order_line_item |        16
+ order_ticket    |        11
+ staff           |         2
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     5
+ f       |     4
+ n       |    18
+ p       |     5
+ u       |     2
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select count(*) as indexes from pg_indexes where schemaname='public'
+ indexes 
+---------
+       9
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select grantee, count(*) as table_grants from information_schema.role_table_grants where table_schema='public' group by 1 order by 1
+     grantee      | table_grants 
+------------------+--------------
+ app_admin_grp    |           17
+ app_readonly_grp |            5
+ app_runtime_grp  |           13
+ brewpos_app      |           13
+ postgres         |           35
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select md5(string_agg(t::text, '' order by t::text)) as order_line_checksum from order_line_item t
+       order_line_checksum        
+----------------------------------
+ d222bce18cce2aed0782380808618c02
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select sequencename, last_value from pg_sequences where schemaname='public' order by 1
+         sequencename          | last_value 
+-------------------------------+------------
+ menu_category_category_id_seq |         19
+ menu_item_item_id_seq         |         38
+ order_ticket_order_id_seq     |         18
+ staff_staff_id_seq            |          3
+(4 rows)
+
+
+--- constraint still enforced
+--- [postgres@grp_brewposdb] insert into order_line_item(order_id,item_id,quantity,sold_price) select order_id,item_id,0,1 from order_line_item limit 1
+ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+DETAIL:  Failing row contains (1, 5, 0, 1.00).
+
+--- [postgres@grp_brewposdb] insert into menu_item(category_id,item_name,price) values (1,'Neg',-1)
+ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+DETAIL:  Failing row contains (39, 1, Neg, -1.00, t).
+
+################ grp_brewposdb_restore
+--- [postgres@grp_brewposdb_restore] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_sequences where schemaname='public') sequences
+ tables | sequences 
+--------+-----------
+      5 |         4
+(1 row)
+
+
+--- [postgres@grp_brewposdb_restore] select table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text::int as row_count from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1
+   table_name    | row_count 
+-----------------+-----------
+ menu_category   |         5
+ menu_item       |        15
+ order_line_item |        16
+ order_ticket    |        11
+ staff           |         2
+(5 rows)
+
+
+--- [postgres@grp_brewposdb_restore] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     5
+ f       |     4
+ n       |    18
+ p       |     5
+ u       |     2
+(5 rows)
+
+
+--- [postgres@grp_brewposdb_restore] select count(*) as indexes from pg_indexes where schemaname='public'
+ indexes 
+---------
+       9
+(1 row)
+
+
+--- [postgres@grp_brewposdb_restore] select grantee, count(*) as table_grants from information_schema.role_table_grants where table_schema='public' group by 1 order by 1
+     grantee      | table_grants 
+------------------+--------------
+ app_admin_grp    |           17
+ app_readonly_grp |            5
+ app_runtime_grp  |           13
+ brewpos_app      |           13
+ postgres         |           35
+(5 rows)
+
+
+--- [postgres@grp_brewposdb_restore] select md5(string_agg(t::text, '' order by t::text)) as order_line_checksum from order_line_item t
+       order_line_checksum        
+----------------------------------
+ d222bce18cce2aed0782380808618c02
+(1 row)
+
+
+--- [postgres@grp_brewposdb_restore] select sequencename, last_value from pg_sequences where schemaname='public' order by 1
+         sequencename          | last_value 
+-------------------------------+------------
+ menu_category_category_id_seq |         19
+ menu_item_item_id_seq         |         38
+ order_ticket_order_id_seq     |         18
+ staff_staff_id_seq            |          3
+(4 rows)
+
+
+--- constraint still enforced
+--- [postgres@grp_brewposdb_restore] insert into order_line_item(order_id,item_id,quantity,sold_price) select order_id,item_id,0,1 from order_line_item limit 1
+ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+DETAIL:  Failing row contains (1, 5, 0, 1.00).
+
+--- [postgres@grp_brewposdb_restore] insert into menu_item(category_id,item_name,price) values (1,'Neg',-1)
+ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+DETAIL:  Failing row contains (39, 1, Neg, -1.00, t).
+
+=== the application against the restored database
+stopped app (pid 30688)
+app start: listening on port 8081
+--- [postgres@postgres] select datname, usename, count(*) from pg_stat_activity where datname like 'grp_brewposdb%' and usename is not null group by 1,2 order by 1
+        datname        | usename  | count 
+-----------------------+----------+-------
+ grp_brewposdb_restore | postgres |    10
+(1 row)
+
+
+orders returned by the app: 11
+GET /api/menu/active  ->  HTTP 200  [{"categoryId":19,"categoryName":"A4 Category","items":[{"itemId":37,"categoryId":19,"categoryName":"A4 Category","itemName":"A4 Item","price":60.00,"... (1866 chars)
+--- [postgres@grp_brewposdb_restore] select count(*) as orders_in_restored_copy from order_ticket
+ orders_in_restored_copy 
+-------------------------
+                      11
+(1 row)
+
+
+stopped app (pid 29244)

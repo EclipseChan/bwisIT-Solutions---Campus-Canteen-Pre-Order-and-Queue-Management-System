@@ -1,0 +1,6 @@
+﻿NOTICE:  database "boardtrack_db_restore" does not exist, skipping
+DROP DATABASE
+NOTICE:  database "boardtrack_db_recovery" does not exist, skipping
+DROP DATABASE
+pg_restore exit code: 0 ; elapsed seconds: 0.39
+no messages (no warnings or errors)

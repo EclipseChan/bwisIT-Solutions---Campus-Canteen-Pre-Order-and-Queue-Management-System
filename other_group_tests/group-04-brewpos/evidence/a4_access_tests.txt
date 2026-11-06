@@ -1,0 +1,354 @@
+run at 11/06/2026 23:59:52
+=== PART A: documented role script database\05_create_app_role.sql, run as postgres (README optional step)
+stopped app (pid 26532)
+psql:C:/Users/Marcos/dba/bp/brewpos-main/database/05_create_app_role.sql:39: NOTICE:  Created role brewpos_app. Next, set its password in psql using: \password brewpos_app
+DO
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+GRANT
+GRANT
+REVOKE
+REVOKE
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ALTER ROLE
+--- second run must be harmless (idempotent)
+GRANT
+GRANT
+GRANT
+ALTER ROLE
+--- [postgres@grp_brewposdb] select rolname, rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolcanlogin, rolreplication, rolbypassrls, left(rolpassword,14) as pw_scheme from pg_authid where rolname='brewpos_app'
+   rolname   | rolsuper | rolcreatedb | rolcreaterole | rolinherit | rolcanlogin | rolreplication | rolbypassrls |   pw_scheme    
+-------------+----------+-------------+---------------+------------+-------------+----------------+--------------+----------------
+ brewpos_app | f        | f           | f             | f          | t           | f              | f            | SCRAM-SHA-256$
+(1 row)
+
+
+--- [postgres@grp_brewposdb] select r.rolname, d.setconfig from pg_db_role_setting d join pg_roles r on r.oid=d.setrole where r.rolname='brewpos_app'
+   rolname   |                          setconfig                          
+-------------+-------------------------------------------------------------
+ brewpos_app | {search_path=public,statement_timeout=30s,lock_timeout=10s}
+(1 row)
+
+
+--- privilege matrix for brewpos_app
+--- [postgres@grp_brewposdb] select tablename, case when has_table_privilege('brewpos_app',format('public.%I',tablename),'SELECT') then 'S' else '-' end as select, case when has_table_privilege('brewpos_app',format('public.%I',tablename),'INSERT') then 'I' else '-' end as insert, case when has_table_privilege('brewpos_app',format('public.%I',tablename),'UPDATE') then 'U' else '-' end as update, case when has_table_privilege('brewpos_app',format('public.%I',tablename),'DELETE') then 'D' else '-' end as delete, case when has_table_privilege('brewpos_app',format('public.%I',tablename),'TRUNCATE') then 'T' else '-' end as truncate from pg_tables where schemaname='public' order by 1
+    tablename    | select | insert | update | delete | truncate 
+-----------------+--------+--------+--------+--------+----------
+ menu_category   | S      | I      | U      | D      | -
+ menu_item       | S      | I      | U      | D      | -
+ order_line_item | S      | I      | -      | -      | -
+ order_ticket    | S      | I      | -      | -      | -
+ staff           | S      | -      | -      | -      | -
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] select has_database_privilege('brewpos_app','grp_brewposdb','CONNECT') connect, has_schema_privilege('brewpos_app','public','USAGE') usage, has_schema_privilege('brewpos_app','public','CREATE') create_in_schema, (select bool_and(has_sequence_privilege('brewpos_app', format('public.%I',sequencename), 'USAGE')) from pg_sequences where schemaname='public') seq_usage
+ connect | usage | create_in_schema | seq_usage 
+---------+-------+------------------+-----------
+ t       | t     | f                | t
+(1 row)
+
+
+--- behaviour tests, real login as brewpos_app
+### read staff
+--- [login brewpos_app@grp_brewposdb] select staff_id, full_name, role from staff order by 1
+ staff_id |  full_name   |  role   
+----------+--------------+---------
+        1 | Demo Cashier | CASHIER
+        2 | Demo Manager | MANAGER
+(2 rows)
+
+
+### INSERT staff
+--- [login brewpos_app@grp_brewposdb] insert into staff(full_name,role) values ('Intruder','MANAGER')
+ERROR:  permission denied for table staff
+
+### UPDATE staff
+--- [login brewpos_app@grp_brewposdb] update staff set role='MANAGER' where false
+ERROR:  permission denied for table staff
+
+### INSERT order (rolled back)
+--- [login brewpos_app@grp_brewposdb] BEGIN; insert into order_ticket(staff_id,payment_method) values (1,'CASH') returning order_id; ROLLBACK
+BEGIN
+ order_id 
+----------
+       15
+(1 row)
+
+INSERT 0 1
+ROLLBACK
+
+### UPDATE order_ticket
+--- [login brewpos_app@grp_brewposdb] update order_ticket set payment_method='ONLINE' where false
+ERROR:  permission denied for table order_ticket
+
+### DELETE order_ticket
+--- [login brewpos_app@grp_brewposdb] delete from order_ticket where false
+ERROR:  permission denied for table order_ticket
+
+### UPDATE order_line_item sold_price
+--- [login brewpos_app@grp_brewposdb] update order_line_item set sold_price=0 where false
+ERROR:  permission denied for table order_line_item
+
+### DELETE order_line_item
+--- [login brewpos_app@grp_brewposdb] delete from order_line_item where false
+ERROR:  permission denied for table order_line_item
+
+### UPDATE menu_item price (rolled back)
+--- [login brewpos_app@grp_brewposdb] BEGIN; update menu_item set price=price+1 where item_id=1 returning item_id, price; ROLLBACK
+BEGIN
+ item_id | price  
+---------+--------
+       1 | 141.00
+(1 row)
+
+UPDATE 1
+ROLLBACK
+
+### DELETE menu_item that has sales
+--- [login brewpos_app@grp_brewposdb] BEGIN; delete from menu_item where item_id=1; ROLLBACK
+BEGIN
+DELETE 1
+ROLLBACK
+
+### DELETE menu_category that has items
+--- [login brewpos_app@grp_brewposdb] BEGIN; delete from menu_category where category_name='Coffee'; ROLLBACK
+BEGIN
+ERROR:  update or delete on table "menu_category" violates foreign key constraint "fk_menu_item_category" on table "menu_item"
+DETAIL:  Key (category_id)=(1) is still referenced from table "menu_item".
+
+### TRUNCATE order_line_item
+--- [login brewpos_app@grp_brewposdb] truncate order_line_item
+ERROR:  permission denied for table order_line_item
+
+### CREATE TABLE
+--- [login brewpos_app@grp_brewposdb] create table public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: create table public.zz(x int)
+                     ^
+
+### DROP TABLE
+--- [login brewpos_app@grp_brewposdb] drop table menu_item
+ERROR:  must be owner of table menu_item
+
+### ALTER TABLE
+--- [login brewpos_app@grp_brewposdb] alter table menu_item add column zz int
+ERROR:  must be owner of table menu_item
+
+### CREATE ROLE
+--- [login brewpos_app@grp_brewposdb] create role zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### VACUUM (not owner)
+--- [login brewpos_app@grp_brewposdb] vacuum public.menu_item
+WARNING:  permission denied to vacuum "menu_item", skipping it
+VACUUM
+
+### pg_read_all_data style: read pg_authid
+--- [login brewpos_app@grp_brewposdb] select rolname from pg_authid limit 1
+ERROR:  permission denied for table pg_authid
+
+### SHOW statement_timeout, lock_timeout, search_path
+--- [login brewpos_app@grp_brewposdb] select current_setting('statement_timeout') st, current_setting('lock_timeout') lt, current_setting('search_path') sp
+ st  | lt  |   sp   
+-----+-----+--------
+ 30s | 10s | public
+(1 row)
+
+
+### statement_timeout works (pg_sleep 31 s)
+--- [login brewpos_app@grp_brewposdb] select pg_sleep(31)
+ERROR:  canceling statement due to statement timeout
+
+### can brewpos_app connect to other databases? (PUBLIC keeps CONNECT by default)
+--- [login brewpos_app@postgres] select current_database()
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  permission denied for database "postgres"
+DETAIL:  User does not have CONNECT privilege.
+
+=== PART B: group roles from docs/user-roles.md section 4 applied to the database
+--- [postgres@grp_brewposdb] DO $$ BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_runtime_grp')  THEN CREATE ROLE app_runtime_grp  NOLOGIN; END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_readonly_grp') THEN CREATE ROLE app_readonly_grp NOLOGIN; END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_admin_grp')    THEN CREATE ROLE app_admin_grp    NOLOGIN; END IF;
+END $$
+DO
+
+--- [postgres@grp_brewposdb] GRANT CONNECT ON DATABASE grp_brewposdb TO app_runtime_grp, app_readonly_grp, app_admin_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT USAGE ON SCHEMA public TO app_runtime_grp, app_readonly_grp, app_admin_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT SELECT ON public.staff TO app_runtime_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT SELECT, INSERT, UPDATE, DELETE ON public.menu_category, public.menu_item TO app_runtime_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT SELECT, INSERT ON public.order_ticket, public.order_line_item TO app_runtime_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_runtime_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_readonly_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT SELECT ON public.staff TO app_admin_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT ALL PRIVILEGES ON public.menu_category, public.menu_item TO app_admin_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT SELECT ON public.order_ticket, public.order_line_item TO app_admin_grp
+GRANT
+
+--- [postgres@grp_brewposdb] GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_admin_grp
+GRANT
+
+--- is brewpos_app a member of app_runtime_grp, as docs/user-roles.md says?
+--- [postgres@grp_brewposdb] select r.rolname as member, g.rolname as member_of from pg_auth_members m join pg_roles r on r.oid=m.member join pg_roles g on g.oid=m.roleid where r.rolname='brewpos_app'
+ member | member_of 
+--------+-----------
+(0 rows)
+
+
+--- privilege matrix (S I U D T)
+--- [postgres@grp_brewposdb] select tablename, concat(case when has_table_privilege('app_runtime_grp',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('app_runtime_grp',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('app_runtime_grp',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('app_runtime_grp',format('public.%I',tablename),'DELETE') then 'D' else '-' end,case when has_table_privilege('app_runtime_grp',format('public.%I',tablename),'TRUNCATE') then 'T' else '-' end) as runtime, concat(case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'DELETE') then 'D' else '-' end,case when has_table_privilege('app_readonly_grp',format('public.%I',tablename),'TRUNCATE') then 'T' else '-' end) as readonly, concat(case when has_table_privilege('app_admin_grp',format('public.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('app_admin_grp',format('public.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('app_admin_grp',format('public.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('app_admin_grp',format('public.%I',tablename),'DELETE') then 'D' else '-' end,case when has_table_privilege('app_admin_grp',format('public.%I',tablename),'TRUNCATE') then 'T' else '-' end) as admin from pg_tables where schemaname='public' order by 1
+    tablename    | runtime | readonly | admin 
+-----------------+---------+----------+-------
+ menu_category   | SIUD-   | S----    | SIUDT
+ menu_item       | SIUD-   | S----    | SIUDT
+ order_line_item | SI---   | S----    | S----
+ order_ticket    | SI---   | S----    | S----
+ staff           | S----   | S----    | S----
+(5 rows)
+
+
+### [app_readonly_grp] read all five tables
+--- [app_readonly_grp@grp_brewposdb] select (select count(*) from staff) s,(select count(*) from order_ticket) o
+ s | o 
+---+---
+ 2 | 9
+(1 row)
+
+
+### [app_readonly_grp] insert an order
+--- [app_readonly_grp@grp_brewposdb] insert into order_ticket(staff_id,payment_method) values (1,'CASH')
+ERROR:  permission denied for table order_ticket
+
+### [app_readonly_grp] read a sequence value
+--- [app_readonly_grp@grp_brewposdb] select nextval('order_ticket_order_id_seq')
+ERROR:  permission denied for sequence order_ticket_order_id_seq
+
+### [app_runtime_grp] insert an order and a line (rolled back)
+--- [app_runtime_grp@grp_brewposdb] BEGIN; insert into order_ticket(staff_id,payment_method) values (1,'CASH'); ROLLBACK
+BEGIN
+INSERT 0 1
+ROLLBACK
+
+### [app_runtime_grp] update a completed order
+--- [app_runtime_grp@grp_brewposdb] update order_ticket set payment_method='ONLINE' where false
+ERROR:  permission denied for table order_ticket
+
+### [app_runtime_grp] delete a menu category
+--- [app_runtime_grp@grp_brewposdb] BEGIN; insert into menu_category(category_name) values ('zz_tmp'); delete from menu_category where category_name='zz_tmp'; ROLLBACK
+BEGIN
+INSERT 0 1
+DELETE 1
+ROLLBACK
+
+### [app_admin_grp] update a menu price (rolled back)
+--- [app_admin_grp@grp_brewposdb] BEGIN; update menu_item set price=price+1 where item_id=1; ROLLBACK
+BEGIN
+UPDATE 1
+ROLLBACK
+
+### [app_admin_grp] TRUNCATE menu_item (ALL PRIVILEGES includes it)
+--- [app_admin_grp@grp_brewposdb] BEGIN; truncate menu_item cascade; ROLLBACK
+NOTICE:  truncate cascades to table "order_line_item"
+BEGIN
+ERROR:  permission denied for table order_line_item
+
+### [app_admin_grp] delete a completed order
+--- [app_admin_grp@grp_brewposdb] delete from order_ticket where false
+ERROR:  permission denied for table order_ticket
+
+### [app_admin_grp] insert an order
+--- [app_admin_grp@grp_brewposdb] insert into order_ticket(staff_id,payment_method) values (1,'CASH')
+ERROR:  permission denied for table order_ticket
+
+=== PART C: the application running as brewpos_app (what the README recommends)
+app start: listening on port 8081
+2026-11-07T00:00:38.931+08:00  INFO 30688 --- [brewpos] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-07T00:00:39.065+08:00  INFO 30688 --- [brewpos] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5d3b6585
+2026-11-07T00:00:39.067+08:00  INFO 30688 --- [brewpos] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-07T00:00:41.279+08:00  INFO 30688 --- [brewpos] [           main] com.brewpos.BrewPosApplication           : Started BrewPosApplication in 4.201 seconds (process running for 4.499)
+--- [postgres@grp_brewposdb] select usename, application_name, state, count(*) from pg_stat_activity where datname='grp_brewposdb' group by 1,2,3
+   usename   |    application_name    | state  | count 
+-------------+------------------------+--------+-------
+ brewpos_app | PostgreSQL JDBC Driver | idle   |    10
+ postgres    | psql                   | active |     1
+(2 rows)
+
+
+GET /api/menu/active  ->  HTTP 200  [{"categoryId":1,"categoryName":"Coffee","items":[{"itemId":5,"categoryId":1,"categoryName":"Coffee","itemName":"Americano","price":90.00,"isActive":t... (1569 chars)
+POST /api/categories  body={"categoryName":"A4 Category"}  ->  HTTP 201  {"categoryId":19,"categoryName":"A4 Category"}
+POST /api/menu-items  body={"categoryId":19,"itemName":"A4 Item","price":50.00}  ->  HTTP 201  {"itemId":37,"categoryId":19,"categoryName":"A4 Category","itemName":"A4 Item","price":50.00,"isActive":true}
+PUT /api/menu-items/37  body={"categoryId":19,"itemName":"A4 Item","price":60.00,"isActive":true}  ->  HTTP 200  {"itemId":37,"categoryId":19,"categoryName":"A4 Category","itemName":"A4 Item","price":60.00,"isActive":true}
+POST /api/orders  body={"staffId":1,"paymentMethod":"CASH","items":[{"itemId":11,"quantity":1}]}  ->  HTTP 201  {"orderId":17,"orderTimestamp":"2026-11-07T00:00:43.81476","staffId":1,"staffName":"Demo Cashier","paymentMethod":"CASH","lines":[{"itemId":11,"itemNa... (237 chars)
+GET /api/reports/daily-sales?date=2026-11-07  ->  HTTP 200  {"date":"2026-11-07","totalSales":75.50,"orderCount":1}
+DELETE /api/categories/19  ->  HTTP 409  {"timestamp":"2026-11-07T00:00:43.9166589","status":409,"error":"Conflict","message":"Category is still in use by menu items and cannot be deleted","p... (176 chars)   <category with an item>
+DELETE /api/categories/1  ->  HTTP 409  {"timestamp":"2026-11-07T00:00:43.9428718","status":409,"error":"Conflict","message":"Category is still in use by menu items and cannot be deleted","p... (175 chars)   <Coffee has items>
+=== PART D: who is allowed to do what at the API? (no cookie, token or password in any call)
+POST /api/menu-items  body={"categoryId":19,"itemName":"Added by an anonymous caller","price":1.00}  ->  HTTP 201  {"itemId":38,"categoryId":19,"categoryName":"A4 Category","itemName":"Added by an anonymous caller","price":1.00,"isActive":true}   <a cashier-only user cannot do this in the UI>
+POST /api/orders  body={"staffId":2,"paymentMethod":"CASH","items":[{"itemId":11,"quantity":1}]}  ->  HTTP 201  {"orderId":18,"orderTimestamp":"2026-11-07T00:00:44.051098","staffId":2,"staffName":"Demo Manager","paymentMethod":"CASH","lines":[{"itemId":11,"itemN... (238 chars)   <order recorded under the manager id by anyone>
+--- [postgres@grp_brewposdb] select t.order_id, s.full_name, s.role from order_ticket t join staff s using(staff_id) order by t.order_id desc limit 2
+ order_id |  full_name   |  role   
+----------+--------------+---------
+       18 | Demo Manager | MANAGER
+       17 | Demo Cashier | CASHIER
+(2 rows)
+
+
+GET /api/staff  ->  HTTP 200  [{"staffId":1,"fullName":"Demo Cashier","role":"CASHIER"},{"staffId":2,"fullName":"Demo Manager","role":"MANAGER"}]   <staff list is public>
+--- [postgres@grp_brewposdb] select staff_id, full_name, role from staff order by 1
+ staff_id |  full_name   |  role   
+----------+--------------+---------
+        1 | Demo Cashier | CASHIER
+        2 | Demo Manager | MANAGER
+(2 rows)
+
+
+=== UI-only role switch
+grep for authentication in the source (security, login, password, token, @PreAuthorize):
+\src\main\resources\static\js\app.js:48: * switching (not an authorization boundary; authentication is omitted by spec).
+spring-security in pom.xml: 0 lines
+role check in the front end:
+\src\main\resources\static\index.html:156: <span><strong>Cashier View</strong> — Menu is read-only. Select a Manager from the top-right dropdown to add or edit items.</span>
+\src\main\resources\static\index.html:188: <th class="text-end manager-only-col">Actions</th>
+\src\main\resources\static\index.html:256: <th class="text-end manager-only-col">Actions</th>
+\src\main\resources\static\js\app.js:35: const roleLabel = staff.role === 'MANAGER' ? 'Manager' : 'Cashier';
+\src\main\resources\static\js\app.js:47: * Returns 'CASHIER' or 'MANAGER' from the selected staff member for UI view
+\src\main\resources\static\js\app.js:51: const hasAnyManager = staffList.some((s) => s.role === 'MANAGER');
+=== pg_hba.conf rules
+--- [postgres@grp_brewposdb] select line_number, type, database, user_name, address, auth_method from pg_hba_file_rules order by line_number
+ line_number | type  |   database    | user_name |  address  |  auth_method  
+-------------+-------+---------------+-----------+-----------+---------------
+         113 | local | {all}         | {all}     |           | scram-sha-256
+         115 | host  | {all}         | {all}     | 127.0.0.1 | scram-sha-256
+         117 | host  | {all}         | {all}     | ::1       | scram-sha-256
+         120 | local | {replication} | {all}     |           | scram-sha-256
+         121 | host  | {replication} | {all}     | 127.0.0.1 | scram-sha-256
+         122 | host  | {replication} | {all}     | ::1       | scram-sha-256
+(6 rows)
+
+

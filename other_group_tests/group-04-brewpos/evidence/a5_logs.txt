@@ -1,0 +1,76 @@
+data_directory=C:/Program Files/PostgreSQL/18/data
+log_directory=log
+== C:\Program Files\PostgreSQL\18\data\log\postgresql-2026-11-07_000000.log (0 bytes, 11/07/2026 00:00:03)
+2026-11-07 00:00:26 +08 ERROR:  canceling statement due to statement timeout
+2026-11-07 00:00:26 +08 FATAL:  permission denied for database "postgres"
+2026-11-07 00:00:27 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:00:27 +08 ERROR:  permission denied for sequence order_ticket_order_id_seq
+2026-11-07 00:00:27 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:00:27 +08 ERROR:  permission denied for table order_line_item
+2026-11-07 00:00:28 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:00:28 +08 ERROR:  permission denied for table order_ticket
+2026-11-07 00:03:22 +08 WARNING:  permission denied to vacuum "order_ticket", skipping it
+2026-11-07 00:03:22 +08 WARNING:  permission denied to analyze "order_ticket", skipping it
+== C:\Program Files\PostgreSQL\18\data\log\postgresql-2026-11-06_082645.log (43506 bytes, 11/06/2026 23:59:56)
+2026-11-06 23:34:49 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:34:49 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:13 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:36:14 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:37:17 +08 FATAL:  database "boardtrack_db" does not exist
+2026-11-06 23:38:46 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:38:46 +08 ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+2026-11-06 23:38:46 +08 ERROR:  update or delete on table "lease" violates foreign key constraint "payment_lease_id_fkey" on table "payment"
+2026-11-06 23:38:47 +08 ERROR:  new row for relation "lease" violates check constraint "ck_lease_dates"
+2026-11-06 23:38:47 +08 ERROR:  new row for relation "lease" violates check constraint "lease_monthly_rent_check"
+2026-11-06 23:38:47 +08 ERROR:  invalid input syntax for type date: "notadate"
+2026-11-06 23:38:47 +08 ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+2026-11-06 23:38:47 +08 ERROR:  duplicate key value violates unique constraint "tenant_email_key"
+2026-11-06 23:41:43 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:41:56 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:42:14 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:43:34 +08 ERROR:  permission denied for table lease
+2026-11-06 23:43:35 +08 ERROR:  permission denied for table payment
+2026-11-06 23:43:35 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:43:35 +08 ERROR:  must be owner of table lease
+2026-11-06 23:43:35 +08 ERROR:  permission denied to create role
+2026-11-06 23:43:35 +08 ERROR:  permission denied for table property
+2026-11-06 23:43:35 +08 ERROR:  permission denied for table lease
+2026-11-06 23:44:12 +08 WARNING:  permission denied to vacuum "lease", skipping it
+2026-11-06 23:44:15 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:44:15 +08 ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+2026-11-06 23:44:15 +08 ERROR:  conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+2026-11-06 23:44:16 +08 ERROR:  This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+2026-11-06 23:48:24 +08 ERROR:  database "boardtrack_dbup" does not exist
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "menu_item" violates check constraint "chk_menu_item_price"
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "order_line_item" violates check constraint "chk_order_line_quantity"
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "order_ticket" violates check constraint "chk_order_ticket_payment"
+2026-11-06 23:57:02 +08 ERROR:  new row for relation "staff" violates check constraint "chk_staff_role"
+2026-11-06 23:57:02 +08 ERROR:  update or delete on table "menu_category" violates foreign key constraint "fk_menu_item_category" on table "menu_item"
+2026-11-06 23:57:02 +08 ERROR:  update or delete on table "menu_item" violates foreign key constraint "fk_order_line_item" on table "order_line_item"
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table staff
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table staff
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_ticket
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_ticket
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_line_item
+2026-11-06 23:59:55 +08 ERROR:  permission denied for table order_line_item
+2026-11-06 23:59:55 +08 ERROR:  update or delete on table "menu_category" violates foreign key constraint "fk_menu_item_category" on table "menu_item"
+2026-11-06 23:59:56 +08 ERROR:  permission denied for table order_line_item
+2026-11-06 23:59:56 +08 ERROR:  permission denied for schema public at character 14
+2026-11-06 23:59:56 +08 ERROR:  must be owner of table menu_item
+2026-11-06 23:59:56 +08 ERROR:  must be owner of table menu_item
+2026-11-06 23:59:56 +08 ERROR:  permission denied to create role
+2026-11-06 23:59:56 +08 WARNING:  permission denied to vacuum "menu_item", skipping it
+2026-11-06 23:59:56 +08 ERROR:  permission denied for table pg_authid
+== app log (Spring Boot), warnings and errors
+== app log size: 6589 bytes ; does the app write to a log file of its own?

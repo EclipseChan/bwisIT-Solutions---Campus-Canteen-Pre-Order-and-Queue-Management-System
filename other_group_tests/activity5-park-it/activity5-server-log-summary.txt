@@ -1,8 +1,0 @@
-2026-11-05 09:42:39.313 +08 [16704] LOG:  database system is ready to accept connections
-2026-11-05 09:44:44.444 +08 [1352] ERROR:  permission denied for table parking_zone
-2026-11-05 09:44:44.634 +08 [17628] ERROR:  permission denied for table parking_zone
-2026-11-05 09:44:44.710 +08 [16220] ERROR:  permission denied for table parking_zone
-2026-11-05 09:44:44.779 +08 [21444] ERROR:  permission denied for table staff_user
-2026-11-05 09:44:44.880 +08 [23196] ERROR:  permission denied for table payment
-2026-11-05 09:44:44.968 +08 [22084] FATAL:  permission denied for database "postgres"
-2026-11-05 09:44:45.101 +08 [22796] FATAL:  permission denied for database "template1"

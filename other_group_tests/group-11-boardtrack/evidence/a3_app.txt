@@ -1,0 +1,110 @@
+﻿run at 11/06/2026 23:38:45
+app already listening on port 3000
+=== pages as landlord
+GET /   as landlord  ->  HTTP 200
+GET /properties   as landlord  ->  HTTP 200  rows=2
+GET /rooms   as landlord  ->  HTTP 200  rows=6
+GET /tenants   as landlord  ->  HTTP 200  rows=4
+GET /leases   as landlord  ->  HTTP 200  rows=4
+GET /payments   as landlord  ->  HTTP 200  rows=6
+GET /bills   as landlord  ->  HTTP 200  rows=4
+=== README quick test
+ids: Maria tenant_id=2, room 101=1, room 103=3
+1. overlapping ACTIVE lease on room 101 (must be rejected)
+POST /leases   as landlord  ->  HTTP 400  [err] That room already has an ACTIVE lease overlapping these dates.
+2. lease on room 103 (accepted, room becomes OCCUPIED)
+POST /leases   as landlord  ->  HTTP 302  redirect /leases
+--- [postgres@boardtrack_db] select room_number, status from room where room_id=3
+ room_number |  status  
+-------------+----------
+ 103         | OCCUPIED
+(1 row)
+
+
+3. terminate that lease (room returns to AVAILABLE)
+POST /leases/6   as landlord  ->  HTTP 302  redirect /leases
+--- [postgres@boardtrack_db] select room_number, status from room where room_id=3
+ room_number |  status   
+-------------+-----------
+ 103         | AVAILABLE
+(1 row)
+
+
+   manual room status that contradicts the leases (room 101 has an ACTIVE lease, set AVAILABLE)
+POST /rooms/1   as landlord  ->  HTTP 400  [err] This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+4. add a payment, total paid must change
+--- [postgres@boardtrack_db] select lease_id, total_paid from v_lease_summary where lease_id=1
+ lease_id | total_paid 
+----------+------------
+        1 |    7000.00
+(1 row)
+
+
+POST /payments   as landlord  ->  HTTP 302  redirect /payments
+--- [postgres@boardtrack_db] select lease_id, total_paid from v_lease_summary where lease_id=1
+ lease_id | total_paid 
+----------+------------
+        1 |    8000.00
+(1 row)
+
+
+5. delete a lease that has payments (blocked by the foreign key)
+POST /leases/1/delete   as landlord  ->  HTTP 302  redirect /leases
+6. delete the unused test lease (allowed)
+POST /leases/6/delete   as landlord  ->  HTTP 302  redirect /leases
+=== validation
+POST /leases   as landlord  ->  HTTP 400  [err] A value is outside the allowed range (check amounts, dates, status).
+POST /leases   as landlord  ->  HTTP 400  [err] A value is outside the allowed range (check amounts, dates, status).
+POST /leases   as landlord  ->  HTTP 400  [err] Invalid date.
+POST /payments   as landlord  ->  HTTP 400  [err] A value is outside the allowed range (check amounts, dates, status).
+POST /tenants   as landlord  ->  HTTP 400  [err] Duplicate value: that record (or room number / email) already exists.
+GET /rooms/abc/edit   as landlord  ->  HTTP 404  [page] Record not found.
+GET /rooms/999999/edit   as landlord  ->  HTTP 404  [page] Record not found.
+GET /leases   as (not logged in)  ->  HTTP 302  redirect /login
+POST /login   as (wrong password)  ->  HTTP 302  redirect /login
+POST /login   as (injection attempt)  ->  HTTP 302  redirect /login
+=== response headers and cookie (login page)
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 649
+ETag: W/"289-suYyptFWe9ap1pk69YnYiE5QSKM"
+Date: Fri, 06 Nov 2026 15:38:47 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+--- Set-Cookie after login
+
+Set-Cookie: connect.sid=s%3AT9w2Z4nx7E8dCSefO37C6uZYzRarLH5i.ZEFOz7gP8jxFXz79AvomDPwfz%2B30ofAi%2FdsJ%2F8OPIGg; 
+Path=/; HttpOnly
+--- CSRF token in the forms?
+matches for csrf in views and server code: 0
+--- helmet or rate limiting?
+dependencies: ejs, express, express-session, pg
+=== database after the tests
+--- [postgres@boardtrack_db] select (select count(*) from lease) leases, (select count(*) from payment) payments, (select count(*) from room where status='OCCUPIED') occupied_rooms
+ leases | payments | occupied_rooms 
+--------+----------+----------------
+      4 |        7 |              3
+(1 row)
+
+
+=== app log
+
+> boardtrack@1.0.0 start
+> node src/server.js
+
+Created database "boardtrack_db"
+migrated 001_schema.sql
+seeded   001_sample_data.sql
+BoardTrack running at http://localhost:3000
+23P01 conflicting key value violates exclusion constraint "ex_lease_no_overlap"
+P0001 This room has an ACTIVE lease, so it cannot be AVAILABLE. Terminate the lease first.
+23503 update or delete on table "lease" violates foreign key constraint "payment_lease_id_fkey" on table "payment"
+23514 new row for relation "lease" violates check constraint "ck_lease_dates"
+23514 new row for relation "lease" violates check constraint "lease_monthly_rent_check"
+22007 invalid input syntax for type date: "notadate"
+23514 new row for relation "payment" violates check constraint "payment_amount_check"
+23505 duplicate key value violates unique constraint "tenant_email_key"
+
+

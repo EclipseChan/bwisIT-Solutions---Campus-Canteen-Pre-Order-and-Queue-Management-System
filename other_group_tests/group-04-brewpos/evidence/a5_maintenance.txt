@@ -1,0 +1,203 @@
+--- [postgres@grp_brewposdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+     relname     | n_live_tup | n_dead_tup | last_vacuum |         last_analyze          
+-----------------+------------+------------+-------------+-------------------------------
+ menu_category   |          5 |         12 |             | 2026-11-06 23:54:48.100358+08
+ menu_item       |         15 |         21 |             | 2026-11-06 23:54:48.102208+08
+ order_line_item |         16 |          5 |             | 2026-11-06 23:54:48.104365+08
+ order_ticket    |         11 |          6 |             | 2026-11-06 23:54:48.102774+08
+ staff           |          2 |          0 |             | 2026-11-06 23:54:48.099509+08
+(5 rows)
+
+
+--- [postgres@grp_brewposdb] ANALYZE
+ANALYZE
+
+--- [postgres@grp_brewposdb] VACUUM (VERBOSE, ANALYZE) public.menu_item
+INFO:  vacuuming "grp_brewposdb.public.menu_item"
+INFO:  finished vacuuming "grp_brewposdb.public.menu_item": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 21 removed, 15 remain, 0 are dead but not yet removable
+removable cutoff: 2860, which was 0 XIDs old when operation ended
+new relfrozenxid: 2715, which is 1 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 11 dead item identifiers removed
+index "menu_item_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "uq_menu_item_category_name": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 7.667 MB/s
+buffer usage: 78 hits, 0 reads, 4 dirtied
+WAL usage: 9 records, 7 full page images, 35489 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.01 s, elapsed: 0.00 s
+INFO:  analyzing "public.menu_item"
+INFO:  "menu_item": scanned 1 of 1 pages, containing 15 live rows and 0 dead rows; 15 rows in sample, 15 estimated total rows
+INFO:  finished analyzing table "grp_brewposdb.public.menu_item"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 318 hits, 0 reads, 0 dirtied
+WAL usage: 7 records, 0 full page images, 520 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp_brewposdb] VACUUM (VERBOSE, ANALYZE) public.order_ticket
+INFO:  vacuuming "grp_brewposdb.public.order_ticket"
+INFO:  finished vacuuming "grp_brewposdb.public.order_ticket": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 6 removed, 11 remain, 0 are dead but not yet removable
+removable cutoff: 2861, which was 0 XIDs old when operation ended
+new relfrozenxid: 2715, which is 1 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 6 dead item identifiers removed
+index "order_ticket_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "idx_order_ticket_timestamp": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 9.100 MB/s
+buffer usage: 88 hits, 0 reads, 4 dirtied
+WAL usage: 9 records, 7 full page images, 34703 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.order_ticket"
+INFO:  "order_ticket": scanned 1 of 1 pages, containing 11 live rows and 0 dead rows; 11 rows in sample, 11 estimated total rows
+INFO:  finished analyzing table "grp_brewposdb.public.order_ticket"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 276 hits, 0 reads, 0 dirtied
+WAL usage: 6 records, 0 full page images, 446 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@grp_brewposdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+     relname     | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+-----------------+------------+------------+-------------------------------+-------------------------------
+ menu_category   |          5 |         12 |                               | 2026-11-07 00:03:22.559297+08
+ menu_item       |         15 |          0 | 2026-11-07 00:03:22.754232+08 | 2026-11-07 00:03:22.755522+08
+ order_line_item |         16 |          5 |                               | 2026-11-07 00:03:22.564738+08
+ order_ticket    |         11 |          0 | 2026-11-07 00:03:22.810855+08 | 2026-11-07 00:03:22.812271+08
+ staff           |          2 |          0 |                               | 2026-11-07 00:03:22.556247+08
+(5 rows)
+
+
+--- query 1: the Orders list (newest first)
+--- [postgres@grp_brewposdb] EXPLAIN (ANALYZE, BUFFERS) select t.order_id, t.order_timestamp, t.payment_method, s.full_name from order_ticket t join staff s on s.staff_id=t.staff_id order by t.order_timestamp desc, t.order_id desc
+                                                        QUERY PLAN                                                        
+--------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=2.44..2.47 rows=11 width=30) (actual time=0.054..0.055 rows=11.00 loops=1)
+   Sort Key: t.order_timestamp DESC, t.order_id DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=8
+   ->  Hash Join  (cost=1.04..2.25 rows=11 width=30) (actual time=0.032..0.036 rows=11.00 loops=1)
+         Hash Cond: (t.staff_id = s.staff_id)
+         Buffers: shared hit=2
+         ->  Seq Scan on order_ticket t  (cost=0.00..1.11 rows=11 width=21) (actual time=0.012..0.013 rows=11.00 loops=1)
+               Buffers: shared hit=1
+         ->  Hash  (cost=1.02..1.02 rows=2 width=17) (actual time=0.011..0.012 rows=2.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=1
+               ->  Seq Scan on staff s  (cost=0.00..1.02 rows=2 width=17) (actual time=0.006..0.006 rows=2.00 loops=1)
+                     Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=159
+ Planning Time: 2.662 ms
+ Execution Time: 0.082 ms
+(18 rows)
+
+
+--- query 2: Daily Sales totals for today
+--- [postgres@grp_brewposdb] EXPLAIN (ANALYZE, BUFFERS) select sum(l.quantity*l.sold_price), count(distinct t.order_id) from order_ticket t join order_line_item l on l.order_id=t.order_id where t.order_timestamp >= current_date and t.order_timestamp < current_date + 1
+                                                            QUERY PLAN                                                             
+-----------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=2.55..2.56 rows=1 width=40) (actual time=0.055..0.055 rows=1.00 loops=1)
+   Buffers: shared hit=5
+   ->  Sort  (cost=2.51..2.52 rows=3 width=13) (actual time=0.048..0.049 rows=2.00 loops=1)
+         Sort Key: t.order_id
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=5
+         ->  Hash Join  (cost=1.27..2.49 rows=3 width=13) (actual time=0.034..0.035 rows=2.00 loops=1)
+               Hash Cond: (l.order_id = t.order_id)
+               Buffers: shared hit=2
+               ->  Seq Scan on order_line_item l  (cost=0.00..1.16 rows=16 width=13) (actual time=0.010..0.011 rows=16.00 loops=1)
+                     Buffers: shared hit=1
+               ->  Hash  (cost=1.25..1.25 rows=2 width=4) (actual time=0.015..0.015 rows=2.00 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on order_ticket t  (cost=0.00..1.25 rows=2 width=4) (actual time=0.009..0.009 rows=2.00 loops=1)
+                           Filter: ((order_timestamp >= CURRENT_DATE) AND (order_timestamp < (CURRENT_DATE + 1)))
+                           Rows Removed by Filter: 9
+                           Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=194
+ Planning Time: 3.233 ms
+ Execution Time: 0.080 ms
+(22 rows)
+
+
+--- query 3: best sellers
+--- [postgres@grp_brewposdb] EXPLAIN (ANALYZE, BUFFERS) select i.item_id, i.item_name, sum(l.quantity) from order_line_item l join menu_item i on i.item_id=l.item_id group by 1,2 order by 3 desc
+                                                            QUERY PLAN                                                             
+-----------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=3.07..3.11 rows=15 width=27) (actual time=0.064..0.065 rows=10.00 loops=1)
+   Sort Key: (sum(l.quantity)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=5
+   ->  HashAggregate  (cost=2.63..2.78 rows=15 width=27) (actual time=0.044..0.046 rows=10.00 loops=1)
+         Group Key: i.item_id
+         Batches: 1  Memory Usage: 32kB
+         Buffers: shared hit=2
+         ->  Hash Join  (cost=1.34..2.55 rows=16 width=23) (actual time=0.034..0.038 rows=16.00 loops=1)
+               Hash Cond: (l.item_id = i.item_id)
+               Buffers: shared hit=2
+               ->  Seq Scan on order_line_item l  (cost=0.00..1.16 rows=16 width=8) (actual time=0.007..0.008 rows=16.00 loops=1)
+                     Buffers: shared hit=1
+               ->  Hash  (cost=1.15..1.15 rows=15 width=19) (actual time=0.021..0.021 rows=15.00 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on menu_item i  (cost=0.00..1.15 rows=15 width=19) (actual time=0.013..0.015 rows=15.00 loops=1)
+                           Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=172
+ Planning Time: 3.041 ms
+ Execution Time: 0.102 ms
+(22 rows)
+
+
+--- same Daily Sales query with sequential scans disabled, to see whether the index could be used at larger size
+--- [postgres@grp_brewposdb] BEGIN; SET LOCAL enable_seqscan = off; EXPLAIN (ANALYZE) select sum(l.quantity*l.sold_price), count(distinct t.order_id) from order_ticket t join order_line_item l on l.order_id=t.order_id where t.order_timestamp >= current_date and t.order_timestamp < current_date + 1; ROLLBACK
+BEGIN
+SET
+                                                                           QUERY PLAN                                                                           
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=20.57..20.58 rows=1 width=40) (actual time=0.044..0.045 rows=1.00 loops=1)
+   Buffers: shared hit=12
+   ->  Sort  (cost=20.53..20.54 rows=3 width=13) (actual time=0.038..0.038 rows=2.00 loops=1)
+         Sort Key: t.order_id
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=12
+         ->  Nested Loop  (cost=0.28..20.51 rows=3 width=13) (actual time=0.017..0.020 rows=2.00 loops=1)
+               Buffers: shared hit=9
+               ->  Index Scan using idx_order_ticket_timestamp on order_ticket t  (cost=0.14..8.18 rows=2 width=4) (actual time=0.015..0.015 rows=2.00 loops=1)
+                     Index Cond: ((order_timestamp >= CURRENT_DATE) AND (order_timestamp < (CURRENT_DATE + 1)))
+                     Index Searches: 1
+                     Buffers: shared hit=5
+               ->  Index Scan using pk_order_line_item on order_line_item l  (cost=0.14..6.15 rows=1 width=13) (actual time=0.001..0.001 rows=1.00 loops=2)
+                     Index Cond: (order_id = t.order_id)
+                     Index Searches: 2
+                     Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=194
+ Planning Time: 3.001 ms
+ Execution Time: 0.079 ms
+(20 rows)
+
+ROLLBACK
+
+--- [postgres@grp_brewposdb] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+          indexname          |    tablename    
+-----------------------------+-----------------
+ menu_category_pkey          | menu_category
+ uq_menu_category_name       | menu_category
+ menu_item_pkey              | menu_item
+ uq_menu_item_category_name  | menu_item
+ idx_order_line_item_item_id | order_line_item
+ pk_order_line_item          | order_line_item
+ idx_order_ticket_timestamp  | order_ticket
+ order_ticket_pkey           | order_ticket
+ staff_pkey                  | staff
+(9 rows)
+
+

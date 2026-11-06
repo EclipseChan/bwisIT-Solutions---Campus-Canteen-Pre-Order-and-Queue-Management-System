@@ -1,0 +1,90 @@
+run at 11/07/2026 00:41:33
+no dedicated backup role exists in the project, so the dump is taken as postgres
+pg_dump exit code: 0
+
+
+Name          : grp_parkitdb_activity6.dump
+Length        : 18273
+LastWriteTime : 07/11/2026 12:41:34 am
+
+
+
+
+
+Algorithm : SHA256
+Hash      : 1A79AB4D7C0334016FACEF59FAE512652856C121F80EDDBC731ECFBE1F59AF56
+Path      : C:\Users\Marcos\dba\backups\grp_parkitdb_activity6.dump
+
+
+
+--- pg_restore --list (first 70 lines)
+;
+; Archive created at 2026-11-07 00:41:33
+;     dbname: grp_parkitdb
+;     TOC Entries: 58
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+5073; 0 0 ACL - SCHEMA public pg_database_owner
+221; 1259 29872 TABLE public parking_zone postgres
+5074; 0 0 ACL public TABLE parking_zone postgres
+222; 1259 29881 SEQUENCE public parking_zone_zone_id_seq postgres
+5075; 0 0 SEQUENCE OWNED BY public parking_zone_zone_id_seq postgres
+5076; 0 0 ACL public SEQUENCE parking_zone_zone_id_seq postgres
+223; 1259 29882 TABLE public payment postgres
+5077; 0 0 ACL public TABLE payment postgres
+224; 1259 29891 SEQUENCE public payment_payment_id_seq postgres
+5078; 0 0 SEQUENCE OWNED BY public payment_payment_id_seq postgres
+5079; 0 0 ACL public SEQUENCE payment_payment_id_seq postgres
+225; 1259 29892 TABLE public staff_user postgres
+5080; 0 0 ACL public TABLE staff_user postgres
+226; 1259 29899 SEQUENCE public staff_user_user_id_seq postgres
+5081; 0 0 SEQUENCE OWNED BY public staff_user_user_id_seq postgres
+5082; 0 0 ACL public SEQUENCE staff_user_user_id_seq postgres
+227; 1259 29900 TABLE public transaction postgres
+5083; 0 0 ACL public TABLE transaction postgres
+228; 1259 29911 SEQUENCE public transaction_transaction_id_seq postgres
+5084; 0 0 SEQUENCE OWNED BY public transaction_transaction_id_seq postgres
+5085; 0 0 ACL public SEQUENCE transaction_transaction_id_seq postgres
+229; 1259 29912 TABLE public vehicle postgres
+5086; 0 0 ACL public TABLE vehicle postgres
+230; 1259 29918 SEQUENCE public vehicle_vehicle_id_seq postgres
+5087; 0 0 SEQUENCE OWNED BY public vehicle_vehicle_id_seq postgres
+5088; 0 0 ACL public SEQUENCE vehicle_vehicle_id_seq postgres
+4878; 2604 29919 DEFAULT public parking_zone zone_id postgres
+4880; 2604 29920 DEFAULT public payment payment_id postgres
+4881; 2604 29921 DEFAULT public staff_user user_id postgres
+4882; 2604 29922 DEFAULT public transaction transaction_id postgres
+4885; 2604 29923 DEFAULT public vehicle vehicle_id postgres
+5056; 0 29872 TABLE DATA public parking_zone postgres
+5058; 0 29882 TABLE DATA public payment postgres
+5060; 0 29892 TABLE DATA public staff_user postgres
+5062; 0 29900 TABLE DATA public transaction postgres
+5064; 0 29912 TABLE DATA public vehicle postgres
+5089; 0 0 SEQUENCE SET public parking_zone_zone_id_seq postgres
+5090; 0 0 SEQUENCE SET public payment_payment_id_seq postgres
+5091; 0 0 SEQUENCE SET public staff_user_user_id_seq postgres
+5092; 0 0 SEQUENCE SET public transaction_transaction_id_seq postgres
+5093; 0 0 SEQUENCE SET public vehicle_vehicle_id_seq postgres
+4889; 2606 29925 CONSTRAINT public parking_zone parking_zone_pkey postgres
+4891; 2606 29927 CONSTRAINT public parking_zone parking_zone_zone_name_key postgres
+4893; 2606 29929 CONSTRAINT public payment payment_pkey postgres
+4895; 2606 29931 CONSTRAINT public payment payment_transaction_id_key postgres
+4897; 2606 29933 CONSTRAINT public staff_user staff_user_pkey postgres
+4899; 2606 29935 CONSTRAINT public staff_user staff_user_username_key postgres
+4901; 2606 29937 CONSTRAINT public transaction transaction_pkey postgres
+4903; 2606 29939 CONSTRAINT public vehicle vehicle_license_plate_key postgres
+4905; 2606 29941 CONSTRAINT public vehicle vehicle_pkey postgres
+4906; 2606 29942 FK CONSTRAINT public payment payment_transaction_id_fkey postgres
+4907; 2606 29947 FK CONSTRAINT public transaction transaction_vehicle_id_fkey postgres
+4908; 2606 29952 FK CONSTRAINT public transaction transaction_zone_id_fkey postgres
+TABLE DATA entries in archive: 5 ; DEFAULT ACL entries: 0 ; ACL entries: 11
+the README does not describe any backup procedure

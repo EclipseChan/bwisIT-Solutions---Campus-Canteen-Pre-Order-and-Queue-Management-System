@@ -1,0 +1,33 @@
+﻿--- [postgres@postgres] select datname,datacl from pg_database where datname like 'boardtrack_db%' order by 1
+        datname        | datacl 
+-----------------------+--------
+ boardtrack_db         | 
+ boardtrack_db_restore | 
+(2 rows)
+
+
+--- [postgres@boardtrack_db] select rolname from pg_roles where rolname ~ '^(boardtrack|app_)' order by 1
+       rolname        
+----------------------
+ app_readonly_grp
+ app_runtime_grp
+ boardtrack_admin_grp
+ boardtrack_app
+(4 rows)
+
+
+--- roles are cluster-wide, so they are not in the dump; the restored copy has no grants for them unless the roles exist and the dump carried the privileges
+--- [postgres@boardtrack_db] select count(*) as table_grants_for_sketch_roles from information_schema.role_table_grants where grantee ~ '^(boardtrack|app_)' and table_schema='public'
+ table_grants_for_sketch_roles 
+-------------------------------
+                             0
+(1 row)
+
+
+--- [postgres@boardtrack_db_restore] select count(*) as table_grants_for_sketch_roles from information_schema.role_table_grants where grantee ~ '^(boardtrack|app_)' and table_schema='public'
+ table_grants_for_sketch_roles 
+-------------------------------
+                             0
+(1 row)
+
+

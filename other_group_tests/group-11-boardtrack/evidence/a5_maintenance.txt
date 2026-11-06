@@ -1,0 +1,181 @@
+﻿--- [postgres@boardtrack_db] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+      relname      | n_live_tup | n_dead_tup | last_vacuum | last_analyze 
+-------------------+------------+------------+-------------+--------------
+ app_user          |          3 |          0 |             | 
+ lease             |          4 |          6 |             | 
+ payment           |          7 |          0 |             | 
+ property          |          2 |          2 |             | 
+ room              |          6 |          7 |             | 
+ schema_migrations |          1 |          0 |             | 
+ tenant            |          4 |          1 |             | 
+ utility_bill      |          4 |          0 |             | 
+(8 rows)
+
+
+--- [postgres@boardtrack_db] ANALYZE
+ANALYZE
+
+--- [postgres@boardtrack_db] VACUUM (VERBOSE, ANALYZE) public.lease
+INFO:  vacuuming "boardtrack_db.public.lease"
+INFO:  finished vacuuming "boardtrack_db.public.lease": index scans: 1
+pages: 0 removed, 1 remain, 1 scanned (100.00% of total), 0 eagerly scanned
+tuples: 6 removed, 4 remain, 0 are dead but not yet removable
+removable cutoff: 2512, which was 0 XIDs old when operation ended
+new relfrozenxid: 2429, which is 1 XIDs ahead of previous value
+frozen: 0 pages from table (0.00% of total) had 0 tuples frozen
+visibility map: 1 pages set all-visible, 0 pages set all-frozen (0 were all-visible)
+index scan needed: 1 pages from table (100.00% of total) had 6 dead item identifiers removed
+index "lease_pkey": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "ex_lease_no_overlap": pages: 1 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "idx_lease_room": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+index "idx_lease_tenant": pages: 2 in total, 0 newly deleted, 0 currently deleted, 0 reusable
+avg read rate: 0.000 MB/s, avg write rate: 7.021 MB/s
+buffer usage: 122 hits, 0 reads, 4 dirtied
+WAL usage: 11 records, 9 full page images, 34380 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.lease"
+INFO:  "lease": scanned 1 of 1 pages, containing 4 live rows and 0 dead rows; 4 rows in sample, 4 estimated total rows
+INFO:  finished analyzing table "boardtrack_db.public.lease"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 386 hits, 0 reads, 0 dirtied
+WAL usage: 10 records, 0 full page images, 754 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+
+--- [postgres@boardtrack_db] select relname,n_live_tup,n_dead_tup,last_vacuum,last_analyze from pg_stat_user_tables order by relname
+      relname      | n_live_tup | n_dead_tup |          last_vacuum          |         last_analyze          
+-------------------+------------+------------+-------------------------------+-------------------------------
+ app_user          |          3 |          0 |                               | 2026-11-06 23:44:12.993073+08
+ lease             |          4 |          0 | 2026-11-06 23:44:13.177753+08 | 2026-11-06 23:44:13.179076+08
+ payment           |          7 |          0 |                               | 2026-11-06 23:44:12.985026+08
+ property          |          2 |          2 |                               | 2026-11-06 23:44:12.977056+08
+ room              |          6 |          7 |                               | 2026-11-06 23:44:12.978706+08
+ schema_migrations |          1 |          0 |                               | 2026-11-06 23:44:12.974888+08
+ tenant            |          4 |          1 |                               | 2026-11-06 23:44:12.980335+08
+ utility_bill      |          4 |          0 |                               | 2026-11-06 23:44:12.986697+08
+(8 rows)
+
+
+--- [postgres@boardtrack_db] EXPLAIN select lease_id, tenant, property_name, room_number, status, total_paid, utilities_billed from v_lease_summary where tenant_id = 1 order by 1
+                                            QUERY PLAN                                            
+--------------------------------------------------------------------------------------------------
+ Sort  (cost=6.49..6.49 rows=1 width=113)
+   Sort Key: l.lease_id
+   ->  Nested Loop  (cost=0.00..6.48 rows=1 width=113)
+         Join Filter: (r.property_id = p.property_id)
+         ->  Nested Loop  (cost=0.00..3.25 rows=1 width=31)
+               Join Filter: (r.room_id = l.room_id)
+               ->  Nested Loop  (cost=0.00..2.11 rows=1 width=28)
+                     ->  Seq Scan on lease l  (cost=0.00..1.05 rows=1 width=20)
+                           Filter: (tenant_id = 1)
+                     ->  Seq Scan on tenant t  (cost=0.00..1.05 rows=1 width=16)
+                           Filter: (tenant_id = 1)
+               ->  Seq Scan on room r  (cost=0.00..1.06 rows=6 width=11)
+         ->  Seq Scan on property p  (cost=0.00..1.02 rows=2 width=26)
+         SubPlan 1
+           ->  Aggregate  (cost=1.11..1.12 rows=1 width=32)
+                 ->  Seq Scan on payment x  (cost=0.00..1.10 rows=2 width=5)
+                       Filter: ((lease_id = l.lease_id) AND ((status)::text = 'COMPLETED'::text))
+         SubPlan 2
+           ->  Aggregate  (cost=1.05..1.06 rows=1 width=32)
+                 ->  Seq Scan on utility_bill u  (cost=0.00..1.05 rows=1 width=5)
+                       Filter: (lease_id = l.lease_id)
+(21 rows)
+
+
+--- [postgres@boardtrack_db] EXPLAIN (ANALYZE, BUFFERS) select lease_id, tenant, property_name, room_number, status, total_paid, utilities_billed from v_lease_summary where tenant_id = 1 order by 1
+                                                          QUERY PLAN                                                           
+-------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=6.49..6.49 rows=1 width=113) (actual time=0.069..0.070 rows=1.00 loops=1)
+   Sort Key: l.lease_id
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=9
+   ->  Nested Loop  (cost=0.00..6.48 rows=1 width=113) (actual time=0.053..0.055 rows=1.00 loops=1)
+         Join Filter: (r.property_id = p.property_id)
+         Buffers: shared hit=6
+         ->  Nested Loop  (cost=0.00..3.25 rows=1 width=31) (actual time=0.027..0.028 rows=1.00 loops=1)
+               Join Filter: (r.room_id = l.room_id)
+               Rows Removed by Join Filter: 4
+               Buffers: shared hit=3
+               ->  Nested Loop  (cost=0.00..2.11 rows=1 width=28) (actual time=0.019..0.020 rows=1.00 loops=1)
+                     Buffers: shared hit=2
+                     ->  Seq Scan on lease l  (cost=0.00..1.05 rows=1 width=20) (actual time=0.011..0.012 rows=1.00 loops=1)
+                           Filter: (tenant_id = 1)
+                           Rows Removed by Filter: 3
+                           Buffers: shared hit=1
+                     ->  Seq Scan on tenant t  (cost=0.00..1.05 rows=1 width=16) (actual time=0.007..0.007 rows=1.00 loops=1)
+                           Filter: (tenant_id = 1)
+                           Rows Removed by Filter: 3
+                           Buffers: shared hit=1
+               ->  Seq Scan on room r  (cost=0.00..1.06 rows=6 width=11) (actual time=0.007..0.007 rows=5.00 loops=1)
+                     Buffers: shared hit=1
+         ->  Seq Scan on property p  (cost=0.00..1.02 rows=2 width=26) (actual time=0.003..0.003 rows=1.00 loops=1)
+               Buffers: shared hit=1
+         SubPlan 1
+           ->  Aggregate  (cost=1.11..1.12 rows=1 width=32) (actual time=0.012..0.013 rows=1.00 loops=1)
+                 Buffers: shared hit=1
+                 ->  Seq Scan on payment x  (cost=0.00..1.10 rows=2 width=5) (actual time=0.006..0.007 rows=3.00 loops=1)
+                       Filter: ((lease_id = l.lease_id) AND ((status)::text = 'COMPLETED'::text))
+                       Rows Removed by Filter: 4
+                       Buffers: shared hit=1
+         SubPlan 2
+           ->  Aggregate  (cost=1.05..1.06 rows=1 width=32) (actual time=0.008..0.008 rows=1.00 loops=1)
+                 Buffers: shared hit=1
+                 ->  Seq Scan on utility_bill u  (cost=0.00..1.05 rows=1 width=5) (actual time=0.006..0.007 rows=2.00 loops=1)
+                       Filter: (lease_id = l.lease_id)
+                       Rows Removed by Filter: 2
+                       Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=385
+ Planning Time: 8.346 ms
+ Execution Time: 0.142 ms
+(43 rows)
+
+
+--- [postgres@boardtrack_db] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+       indexname        |     tablename     
+------------------------+-------------------
+ app_user_pkey          | app_user
+ app_user_username_key  | app_user
+ ex_lease_no_overlap    | lease
+ idx_lease_room         | lease
+ idx_lease_tenant       | lease
+ lease_pkey             | lease
+ idx_payment_lease      | payment
+ payment_pkey           | payment
+ property_pkey          | property
+ room_pkey              | room
+ uq_room_per_property   | room
+ schema_migrations_pkey | schema_migrations
+ tenant_email_key       | tenant
+ tenant_pkey            | tenant
+ idx_utility_lease      | utility_bill
+ utility_bill_pkey      | utility_bill
+(16 rows)
+
+
+--- [postgres@boardtrack_db] select pg_get_viewdef('v_lease_summary'::regclass) as view_definition
+                                                    view_definition                                                    
+-----------------------------------------------------------------------------------------------------------------------
+  SELECT l.lease_id,                                                                                                  +
+     l.tenant_id,                                                                                                     +
+     t.full_name AS tenant,                                                                                           +
+     p.property_name,                                                                                                 +
+     r.room_number,                                                                                                   +
+     l.start_date,                                                                                                    +
+     l.end_date,                                                                                                      +
+     l.monthly_rent,                                                                                                  +
+     l.status,                                                                                                        +
+     COALESCE(( SELECT sum(x.amount) AS sum                                                                           +
+            FROM payment x                                                                                            +
+           WHERE ((x.lease_id = l.lease_id) AND ((x.status)::text = 'COMPLETED'::text))), (0)::numeric) AS total_paid,+
+     COALESCE(( SELECT sum(u.amount) AS sum                                                                           +
+            FROM utility_bill u                                                                                       +
+           WHERE (u.lease_id = l.lease_id)), (0)::numeric) AS utilities_billed                                        +
+    FROM (((lease l                                                                                                   +
+      JOIN tenant t ON ((t.tenant_id = l.tenant_id)))                                                                 +
+      JOIN room r ON ((r.room_id = l.room_id)))                                                                       +
+      JOIN property p ON ((p.property_id = r.property_id)));
+(1 row)
+
+

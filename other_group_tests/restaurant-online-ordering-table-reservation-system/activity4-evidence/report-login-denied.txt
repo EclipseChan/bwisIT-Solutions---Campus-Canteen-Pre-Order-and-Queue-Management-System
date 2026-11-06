@@ -1,2 +1,0 @@
-ERROR:  permission denied for table customer
-Exit code: 1

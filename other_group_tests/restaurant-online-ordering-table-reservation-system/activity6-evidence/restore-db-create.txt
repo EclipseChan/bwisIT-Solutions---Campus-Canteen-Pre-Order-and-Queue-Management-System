@@ -1,2 +1,0 @@
-CREATE DATABASE
-Exit code: 0

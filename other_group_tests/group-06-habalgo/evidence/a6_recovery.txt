@@ -1,0 +1,56 @@
+target table: payment (money records)
+== BEFORE (restored copy)
+--- [postgres@grp00_habalgodb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from habalgo.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    2 | a2788a2952cab450fb389debae9413a2
+(1 row)
+
+
+== INCIDENT: a bad update changes every payment to 0.01 and a delete removes the Paid ones from the restored copy
+--- [postgres@grp00_habalgodb_restore] update habalgo.payment set amount = 0.01
+UPDATE 2
+
+--- [postgres@grp00_habalgodb_restore] delete from habalgo.payment where status = 'Paid'
+DELETE 1
+
+== AFTER LOSS
+--- [postgres@grp00_habalgodb_restore] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from habalgo.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    1 | 96b6332a8c0d58682b866447c352dbcc
+(1 row)
+
+
+--- [postgres@grp00_habalgodb_restore] select coalesce(sum(amount),0) as revenue_as_dashboard_reports_it from habalgo.payment where status='Paid'
+ revenue_as_dashboard_reports_it 
+---------------------------------
+                               0
+(1 row)
+
+
+== RECOVERY: restore the same dump into grp00_habalgodb_recovery
+pg_restore exit code: 0
+== RECOVERED
+--- [postgres@grp00_habalgodb_recovery] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from habalgo.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    2 | a2788a2952cab450fb389debae9413a2
+(1 row)
+
+
+--- [postgres@grp00_habalgodb_recovery] select coalesce(sum(amount),0) as revenue_as_dashboard_reports_it from habalgo.payment where status='Paid'
+ revenue_as_dashboard_reports_it 
+---------------------------------
+                          250.50
+(1 row)
+
+
+== ORIGINAL DATABASE UNTOUCHED
+--- [postgres@grp00_habalgodb] select count(*) as rows, md5(string_agg(t::text, '' order by t::text)) as table_checksum from habalgo.payment t
+ rows |          table_checksum          
+------+----------------------------------
+    2 | a2788a2952cab450fb389debae9413a2
+(1 row)
+
+

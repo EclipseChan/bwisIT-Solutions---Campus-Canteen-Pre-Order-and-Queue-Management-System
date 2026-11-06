@@ -1,0 +1,279 @@
+run at 11/07/2026 00:23:32
+stopped PHP server (pid 4236)
+=== PART A: database\03_roles_and_privileges.sql, run as written (no edits, errors do not stop it)
+roles named in the script that already exist on this server before the run (left over from other projects tested on the same server):
+--- [postgres@postgres] select rolname from pg_roles where rolname in ('app_runtime_grp','app_readonly_grp','habalgo_app_user','habalgo_readonly_user') order by 1
+     rolname      
+------------------
+ app_readonly_grp
+ app_runtime_grp
+(2 rows)
+
+
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/database/03_roles_and_privileges.sql:5: ERROR:  role "app_runtime_grp" already exists
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/database/03_roles_and_privileges.sql:6: ERROR:  role "app_readonly_grp" already exists
+CREATE ROLE
+CREATE ROLE
+GRANT ROLE
+GRANT ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+--- second run of the script (is it repeatable?)
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/database/03_roles_and_privileges.sql:5: ERROR:  role "app_runtime_grp" already exists
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/database/03_roles_and_privileges.sql:6: ERROR:  role "app_readonly_grp" already exists
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/database/03_roles_and_privileges.sql:10: ERROR:  role "habalgo_app_user" already exists
+psql:C:/Users/Marcos/dba/hg/HabalGo-main/database/03_roles_and_privileges.sql:11: ERROR:  role "habalgo_readonly_user" already exists
+--- [postgres@postgres] select rolname, rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolcanlogin, left(rolpassword,14) as pw_scheme from pg_authid where rolname ~ '^(habalgo|app_)' order by 1
+        rolname        | rolsuper | rolcreatedb | rolcreaterole | rolinherit | rolcanlogin |   pw_scheme    
+-----------------------+----------+-------------+---------------+------------+-------------+----------------
+ app_admin_grp         | f        | f           | f             | t          | f           | 
+ app_readonly_grp      | f        | f           | f             | t          | f           | 
+ app_runtime_grp       | f        | f           | f             | t          | f           | 
+ habalgo_app_user      | f        | f           | f             | t          | t           | SCRAM-SHA-256$
+ habalgo_readonly_user | f        | f           | f             | t          | t           | SCRAM-SHA-256$
+(5 rows)
+
+
+--- [postgres@grp00_habalgodb] select r.rolname as member, g.rolname as member_of from pg_auth_members m join pg_roles r on r.oid=m.member join pg_roles g on g.oid=m.roleid where r.rolname ~ '^habalgo' order by 1
+        member         |    member_of     
+-----------------------+------------------
+ habalgo_app_user      | app_runtime_grp
+ habalgo_readonly_user | app_readonly_grp
+(2 rows)
+
+
+--- privilege matrix (S I U D T) for the two login accounts
+--- [postgres@grp00_habalgodb] select tablename, concat(case when has_table_privilege('habalgo_app_user',format('habalgo.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('habalgo_app_user',format('habalgo.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('habalgo_app_user',format('habalgo.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('habalgo_app_user',format('habalgo.%I',tablename),'DELETE') then 'D' else '-' end,case when has_table_privilege('habalgo_app_user',format('habalgo.%I',tablename),'TRUNCATE') then 'T' else '-' end) as app_user, concat(case when has_table_privilege('habalgo_readonly_user',format('habalgo.%I',tablename),'SELECT') then 'S' else '-' end,case when has_table_privilege('habalgo_readonly_user',format('habalgo.%I',tablename),'INSERT') then 'I' else '-' end,case when has_table_privilege('habalgo_readonly_user',format('habalgo.%I',tablename),'UPDATE') then 'U' else '-' end,case when has_table_privilege('habalgo_readonly_user',format('habalgo.%I',tablename),'DELETE') then 'D' else '-' end,case when has_table_privilege('habalgo_readonly_user',format('habalgo.%I',tablename),'TRUNCATE') then 'T' else '-' end) as readonly_user from pg_tables where schemaname='habalgo' order by 1
+    tablename    | app_user | readonly_user 
+-----------------+----------+---------------
+ booking         | SIUD-    | S----
+ customer        | SIUD-    | S----
+ driver          | SIUD-    | S----
+ driver_vehicle  | SIUD-    | S----
+ location        | SIUD-    | S----
+ payment         | SIUD-    | S----
+ rating_feedback | SIUD-    | S----
+ vehicle         | SIUD-    | S----
+(8 rows)
+
+
+--- [postgres@grp00_habalgodb] select has_schema_privilege('habalgo_app_user','habalgo','USAGE') schema_usage, has_schema_privilege('habalgo_app_user','habalgo','CREATE') schema_create, has_schema_privilege('habalgo_app_user','public','CREATE') public_create, has_database_privilege('habalgo_app_user','grp00_habalgodb','CONNECT') db_connect, (select bool_and(has_sequence_privilege('habalgo_app_user', format('habalgo.%I',sequencename), 'USAGE')) from pg_sequences where schemaname='habalgo') seq_usage
+ schema_usage | schema_create | public_create | db_connect | seq_usage 
+--------------+---------------+---------------+------------+-----------
+ t            | f             | f             | t          | t
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] select datname, datacl from pg_database where datname='grp00_habalgodb'
+     datname     |                                           datacl                                            
+-----------------+---------------------------------------------------------------------------------------------
+ grp00_habalgodb | {=Tc/postgres,postgres=CTc/postgres,app_runtime_grp=c/postgres,app_readonly_grp=c/postgres}
+(1 row)
+
+
+--- do the default privileges reach a table created afterwards? (created and dropped by postgres)
+--- [postgres@grp00_habalgodb] create table habalgo.zz_new(x int)
+CREATE TABLE
+
+--- [postgres@grp00_habalgodb] select has_table_privilege('app_runtime_grp','habalgo.zz_new','INSERT') runtime_insert, has_table_privilege('app_readonly_grp','habalgo.zz_new','SELECT') readonly_select, has_table_privilege('app_readonly_grp','habalgo.zz_new','INSERT') readonly_insert
+ runtime_insert | readonly_select | readonly_insert 
+----------------+-----------------+-----------------
+ t              | t               | f
+(1 row)
+
+
+--- [postgres@grp00_habalgodb] drop table habalgo.zz_new
+DROP TABLE
+
+=== PART B: real logins
+### [habalgo_app_user] read customers
+--- [login habalgo_app_user@grp00_habalgodb] select count(*) from habalgo.customer
+ count 
+-------
+     9
+(1 row)
+
+
+### [habalgo_app_user] insert a customer (rolled back)
+--- [login habalgo_app_user@grp00_habalgodb] BEGIN; insert into habalgo.customer(name,phone,email) values ('T','1','t@example.com') returning customer_id; ROLLBACK
+BEGIN
+ customer_id 
+-------------
+          15
+(1 row)
+
+INSERT 0 1
+ROLLBACK
+
+### [habalgo_app_user] update a payment amount (rolled back)
+--- [login habalgo_app_user@grp00_habalgodb] BEGIN; update habalgo.payment set amount = amount + 1 where payment_id = (select min(payment_id) from habalgo.payment) returning payment_id; ROLLBACK
+BEGIN
+ payment_id 
+------------
+          4
+(1 row)
+
+UPDATE 1
+ROLLBACK
+
+### [habalgo_app_user] delete a payment (rolled back)
+--- [login habalgo_app_user@grp00_habalgodb] BEGIN; delete from habalgo.payment where payment_id = (select min(payment_id) from habalgo.payment) returning payment_id; ROLLBACK
+BEGIN
+ payment_id 
+------------
+          4
+(1 row)
+
+DELETE 1
+ROLLBACK
+
+### [habalgo_app_user] delete a rating (rolled back)
+--- [login habalgo_app_user@grp00_habalgodb] BEGIN; delete from habalgo.rating_feedback returning rating_id; ROLLBACK
+BEGIN
+ rating_id 
+-----------
+(0 rows)
+
+DELETE 0
+ROLLBACK
+
+### [habalgo_app_user] TRUNCATE booking
+--- [login habalgo_app_user@grp00_habalgodb] truncate habalgo.booking
+ERROR:  permission denied for table booking
+
+### [habalgo_app_user] CREATE TABLE in schema habalgo
+--- [login habalgo_app_user@grp00_habalgodb] create table habalgo.zz(x int)
+ERROR:  permission denied for schema habalgo
+LINE 1: create table habalgo.zz(x int)
+                     ^
+
+### [habalgo_app_user] CREATE TABLE in public
+--- [login habalgo_app_user@grp00_habalgodb] create table public.zz(x int)
+ERROR:  permission denied for schema public
+LINE 1: create table public.zz(x int)
+                     ^
+
+### [habalgo_app_user] DROP TABLE payment
+--- [login habalgo_app_user@grp00_habalgodb] drop table habalgo.payment
+ERROR:  must be owner of table payment
+
+### [habalgo_app_user] ALTER TABLE payment
+--- [login habalgo_app_user@grp00_habalgodb] alter table habalgo.payment add column zz int
+ERROR:  must be owner of table payment
+
+### [habalgo_app_user] CREATE INDEX
+--- [login habalgo_app_user@grp00_habalgodb] create index zz_i on habalgo.payment(amount)
+ERROR:  must be owner of table payment
+
+### [habalgo_app_user] CREATE ROLE
+--- [login habalgo_app_user@grp00_habalgodb] create role zz_test
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+### [habalgo_app_user] read password hashes
+--- [login habalgo_app_user@grp00_habalgodb] select rolname from pg_authid limit 1
+ERROR:  permission denied for table pg_authid
+
+### [habalgo_app_user] VACUUM (not owner)
+--- [login habalgo_app_user@grp00_habalgodb] vacuum habalgo.payment
+WARNING:  permission denied to vacuum "payment", skipping it
+VACUUM
+
+### [habalgo_app_user] CREATE TEMP TABLE (PUBLIC keeps TEMP on the database)
+--- [login habalgo_app_user@grp00_habalgodb] create temp table zz_t(x int)
+CREATE TABLE
+
+### [habalgo_readonly_user] read bookings
+--- [login habalgo_readonly_user@grp00_habalgodb] select count(*) from habalgo.booking
+ count 
+-------
+     5
+(1 row)
+
+
+### [habalgo_readonly_user] insert a customer
+--- [login habalgo_readonly_user@grp00_habalgodb] insert into habalgo.customer(name,phone,email) values ('T','1','t2@example.com')
+ERROR:  permission denied for table customer
+
+### [habalgo_readonly_user] update a payment
+--- [login habalgo_readonly_user@grp00_habalgodb] update habalgo.payment set amount=1 where false
+ERROR:  permission denied for table payment
+
+### [habalgo_readonly_user] delete a booking
+--- [login habalgo_readonly_user@grp00_habalgodb] delete from habalgo.booking where false
+ERROR:  permission denied for table booking
+
+### [habalgo_readonly_user] use a sequence
+--- [login habalgo_readonly_user@grp00_habalgodb] select nextval('habalgo.customer_customer_id_seq')
+ERROR:  permission denied for sequence customer_customer_id_seq
+
+### [habalgo_readonly_user] CREATE TABLE
+--- [login habalgo_readonly_user@grp00_habalgodb] create table habalgo.zz(x int)
+ERROR:  permission denied for schema habalgo
+LINE 1: create table habalgo.zz(x int)
+                     ^
+
+### can the application account connect to another database?
+--- [login habalgo_app_user@postgres] select current_database()
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  permission denied for database "postgres"
+DETAIL:  User does not have CONNECT privilege.
+
+=== PART C: the application running as habalgo_app_user (the account the script is for)
+php server: listening on http://localhost:8000  (DB_NAME=grp00_habalgodb DB_USER=habalgo_app_user)
+--- [postgres@grp00_habalgodb] select usename, application_name, state, count(*) from pg_stat_activity where datname='grp00_habalgodb' group by 1,2,3
+ usename  | application_name | state  | count 
+----------+------------------+--------+-------
+ postgres | psql             | active |     1
+(1 row)
+
+
+GET api.php?t=dashboard  ->  HTTP 200  {"stats":{"customers":9,"active":4,"revenue":"250.5","avg_rating":null},"byStatus":[{"s":"Pending","n":3},{"s":"Completed","n":1},... (1241 chars)
+POST api.php?t=customers  body={"name":"A4 Customer","phone":"09170000002","email":"a4@example.com"}  ->  HTTP 200  {"ok":true,"id":16}
+   (c4 = 16)
+POST api.php?t=vehicles  body={"plate_no":"A4 0001","vehicle_type":"Sedan","model":"Vios"}  ->  HTTP 200  {"ok":true,"id":4}
+   (v4 = 4)
+PUT api.php?t=vehicles&id=4  body={"driver_id":4}  ->  HTTP 400  {"error":"Database error."}   <assign driver>
+POST api.php?t=bookings  body={"customer_name":"A4 Rider","driver_id":4,"pickup":"A4 St","pickup_city":"Manila","dropoff":"A4 Ave","dropoff_city":"Manila"}  ->  HTTP 200  {"ok":true,"id":10}
+   (b4 = 10)
+PUT api.php?t=bookings&id=10  body={"booking_status":"Completed"}  ->  HTTP 200  {"ok":true,"id":10}
+POST api.php?t=payments  body={"booking_id":10,"amount":120,"method":"GCash","status":"Paid"}  ->  HTTP 200  {"ok":true,"id":8}
+   (p4 = 8)
+POST api.php?t=ratings  body={"booking_id":10,"rating":4,"feedback":"ok"}  ->  HTTP 200  {"ok":true,"id":5}
+DELETE api.php?t=vehicles&id=4  ->  HTTP 200  {"ok":true}   <delete vehicle (needs DELETE on driver_vehicle)>
+PUT api.php?t=payments&id=8  body={"amount":1}  ->  HTTP 200  {"ok":true,"id":8}   <the app can edit a payment amount>
+DELETE api.php?t=payments&id=8  ->  HTTP 200  {"ok":true}   <the app can delete a payment>
+=== PART D: the application running as habalgo_readonly_user (reads should work, writes should fail)
+php server: listening on http://localhost:8000  (DB_NAME=grp00_habalgodb DB_USER=habalgo_readonly_user)
+GET api.php?t=dashboard  ->  HTTP 200  {"stats":{"customers":11,"active":4,"revenue":"250.5","avg_rating":"4"},"byStatus":[{"s":"Pending","n":3},{"s":"Completed","n":2},... (1229 chars)
+GET api.php?t=customers  ->  HTTP 200  [{"id":1,"name":"Maria Santos","phone":"09999999999","email":"maria@example.com","bookings":1},{"id":4,"name":"Bad Email","phone":... (1011 chars)
+GET api.php?t=bookings  ->  HTTP 200  [{"id":10,"customer_id":17,"customer":"A4 Rider","pickup":"A4 St","pickup_city":"Manila","dropoff":"A4 Ave","dropoff_city":"Manila... (1292 chars)
+POST api.php?t=customers  body={"name":"RO Customer","phone":"1","email":"ro@example.com"}  ->  HTTP 400  {"error":"Database error."}   <write as the read-only account>
+DELETE api.php?t=customers&id=16  ->  HTTP 400  {"error":"Database error."}   <delete as the read-only account>
+php log for the write attempts:
+=== PART E: no login in the application
+php server: listening on http://localhost:8000  (DB_NAME=grp00_habalgodb DB_USER=postgres)
+who can call the API? every call in Activity 3 and here carried no cookie, token or password
+source search for session, login, password_verify, token, Authorization in the PHP and JS files:
+no matches
+role mentions in the README and in the application code:
+defaults in config.php: 'user'   => getenv('DB_USER') ?: 'postgres',
+lines with PASSWORD inside database 03_roles_and_privileges.sql: 3
+=== pg_hba.conf rules
+--- [postgres@grp00_habalgodb] select line_number, type, database, user_name, address, auth_method from pg_hba_file_rules order by line_number
+ line_number | type  |   database    | user_name |  address  |  auth_method  
+-------------+-------+---------------+-----------+-----------+---------------
+         113 | local | {all}         | {all}     |           | scram-sha-256
+         115 | host  | {all}         | {all}     | 127.0.0.1 | scram-sha-256
+         117 | host  | {all}         | {all}     | ::1       | scram-sha-256
+         120 | local | {replication} | {all}     |           | scram-sha-256
+         121 | host  | {replication} | {all}     | 127.0.0.1 | scram-sha-256
+         122 | host  | {replication} | {all}     | ::1       | scram-sha-256
+(6 rows)
+
+

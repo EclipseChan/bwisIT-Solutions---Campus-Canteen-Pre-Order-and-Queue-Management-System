@@ -1,0 +1,154 @@
+################ grp_parkitdb
+--- [postgres@grp_parkitdb] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_sequences where schemaname='public') sequences,(select count(*) from pg_indexes where schemaname='public') indexes
+ tables | sequences | indexes 
+--------+-----------+---------
+      5 |         5 |       9
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select (select count(*) from public.vehicle) vehicle, (select count(*) from public.transaction) transaction, (select count(*) from public.payment) payment, (select count(*) from public.staff_user) staff_user, (select count(*) from public.parking_zone) parking_zone
+ vehicle | transaction | payment | staff_user | parking_zone 
+---------+-------------+---------+------------+--------------
+      66 |          19 |      12 |          2 |            1
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     2
+ f       |     3
+ n       |    22
+ p       |     5
+ u       |     4
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select grantee, count(*) as table_grants from information_schema.role_table_grants where table_schema='public' group by 1 order by 1
+      grantee       | table_grants 
+--------------------+--------------
+ parkit_runtime_grp |           11
+ postgres           |           35
+(2 rows)
+
+
+--- [postgres@grp_parkitdb] select md5(string_agg(t::text, '' order by t::text)) as payment_checksum from public.payment t
+         payment_checksum         
+----------------------------------
+ 2a58980a35c8e8682a0eda12e52ac7c3
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select md5(string_agg(t::text, '' order by t::text)) as transaction_checksum from public.transaction t
+       transaction_checksum       
+----------------------------------
+ 7a2ecbaf66a0845b1f15ceb5b782f3b6
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select md5(string_agg(t::text, '' order by t::text)) as staff_user_checksum from public.staff_user t
+       staff_user_checksum        
+----------------------------------
+ 0e7767fff9393a356a78552b8236eeb9
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select sequencename, last_value from pg_sequences where schemaname='public' order by 1
+          sequencename          | last_value 
+--------------------------------+------------
+ parking_zone_zone_id_seq       |          1
+ payment_payment_id_seq         |         12
+ staff_user_user_id_seq         |          2
+ transaction_transaction_id_seq |         64
+ vehicle_vehicle_id_seq         |         68
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] insert into public.payment(transaction_id, amount, payment_method, payment_time) select transaction_id, -1, 'x', now() from public.transaction limit 1
+ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+DETAIL:  Failing row contains (13, 2, -1.00, x, 2026-11-07 00:41:35.552442).
+
+################ grp_parkitdb_restore
+--- [postgres@grp_parkitdb_restore] select (select count(*) from pg_tables where schemaname='public') tables,(select count(*) from pg_sequences where schemaname='public') sequences,(select count(*) from pg_indexes where schemaname='public') indexes
+ tables | sequences | indexes 
+--------+-----------+---------
+      5 |         5 |       9
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select (select count(*) from public.vehicle) vehicle, (select count(*) from public.transaction) transaction, (select count(*) from public.payment) payment, (select count(*) from public.staff_user) staff_user, (select count(*) from public.parking_zone) parking_zone
+ vehicle | transaction | payment | staff_user | parking_zone 
+---------+-------------+---------+------------+--------------
+      66 |          19 |      12 |          2 |            1
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select contype,count(*) from pg_constraint where connamespace='public'::regnamespace group by contype order by contype
+ contype | count 
+---------+-------
+ c       |     2
+ f       |     3
+ n       |    22
+ p       |     5
+ u       |     4
+(5 rows)
+
+
+--- [postgres@grp_parkitdb_restore] select grantee, count(*) as table_grants from information_schema.role_table_grants where table_schema='public' group by 1 order by 1
+      grantee       | table_grants 
+--------------------+--------------
+ parkit_runtime_grp |           11
+ postgres           |           35
+(2 rows)
+
+
+--- [postgres@grp_parkitdb_restore] select md5(string_agg(t::text, '' order by t::text)) as payment_checksum from public.payment t
+         payment_checksum         
+----------------------------------
+ 2a58980a35c8e8682a0eda12e52ac7c3
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select md5(string_agg(t::text, '' order by t::text)) as transaction_checksum from public.transaction t
+       transaction_checksum       
+----------------------------------
+ 7a2ecbaf66a0845b1f15ceb5b782f3b6
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select md5(string_agg(t::text, '' order by t::text)) as staff_user_checksum from public.staff_user t
+       staff_user_checksum        
+----------------------------------
+ 0e7767fff9393a356a78552b8236eeb9
+(1 row)
+
+
+--- [postgres@grp_parkitdb_restore] select sequencename, last_value from pg_sequences where schemaname='public' order by 1
+          sequencename          | last_value 
+--------------------------------+------------
+ parking_zone_zone_id_seq       |          1
+ payment_payment_id_seq         |         12
+ staff_user_user_id_seq         |          2
+ transaction_transaction_id_seq |         64
+ vehicle_vehicle_id_seq         |         68
+(5 rows)
+
+
+--- [postgres@grp_parkitdb_restore] insert into public.payment(transaction_id, amount, payment_method, payment_time) select transaction_id, -1, 'x', now() from public.transaction limit 1
+ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+DETAIL:  Failing row contains (13, 2, -1.00, x, 2026-11-07 00:41:36.171309).
+
+=== the application against the restored database (as parkit_app)
+php server: listening on http://localhost:8000/park-it/  (DB_NAME=grp_parkitdb_restore DB_USER=parkit_app)
+POST /park-it/auth/login.php  data=username=admin&password=admin123  [admin]  ->  HTTP 200 (redirected to /park-it/dashboard.php)  message: Welcome back, admin (Admin)!   <login against the restored copy>
+GET /park-it/dashboard.php  [admin]  ->  HTTP 200   <dashboard>
+GET modules/monitoring/api_status.php [admin] -> {"success":true,"total_capacity":50,"occupied_spaces":7,"available_spaces":43,"active_vehicles":7,"status_code":"available","status_text":"OPEN \/ SPACES AVAILABLE","warning_type":"none","warning_message":"","occupancy_percent":14,"zones":[{"zone_id":1,"zone_name":"Main Parking Lot","max_capacity":50,"current_active_count":7,"av...
+GET /park-it/modules/payments/history.php  [admin]  ->  HTTP 200   <payment history>
+--- [postgres@grp_parkitdb_restore] select count(*) as active_in_restored_copy from public.transaction where status='Active'
+ active_in_restored_copy 
+-------------------------
+                       7
+(1 row)
+
+
+stopped PHP server (pid 26400)

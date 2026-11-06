@@ -1,0 +1,82 @@
+--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp_brewposdb%' order by 1
+        datname        |                                                                   datacl                                                                    
+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------
+ grp_brewposdb         | {=Tc/postgres,postgres=CTc/postgres,brewpos_app=c/postgres,app_runtime_grp=c/postgres,app_readonly_grp=c/postgres,app_admin_grp=c/postgres}
+ grp_brewposdb_restore | 
+(2 rows)
+
+
+--- [postgres@grp_brewposdb] select rolname from pg_roles where rolname ~ '^(brewpos|app_)' order by 1
+     rolname      
+------------------
+ app_admin_grp
+ app_readonly_grp
+ app_runtime_grp
+ brewpos_app
+(4 rows)
+
+
+--- table privileges of brewpos_app and the group roles: original vs restored copy
+--- [postgres@grp_brewposdb] select grantee, count(*) as grants from information_schema.role_table_grants where table_schema='public' and grantee ~ '^(brewpos|app_)' group by 1 order by 1
+     grantee      | grants 
+------------------+--------
+ app_admin_grp    |     17
+ app_readonly_grp |      5
+ app_runtime_grp  |     13
+ brewpos_app      |     13
+(4 rows)
+
+
+--- [postgres@grp_brewposdb_restore] select grantee, count(*) as grants from information_schema.role_table_grants where table_schema='public' and grantee ~ '^(brewpos|app_)' group by 1 order by 1
+     grantee      | grants 
+------------------+--------
+ app_admin_grp    |     17
+ app_readonly_grp |      5
+ app_runtime_grp  |     13
+ brewpos_app      |     13
+(4 rows)
+
+
+--- per-role settings (search_path, statement_timeout, lock_timeout) are stored per database, not in the dump
+--- [postgres@postgres] select d.setdatabase::regdatabase as db, r.rolname, d.setconfig from pg_db_role_setting d join pg_roles r on r.oid=d.setrole order by 1
+ERROR:  type "regdatabase" does not exist
+LINE 1: select d.setdatabase::regdatabase as db, r.rolname, d.setcon...
+                              ^
+
+--- login as brewpos_app against the restored copy
+--- [login brewpos_app@grp_brewposdb_restore] select current_setting('statement_timeout') st, current_setting('search_path') sp
+ st |       sp        
+----+-----------------
+ 0  | "$user", public
+(1 row)
+
+
+--- [login brewpos_app@grp_brewposdb_restore] select count(*) from order_ticket
+ count 
+-------
+    11
+(1 row)
+
+
+--- [login brewpos_app@grp_brewposdb_restore] delete from order_ticket where false
+ERROR:  permission denied for table order_ticket
+
+--- [login brewpos_app@grp_brewposdb] select current_setting('statement_timeout') st, current_setting('search_path') sp
+ st  |   sp   
+-----+--------
+ 30s | public
+(1 row)
+
+
+--- owner of the objects
+--- [postgres@grp_brewposdb_restore] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+    tablename    | tableowner 
+-----------------+------------
+ menu_category   | postgres
+ menu_item       | postgres
+ order_line_item | postgres
+ order_ticket    | postgres
+ staff           | postgres
+(5 rows)
+
+

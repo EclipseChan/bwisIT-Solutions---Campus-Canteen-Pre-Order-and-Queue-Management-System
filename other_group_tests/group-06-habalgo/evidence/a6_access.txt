@@ -1,0 +1,90 @@
+--- [postgres@postgres] select datname,datacl from pg_database where datname like 'grp00_habalgodb%' order by 1
+         datname         |                                           datacl                                            
+-------------------------+---------------------------------------------------------------------------------------------
+ grp00_habalgodb         | {=Tc/postgres,postgres=CTc/postgres,app_runtime_grp=c/postgres,app_readonly_grp=c/postgres}
+ grp00_habalgodb_alt     | 
+ grp00_habalgodb_restore | 
+(3 rows)
+
+
+--- [postgres@grp00_habalgodb] select rolname from pg_roles where rolname ~ '^(habalgo|app_)' order by 1
+        rolname        
+-----------------------
+ app_admin_grp
+ app_readonly_grp
+ app_runtime_grp
+ habalgo_app_user
+ habalgo_readonly_user
+(5 rows)
+
+
+--- table privileges of the roles: original vs restored copy
+--- [postgres@grp00_habalgodb] select grantee, count(*) as grants from information_schema.role_table_grants where table_schema='habalgo' and grantee ~ '^(habalgo|app_)' group by 1 order by 1
+     grantee      | grants 
+------------------+--------
+ app_readonly_grp |      8
+ app_runtime_grp  |     32
+(2 rows)
+
+
+--- [postgres@grp00_habalgodb_restore] select grantee, count(*) as grants from information_schema.role_table_grants where table_schema='habalgo' and grantee ~ '^(habalgo|app_)' group by 1 order by 1
+     grantee      | grants 
+------------------+--------
+ app_readonly_grp |      8
+ app_runtime_grp  |     32
+(2 rows)
+
+
+--- default privileges (ALTER DEFAULT PRIVILEGES) in each
+--- [postgres@grp00_habalgodb] select defaclrole::regrole as creator, defaclnamespace::regnamespace as schema, defaclobjtype, defaclacl from pg_default_acl order by 3
+ creator  | schema  | defaclobjtype |                          defaclacl                          
+----------+---------+---------------+-------------------------------------------------------------
+ postgres | habalgo | S             | {app_runtime_grp=rU/postgres}
+ postgres | habalgo | r             | {app_runtime_grp=arwd/postgres,app_readonly_grp=r/postgres}
+(2 rows)
+
+
+--- [postgres@grp00_habalgodb_restore] select defaclrole::regrole as creator, defaclnamespace::regnamespace as schema, defaclobjtype, defaclacl from pg_default_acl order by 3
+ creator  | schema  | defaclobjtype |                          defaclacl                          
+----------+---------+---------------+-------------------------------------------------------------
+ postgres | habalgo | S             | {app_runtime_grp=rU/postgres}
+ postgres | habalgo | r             | {app_runtime_grp=arwd/postgres,app_readonly_grp=r/postgres}
+(2 rows)
+
+
+--- login as the application account against the restored copy
+--- [login habalgo_app_user@grp00_habalgodb_restore] select count(*) from habalgo.customer
+ count 
+-------
+    11
+(1 row)
+
+
+--- [login habalgo_app_user@grp00_habalgodb_restore] update habalgo.payment set amount=amount where false
+UPDATE 0
+
+--- [login habalgo_readonly_user@grp00_habalgodb_restore] select count(*) from habalgo.customer
+ count 
+-------
+    11
+(1 row)
+
+
+--- [login habalgo_readonly_user@grp00_habalgodb_restore] insert into habalgo.customer(name,phone,email) values ('x','1','x@x.x')
+ERROR:  permission denied for table customer
+
+--- owner of the objects
+--- [postgres@grp00_habalgodb_restore] select tablename, tableowner from pg_tables where schemaname='habalgo' order by 1
+    tablename    | tableowner 
+-----------------+------------
+ booking         | postgres
+ customer        | postgres
+ driver          | postgres
+ driver_vehicle  | postgres
+ location        | postgres
+ payment         | postgres
+ rating_feedback | postgres
+ vehicle         | postgres
+(8 rows)
+
+

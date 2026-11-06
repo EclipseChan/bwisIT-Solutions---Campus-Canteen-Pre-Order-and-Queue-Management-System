@@ -1,0 +1,208 @@
+run at 11/07/2026 00:33:56
+extracted C:\Users\Marcos\dba\pk\park-it.zip
+--- prerequisites
+psql (PostgreSQL) 18.6
+PHP 8.2.12 (cli) (built: Oct 24 2023 21:15:15) (ZTS Visual C++ 2019 x64)
+php extensions: pdo_pgsql, pgsql
+the README asks for XAMPP; this test serves the same park-it folder with PHP's built-in server from a folder laid out like htdocs (www\park-it), same PHP
+--- README Step 2: database named grp_parkitdb
+CREATE DATABASE
+--- README Step 3-4: schema.sql. psql can read the \restrict line, so it was run unedited
+lines starting with a backslash command (restrict/unrestrict) in schema.sql: 2
+SET
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+SET
+SET
+SET
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+ALTER SEQUENCE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+--- second run of schema.sql (is it repeatable?)
+SET
+SET
+SET
+SET
+SET
+SET
+--- tables created (README says 5)
+--- [postgres@grp_parkitdb] select table_schema, table_name from information_schema.tables where table_schema not in ('pg_catalog','information_schema') order by 1,2
+ table_schema |  table_name  
+--------------+--------------
+ public       | parking_zone
+ public       | payment
+ public       | staff_user
+ public       | transaction
+ public       | vehicle
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select conrelid::regclass as tbl, conname, contype, pg_get_constraintdef(oid) from pg_constraint where connamespace='public'::regnamespace order by 1,2
+     tbl      |                  conname                   | contype |                        pg_get_constraintdef                         
+--------------+--------------------------------------------+---------+---------------------------------------------------------------------
+ parking_zone | parking_zone_check                         | c       | CHECK ((current_active_count <= max_capacity))
+ parking_zone | parking_zone_current_active_count_not_null | n       | NOT NULL current_active_count
+ parking_zone | parking_zone_max_capacity_not_null         | n       | NOT NULL max_capacity
+ parking_zone | parking_zone_pkey                          | p       | PRIMARY KEY (zone_id)
+ parking_zone | parking_zone_zone_id_not_null              | n       | NOT NULL zone_id
+ parking_zone | parking_zone_zone_name_key                 | u       | UNIQUE (zone_name)
+ parking_zone | parking_zone_zone_name_not_null            | n       | NOT NULL zone_name
+ payment      | payment_amount_check                       | c       | CHECK ((amount >= (0)::numeric))
+ payment      | payment_amount_not_null                    | n       | NOT NULL amount
+ payment      | payment_payment_id_not_null                | n       | NOT NULL payment_id
+ payment      | payment_payment_method_not_null            | n       | NOT NULL payment_method
+ payment      | payment_payment_time_not_null              | n       | NOT NULL payment_time
+ payment      | payment_pkey                               | p       | PRIMARY KEY (payment_id)
+ payment      | payment_transaction_id_fkey                | f       | FOREIGN KEY (transaction_id) REFERENCES transaction(transaction_id)
+ payment      | payment_transaction_id_key                 | u       | UNIQUE (transaction_id)
+ payment      | payment_transaction_id_not_null            | n       | NOT NULL transaction_id
+ staff_user   | staff_user_password_hash_not_null          | n       | NOT NULL password_hash
+ staff_user   | staff_user_pkey                            | p       | PRIMARY KEY (user_id)
+ staff_user   | staff_user_role_not_null                   | n       | NOT NULL role
+ staff_user   | staff_user_user_id_not_null                | n       | NOT NULL user_id
+ staff_user   | staff_user_username_key                    | u       | UNIQUE (username)
+ staff_user   | staff_user_username_not_null               | n       | NOT NULL username
+ transaction  | transaction_entry_time_not_null            | n       | NOT NULL entry_time
+ transaction  | transaction_is_lost_ticket_not_null        | n       | NOT NULL is_lost_ticket
+ transaction  | transaction_pkey                           | p       | PRIMARY KEY (transaction_id)
+ transaction  | transaction_status_not_null                | n       | NOT NULL status
+ transaction  | transaction_transaction_id_not_null        | n       | NOT NULL transaction_id
+ transaction  | transaction_vehicle_id_fkey                | f       | FOREIGN KEY (vehicle_id) REFERENCES vehicle(vehicle_id)
+ transaction  | transaction_vehicle_id_not_null            | n       | NOT NULL vehicle_id
+ transaction  | transaction_zone_id_fkey                   | f       | FOREIGN KEY (zone_id) REFERENCES parking_zone(zone_id)
+ transaction  | transaction_zone_id_not_null               | n       | NOT NULL zone_id
+ vehicle      | vehicle_license_plate_key                  | u       | UNIQUE (license_plate)
+ vehicle      | vehicle_license_plate_not_null             | n       | NOT NULL license_plate
+ vehicle      | vehicle_pkey                               | p       | PRIMARY KEY (vehicle_id)
+ vehicle      | vehicle_vehicle_id_not_null                | n       | NOT NULL vehicle_id
+ vehicle      | vehicle_vehicle_type_not_null              | n       | NOT NULL vehicle_type
+(36 rows)
+
+
+--- [postgres@grp_parkitdb] select indexname, tablename from pg_indexes where schemaname='public' order by 2,1
+         indexname          |  tablename   
+----------------------------+--------------
+ parking_zone_pkey          | parking_zone
+ parking_zone_zone_name_key | parking_zone
+ payment_pkey               | payment
+ payment_transaction_id_key | payment
+ staff_user_pkey            | staff_user
+ staff_user_username_key    | staff_user
+ transaction_pkey           | transaction
+ vehicle_license_plate_key  | vehicle
+ vehicle_pkey               | vehicle
+(9 rows)
+
+
+--- [postgres@grp_parkitdb] select count(*) as triggers from pg_trigger where not tgisinternal
+ triggers 
+----------
+        0
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select tablename, tableowner from pg_tables where schemaname='public' order by 1
+  tablename   | tableowner 
+--------------+------------
+ parking_zone | postgres
+ payment      | postgres
+ staff_user   | postgres
+ transaction  | postgres
+ vehicle      | postgres
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select datname, datacl from pg_database where datname='grp_parkitdb'
+   datname    | datacl 
+--------------+--------
+ grp_parkitdb | 
+(1 row)
+
+
+--- README Step 8: config\database.php as shipped
+shipped settings: define('DB_HOST', 'localhost'); | define('DB_PORT', '5432'); | define('DB_NAME', 'grp_parkitdb'); | define('DB_USER', 'postgres'); | define('DB_PASS', '12345678'); // <-- Replace with your PostgreSQL password
+README says to put your own password in DB_PASS. The test copy gets the postgres password the same way.
+--- README Step 9-10: start the app and run config\seed.php
+php server: listening on http://localhost:8000/park-it/  (DB_NAME=grp_parkitdb DB_USER=postgres)
+GET /park-it/  [admin]  ->  HTTP 200 (redirected to /park-it/auth/login.php)   <front page before the seed, not logged in>
+GET /park-it/config/seed.php  [admin]  ->  HTTP 200  message: Database initialization completed successfully!   <seed run 1 (no login needed)>
+GET /park-it/config/seed.php  [admin]  ->  HTTP 200  message: Database initialization completed successfully!   <seed run 2 (repeatable?)>
+--- [postgres@grp_parkitdb] select user_id, username, role, left(password_hash,7) as hash_prefix, length(password_hash) as hash_len from public.staff_user order by 1
+ user_id | username | role  | hash_prefix | hash_len 
+---------+----------+-------+-------------+----------
+       1 | admin    | Admin | $2y$10$     |       60
+       2 | staff    | Staff | $2y$10$     |       60
+(2 rows)
+
+
+--- [postgres@grp_parkitdb] select * from public.parking_zone
+ zone_id |    zone_name     | max_capacity | current_active_count 
+---------+------------------+--------------+----------------------
+       1 | Main Parking Lot |           50 |                    0
+(1 row)
+
+
+--- is the seed page reachable by an anonymous visitor after setup? (no cookie sent)
+GET /park-it/config/seed.php  [anon]  ->  HTTP 200  message: Database initialization completed successfully!   <anonymous, after setup>
+--- README Step 11: login page and who can reach what without logging in
+GET /park-it/auth/login.php  [anon]  ->  HTTP 200   <login page>
+GET /park-it/dashboard.php  [anon]  ->  HTTP 302   <anonymous>
+GET /park-it/modules/vehicles/index.php  [anon]  ->  HTTP 302   <anonymous>
+GET /park-it/modules/payments/index.php  [anon]  ->  HTTP 302   <anonymous>
+GET /park-it/modules/payments/history.php  [anon]  ->  HTTP 302   <anonymous>
+GET /park-it/modules/monitoring/index.php  [anon]  ->  HTTP 302   <anonymous>
+GET modules/monitoring/api_status.php [anon] -> {"success":false,"error":"Unauthorized access. Please log in."} HTTP 401
+--- front-end source facts
+htmlspecialchars calls in PHP files: 50
+external resources loaded by the pages: 
+lines mentioning csrf or token in the PHP files: 0

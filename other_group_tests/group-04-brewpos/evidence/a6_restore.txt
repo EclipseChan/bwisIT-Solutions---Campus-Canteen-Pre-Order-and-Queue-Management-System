@@ -1,0 +1,9 @@
+NOTICE:  database "grp_brewposdb_restore" does not exist, skipping
+DROP DATABASE
+NOTICE:  database "grp_brewposdb_recovery" does not exist, skipping
+DROP DATABASE
+pg_restore exit code: 0 ; elapsed seconds: 0.17
+no messages (no warnings or errors)
+--- README's restore command with --clean --if-exists, run into the restored copy a second time
+exit code: 0
+no messages

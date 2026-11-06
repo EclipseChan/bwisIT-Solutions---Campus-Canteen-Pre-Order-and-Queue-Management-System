@@ -1,0 +1,103 @@
+run at 11/07/2026 00:41:31
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select pg_size_pretty(pg_database_size('grp_parkitdb')) as db_size
+ db_size 
+---------
+ 8446 kB
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='grp_parkitdb'
+   datname    | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+--------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ grp_parkitdb |           1 |        3769 |            29 |         9 |   249593 |         0 |          0
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select pid,usename,application_name,state,left(query,60) as query from pg_stat_activity where datname='grp_parkitdb'
+  pid  | usename  | application_name | state  |                            query                             
+-------+----------+------------------+--------+--------------------------------------------------------------
+ 24460 | postgres | psql             | active | select pid,usename,application_name,state,left(query,60) as 
+(1 row)
+
+
+--- [postgres@grp_parkitdb] select relname,n_live_tup,n_dead_tup,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze from pg_stat_user_tables order by relname
+   relname    | n_live_tup | n_dead_tup | last_vacuum |        last_autovacuum        | last_analyze |       last_autoanalyze        
+--------------+------------+------------+-------------+-------------------------------+--------------+-------------------------------
+ parking_zone |          1 |         33 |             |                               |              | 
+ payment      |         12 |          0 |             |                               |              | 
+ staff_user   |          2 |          0 |             |                               |              | 
+ transaction  |         19 |          0 |             | 2026-11-07 00:41:00.144007+08 |              | 2026-11-07 00:36:00.009895+08
+ vehicle      |         66 |          7 |             |                               |              | 2026-11-07 00:36:00.012212+08
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select relname, pg_size_pretty(pg_total_relation_size(relid)) total, pg_size_pretty(pg_indexes_size(relid)) idx from pg_stat_user_tables order by pg_total_relation_size(relid) desc
+   relname    | total |  idx  
+--------------+-------+-------
+ transaction  | 56 kB | 16 kB
+ staff_user   | 40 kB | 32 kB
+ vehicle      | 40 kB | 32 kB
+ parking_zone | 40 kB | 32 kB
+ payment      | 40 kB | 32 kB
+(5 rows)
+
+
+--- [postgres@grp_parkitdb] select indexrelname, relname, idx_scan from pg_stat_user_indexes order by relname, indexrelname
+        indexrelname        |   relname    | idx_scan 
+----------------------------+--------------+----------
+ parking_zone_pkey          | parking_zone |      277
+ parking_zone_zone_name_key | parking_zone |        0
+ payment_pkey               | payment      |       11
+ payment_transaction_id_key | payment      |       56
+ staff_user_pkey            | staff_user   |        0
+ staff_user_username_key    | staff_user   |       23
+ transaction_pkey           | transaction  |       49
+ vehicle_license_plate_key  | vehicle      |       39
+ vehicle_pkey               | vehicle      |      450
+(9 rows)
+
+
+--- [postgres@postgres] show log_statement
+ log_statement 
+---------------
+ none
+(1 row)
+
+
+--- [postgres@postgres] show log_min_duration_statement
+ log_min_duration_statement 
+----------------------------
+ -1
+(1 row)
+
+
+--- [postgres@postgres] show max_connections
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+
+--- [postgres@postgres] show autovacuum
+ autovacuum 
+------------
+ on
+(1 row)
+
+
+--- can parkit_app run maintenance?
+--- [login parkit_app@grp_parkitdb] VACUUM public.vehicle
+WARNING:  permission denied to vacuum "vehicle", skipping it
+VACUUM
+
+--- [login parkit_app@grp_parkitdb] ANALYZE public.vehicle
+WARNING:  permission denied to analyze "vehicle", skipping it
+ANALYZE
+

@@ -1,0 +1,92 @@
+run at 11/07/2026 00:24:37
+no dedicated backup role exists in the project, so the dump is taken as postgres
+pg_dump exit code: 0
+Name          : grp00_habalgodb_activity6.dump
+Length        : 30867
+LastWriteTime : 07/11/2026 12:24:37 am
+Algorithm : SHA256
+Hash      : 7B50FD5239BBEBC6CA42C3688732B1DB55C8E86F3D0BB4D316B37336D23AFCE0
+Path      : C:\Users\Marcos\dba\backups\grp00_habalgodb_activity6.dump
+--- pg_restore --list (first 80 lines)
+;
+; Archive created at 2026-11-07 00:24:37
+;     dbname: grp00_habalgodb
+;     TOC Entries: 94
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+;
+; Selected TOC Entries:
+;
+6; 2615 29221 SCHEMA - habalgo postgres
+5116; 0 0 ACL - SCHEMA habalgo postgres
+232; 1259 29291 TABLE habalgo booking postgres
+5117; 0 0 ACL habalgo TABLE booking postgres
+231; 1259 29290 SEQUENCE habalgo booking_booking_id_seq postgres
+5118; 0 0 SEQUENCE OWNED BY habalgo booking_booking_id_seq postgres
+5119; 0 0 ACL habalgo SEQUENCE booking_booking_id_seq postgres
+223; 1259 29223 TABLE habalgo customer postgres
+5120; 0 0 ACL habalgo TABLE customer postgres
+222; 1259 29222 SEQUENCE habalgo customer_customer_id_seq postgres
+5121; 0 0 SEQUENCE OWNED BY habalgo customer_customer_id_seq postgres
+5122; 0 0 ACL habalgo SEQUENCE customer_customer_id_seq postgres
+225; 1259 29236 TABLE habalgo driver postgres
+5123; 0 0 ACL habalgo TABLE driver postgres
+224; 1259 29235 SEQUENCE habalgo driver_driver_id_seq postgres
+5124; 0 0 SEQUENCE OWNED BY habalgo driver_driver_id_seq postgres
+5125; 0 0 ACL habalgo SEQUENCE driver_driver_id_seq postgres
+228; 1259 29261 TABLE habalgo driver_vehicle postgres
+5126; 0 0 ACL habalgo TABLE driver_vehicle postgres
+230; 1259 29281 TABLE habalgo location postgres
+5127; 0 0 ACL habalgo TABLE location postgres
+229; 1259 29280 SEQUENCE habalgo location_location_id_seq postgres
+5128; 0 0 SEQUENCE OWNED BY habalgo location_location_id_seq postgres
+5129; 0 0 ACL habalgo SEQUENCE location_location_id_seq postgres
+234; 1259 29327 TABLE habalgo payment postgres
+5130; 0 0 ACL habalgo TABLE payment postgres
+233; 1259 29326 SEQUENCE habalgo payment_payment_id_seq postgres
+5131; 0 0 SEQUENCE OWNED BY habalgo payment_payment_id_seq postgres
+5132; 0 0 ACL habalgo SEQUENCE payment_payment_id_seq postgres
+236; 1259 29346 TABLE habalgo rating_feedback postgres
+5133; 0 0 ACL habalgo TABLE rating_feedback postgres
+235; 1259 29345 SEQUENCE habalgo rating_feedback_rating_id_seq postgres
+5134; 0 0 SEQUENCE OWNED BY habalgo rating_feedback_rating_id_seq postgres
+5135; 0 0 ACL habalgo SEQUENCE rating_feedback_rating_id_seq postgres
+227; 1259 29249 TABLE habalgo vehicle postgres
+5136; 0 0 ACL habalgo TABLE vehicle postgres
+226; 1259 29248 SEQUENCE habalgo vehicle_vehicle_id_seq postgres
+5137; 0 0 SEQUENCE OWNED BY habalgo vehicle_vehicle_id_seq postgres
+5138; 0 0 ACL habalgo SEQUENCE vehicle_vehicle_id_seq postgres
+4899; 2604 29294 DEFAULT habalgo booking booking_id postgres
+4895; 2604 29226 DEFAULT habalgo customer customer_id postgres
+4896; 2604 29239 DEFAULT habalgo driver driver_id postgres
+4898; 2604 29284 DEFAULT habalgo location location_id postgres
+4902; 2604 29330 DEFAULT habalgo payment payment_id postgres
+4904; 2604 29349 DEFAULT habalgo rating_feedback rating_id postgres
+4897; 2604 29252 DEFAULT habalgo vehicle vehicle_id postgres
+5104; 0 29291 TABLE DATA habalgo booking postgres
+5095; 0 29223 TABLE DATA habalgo customer postgres
+5097; 0 29236 TABLE DATA habalgo driver postgres
+5100; 0 29261 TABLE DATA habalgo driver_vehicle postgres
+5102; 0 29281 TABLE DATA habalgo location postgres
+5106; 0 29327 TABLE DATA habalgo payment postgres
+5108; 0 29346 TABLE DATA habalgo rating_feedback postgres
+5099; 0 29249 TABLE DATA habalgo vehicle postgres
+5139; 0 0 SEQUENCE SET habalgo booking_booking_id_seq postgres
+5140; 0 0 SEQUENCE SET habalgo customer_customer_id_seq postgres
+5141; 0 0 SEQUENCE SET habalgo driver_driver_id_seq postgres
+5142; 0 0 SEQUENCE SET habalgo location_location_id_seq postgres
+5143; 0 0 SEQUENCE SET habalgo payment_payment_id_seq postgres
+5144; 0 0 SEQUENCE SET habalgo rating_feedback_rating_id_seq postgres
+5145; 0 0 SEQUENCE SET habalgo vehicle_vehicle_id_seq postgres
+4926; 2606 29305 CONSTRAINT habalgo booking booking_pkey postgres
+4910; 2606 29234 CONSTRAINT habalgo customer customer_email_key postgres
+4912; 2606 29232 CONSTRAINT habalgo customer customer_pkey postgres
+4914; 2606 29247 CONSTRAINT habalgo driver driver_license_no_key postgres
+TABLE DATA entries in archive: 8 ; DEFAULT ACL entries: 2 ; ACL entries: 18
+the README does not describe any backup procedure
