@@ -1,0 +1,371 @@
+=== Activity 4: roles and privileges, tested by G08, 2026-11-07 00:57
+--- roles script 03_roles_and_privileges.sql, run as shipped, first run
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+      rolname      | rolcanlogin | rolsuper 
+-------------------+-------------+----------
+ app_runtime_grp   | f           | f
+ app_readonly_grp  | f           | f
+ app_backup_grp    | f           | f
+ campussafe_app    | t           | f
+ campussafe_report | t           | f
+ campussafe_backup | t           | f
+(6 rows)
+
+--- second run (repeatability)
+
+psql:C:/Users/Marcos/dba/cs/grp07-campussafe-main/database/03_roles_and_privileges.sql:41: NOTICE:  role "campussafe_app" has already been granted membership in role "app_runtime_grp" by role "postgres"
+psql:C:/Users/Marcos/dba/cs/grp07-campussafe-main/database/03_roles_and_privileges.sql:42: NOTICE:  role "campussafe_report" has already been granted membership in role "app_readonly_grp" by role "postgres"
+psql:C:/Users/Marcos/dba/cs/grp07-campussafe-main/database/03_roles_and_privileges.sql:43: NOTICE:  role "campussafe_backup" has already been granted membership in role "app_backup_grp" by role "postgres"
+--- [postgres@grp07_campussafedb] select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, rolreplication from pg_roles where rolname like 'campussafe%' or rolname like 'app\_%' order by 1
+      rolname      | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | rolreplication 
+-------------------+-------------+----------+-------------+---------------+----------------
+ app_admin_grp     | f           | f        | f           | f             | f
+ app_backup_grp    | f           | f        | f           | f             | f
+ app_readonly_grp  | f           | f        | f           | f             | f
+ app_runtime_grp   | f           | f        | f           | f             | f
+ campussafe_app    | t           | f        | f           | f             | f
+ campussafe_backup | t           | f        | f           | f             | f
+ campussafe_report | t           | f        | f           | f             | f
+(7 rows)
+
+
+--- [postgres@grp07_campussafedb] select r.rolname role, m.rolname member from pg_auth_members a join pg_roles r on r.oid=a.roleid join pg_roles m on m.oid=a.member where r.rolname like 'app\_%'
+       role       |        member         
+------------------+-----------------------
+ app_runtime_grp  | boardtrack_app
+ app_runtime_grp  | habalgo_app_user
+ app_runtime_grp  | campussafe_app
+ app_readonly_grp | habalgo_readonly_user
+ app_readonly_grp | campussafe_report
+ app_backup_grp   | campussafe_backup
+(6 rows)
+
+
+--- [postgres@grp07_campussafedb] select left(rolpassword,14) pw from pg_authid where rolname='campussafe_app'
+       pw       
+----------------
+ SCRAM-SHA-256$
+(1 row)
+
+
+--- privilege matrix (S I U D T)
+--- [postgres@grp07_campussafedb] select 'app_runtime_grp' grp, t.tablename, case when has_table_privilege('app_runtime_grp', t.tablename, 'SELECT') then 'S' else '-' end || case when has_table_privilege('app_runtime_grp', t.tablename, 'INSERT') then 'I' else '-' end || case when has_table_privilege('app_runtime_grp', t.tablename, 'UPDATE') then 'U' else '-' end || case when has_table_privilege('app_runtime_grp', t.tablename, 'DELETE') then 'D' else '-' end || case when has_table_privilege('app_runtime_grp', t.tablename, 'TRUNCATE') then 'T' else '-' end priv from pg_tables t where t.schemaname='public' order by 2
+       grp       |       tablename       | priv  
+-----------------+-----------------------+-------
+ app_runtime_grp | app_user              | SIU--
+ app_runtime_grp | assignment            | SIUD-
+ app_runtime_grp | attachment            | SI-D-
+ app_runtime_grp | campus_location       | SIU--
+ app_runtime_grp | hazard_category       | SIU--
+ app_runtime_grp | hazard_report         | SIU--
+ app_runtime_grp | maintenance_action    | SI---
+ app_runtime_grp | report_status_history | SI---
+ app_runtime_grp | role                  | S----
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select 'app_readonly_grp' grp, t.tablename, case when has_table_privilege('app_readonly_grp', t.tablename, 'SELECT') then 'S' else '-' end || case when has_table_privilege('app_readonly_grp', t.tablename, 'INSERT') then 'I' else '-' end || case when has_table_privilege('app_readonly_grp', t.tablename, 'UPDATE') then 'U' else '-' end || case when has_table_privilege('app_readonly_grp', t.tablename, 'DELETE') then 'D' else '-' end || case when has_table_privilege('app_readonly_grp', t.tablename, 'TRUNCATE') then 'T' else '-' end priv from pg_tables t where t.schemaname='public' order by 2
+       grp        |       tablename       | priv  
+------------------+-----------------------+-------
+ app_readonly_grp | app_user              | -----
+ app_readonly_grp | assignment            | S----
+ app_readonly_grp | attachment            | S----
+ app_readonly_grp | campus_location       | S----
+ app_readonly_grp | hazard_category       | S----
+ app_readonly_grp | hazard_report         | S----
+ app_readonly_grp | maintenance_action    | S----
+ app_readonly_grp | report_status_history | S----
+ app_readonly_grp | role                  | -----
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select 'app_backup_grp' grp, t.tablename, case when has_table_privilege('app_backup_grp', t.tablename, 'SELECT') then 'S' else '-' end || case when has_table_privilege('app_backup_grp', t.tablename, 'INSERT') then 'I' else '-' end || case when has_table_privilege('app_backup_grp', t.tablename, 'UPDATE') then 'U' else '-' end || case when has_table_privilege('app_backup_grp', t.tablename, 'DELETE') then 'D' else '-' end || case when has_table_privilege('app_backup_grp', t.tablename, 'TRUNCATE') then 'T' else '-' end priv from pg_tables t where t.schemaname='public' order by 2
+      grp       |       tablename       | priv  
+----------------+-----------------------+-------
+ app_backup_grp | app_user              | S----
+ app_backup_grp | assignment            | S----
+ app_backup_grp | attachment            | S----
+ app_backup_grp | campus_location       | S----
+ app_backup_grp | hazard_category       | S----
+ app_backup_grp | hazard_report         | S----
+ app_backup_grp | maintenance_action    | S----
+ app_backup_grp | report_status_history | S----
+ app_backup_grp | role                  | S----
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select has_schema_privilege('app_runtime_grp','public','USAGE') usage, has_schema_privilege('app_runtime_grp','public','CREATE') create_, has_database_privilege('app_runtime_grp','grp07_campussafedb','CONNECT') connect_, has_database_privilege('public','grp07_campussafedb','CONNECT') public_connect
+ usage | create_ | connect_ | public_connect 
+-------+---------+----------+----------------
+ t     | f       | t        | f
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select datacl from pg_database where datname='grp07_campussafedb'
+                                                  datacl                                                  
+----------------------------------------------------------------------------------------------------------
+ {postgres=CTc/postgres,app_runtime_grp=c/postgres,app_readonly_grp=c/postgres,app_backup_grp=c/postgres}
+(1 row)
+
+
+--- real logins
+##### campussafe_app
+--- [login campussafe_app@grp07_campussafedb] select count(*) from hazard_report
+ count 
+-------
+    18
+(1 row)
+
+
+--- [login campussafe_app@grp07_campussafedb] select count(*) from app_user
+ count 
+-------
+     6
+(1 row)
+
+
+--- [login campussafe_app@grp07_campussafedb] select username, left(password_hash,7) from app_user limit 1
+  username  |  left   
+------------+---------
+ demo_admin | $2y$10$
+(1 row)
+
+
+--- [login campussafe_app@grp07_campussafedb] insert into hazard_category(category_name) values ('A4 test campussafe_app')
+INSERT 0 1
+
+--- [login campussafe_app@grp07_campussafedb] update app_user set role_id=1 where username='demo_student'
+UPDATE 1
+
+--- [login campussafe_app@grp07_campussafedb] delete from hazard_report where report_id=1
+ERROR:  permission denied for table hazard_report
+
+--- [login campussafe_app@grp07_campussafedb] delete from attachment where attachment_id=-1
+DELETE 0
+
+--- [login campussafe_app@grp07_campussafedb] truncate hazard_report
+ERROR:  permission denied for table hazard_report
+
+--- [login campussafe_app@grp07_campussafedb] create table a4_t(i int)
+ERROR:  permission denied for schema public
+LINE 1: create table a4_t(i int)
+                     ^
+
+--- [login campussafe_app@grp07_campussafedb] create role a4_x
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+--- [login campussafe_app@grp07_campussafedb] select count(*) from pg_authid
+ERROR:  permission denied for table pg_authid
+
+--- [login campussafe_app@grp07_campussafedb] vacuum hazard_report
+WARNING:  permission denied to vacuum "hazard_report", skipping it
+VACUUM
+
+--- [login campussafe_app@postgres] select 1
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  permission denied for database "postgres"
+DETAIL:  User does not have CONNECT privilege.
+
+##### campussafe_report
+--- [login campussafe_report@grp07_campussafedb] select count(*) from hazard_report
+ count 
+-------
+    18
+(1 row)
+
+
+--- [login campussafe_report@grp07_campussafedb] select count(*) from app_user
+ERROR:  permission denied for table app_user
+
+--- [login campussafe_report@grp07_campussafedb] select username, left(password_hash,7) from app_user limit 1
+ERROR:  permission denied for table app_user
+
+--- [login campussafe_report@grp07_campussafedb] insert into hazard_category(category_name) values ('A4 test campussafe_report')
+ERROR:  permission denied for table hazard_category
+
+--- [login campussafe_report@grp07_campussafedb] update app_user set role_id=1 where username='demo_student'
+ERROR:  permission denied for table app_user
+
+--- [login campussafe_report@grp07_campussafedb] delete from hazard_report where report_id=1
+ERROR:  permission denied for table hazard_report
+
+--- [login campussafe_report@grp07_campussafedb] delete from attachment where attachment_id=-1
+ERROR:  permission denied for table attachment
+
+--- [login campussafe_report@grp07_campussafedb] truncate hazard_report
+ERROR:  permission denied for table hazard_report
+
+--- [login campussafe_report@grp07_campussafedb] create table a4_t(i int)
+ERROR:  permission denied for schema public
+LINE 1: create table a4_t(i int)
+                     ^
+
+--- [login campussafe_report@grp07_campussafedb] create role a4_x
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+--- [login campussafe_report@grp07_campussafedb] select count(*) from pg_authid
+ERROR:  permission denied for table pg_authid
+
+--- [login campussafe_report@grp07_campussafedb] vacuum hazard_report
+WARNING:  permission denied to vacuum "hazard_report", skipping it
+VACUUM
+
+--- [login campussafe_report@postgres] select 1
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  permission denied for database "postgres"
+DETAIL:  User does not have CONNECT privilege.
+
+##### campussafe_backup
+--- [login campussafe_backup@grp07_campussafedb] select count(*) from hazard_report
+ count 
+-------
+    18
+(1 row)
+
+
+--- [login campussafe_backup@grp07_campussafedb] select count(*) from app_user
+ count 
+-------
+     6
+(1 row)
+
+
+--- [login campussafe_backup@grp07_campussafedb] select username, left(password_hash,7) from app_user limit 1
+  username  |  left   
+------------+---------
+ demo_admin | $2y$10$
+(1 row)
+
+
+--- [login campussafe_backup@grp07_campussafedb] insert into hazard_category(category_name) values ('A4 test campussafe_backup')
+ERROR:  permission denied for table hazard_category
+
+--- [login campussafe_backup@grp07_campussafedb] update app_user set role_id=1 where username='demo_student'
+ERROR:  permission denied for table app_user
+
+--- [login campussafe_backup@grp07_campussafedb] delete from hazard_report where report_id=1
+ERROR:  permission denied for table hazard_report
+
+--- [login campussafe_backup@grp07_campussafedb] delete from attachment where attachment_id=-1
+ERROR:  permission denied for table attachment
+
+--- [login campussafe_backup@grp07_campussafedb] truncate hazard_report
+ERROR:  permission denied for table hazard_report
+
+--- [login campussafe_backup@grp07_campussafedb] create table a4_t(i int)
+ERROR:  permission denied for schema public
+LINE 1: create table a4_t(i int)
+                     ^
+
+--- [login campussafe_backup@grp07_campussafedb] create role a4_x
+ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+
+--- [login campussafe_backup@grp07_campussafedb] select count(*) from pg_authid
+ERROR:  permission denied for table pg_authid
+
+--- [login campussafe_backup@grp07_campussafedb] vacuum hazard_report
+WARNING:  permission denied to vacuum "hazard_report", skipping it
+VACUUM
+
+--- [login campussafe_backup@postgres] select 1
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  permission denied for database "postgres"
+DETAIL:  User does not have CONNECT privilege.
+
+--- app as campussafe_app (least privilege)
+app started with DB_USER=campussafe_app
+student submits report                                         HTTP 302 /reports/view.php?id=21
+msg: 
+admin GET /admin/index.php                                     HTTP 200 
+admin GET /admin/verify.php                                    HTTP 200 
+admin GET /admin/users.php                                     HTTP 200 
+admin GET /admin/stats.php                                     HTTP 200 
+admin verifies                                                 HTTP 302 /admin/assign.php?id=21
+msg: 
+admin creates a user                                           HTTP 302 /admin/users.php
+msg: 
+admin adds a category                                          HTTP 302 /admin/categories.php
+msg: 
+--- [postgres@grp07_campussafedb] select report_id, status, priority from hazard_report order by report_id desc limit 3
+ report_id |  status   | priority 
+-----------+-----------+----------
+        21 | Verified  | Medium
+        19 | Resolved  | High
+        17 | Submitted | 
+(3 rows)
+
+
+--- [postgres@grp07_campussafedb] select username from app_user where username='a4_user'
+ username 
+----------
+ a4_user
+(1 row)
+
+
+--- application roles against pages (see also a3_deploy.txt)
+demo_student GET /admin/users.php                              HTTP 403 
+demo_student GET /admin/verify.php                             HTTP 403 
+demo_student GET /admin/stats.php                              HTTP 403 
+demo_student GET /maintenance/index.php                        HTTP 403 
+demo_faculty GET /admin/users.php                              HTTP 403 
+demo_faculty GET /admin/verify.php                             HTTP 403 
+demo_faculty GET /admin/stats.php                              HTTP 403 
+demo_faculty GET /maintenance/index.php                        HTTP 403 
+demo_auditor GET /admin/users.php                              HTTP 403 
+demo_auditor GET /admin/verify.php                             HTTP 403 
+demo_auditor GET /admin/stats.php                              HTTP 200 
+demo_auditor GET /maintenance/index.php                        HTTP 403 
+demo_maint1 GET /admin/users.php                               HTTP 403 
+demo_maint1 GET /admin/verify.php                              HTTP 403 
+demo_maint1 GET /admin/stats.php                               HTTP 403 
+demo_maint1 GET /maintenance/index.php                         HTTP 200 
+--- other checks
+6 wrong passwords then correct:
+attempt 1 -> HTTP 200 Invalid username or password.
+attempt 2 -> HTTP 200 Invalid username or password.
+attempt 3 -> HTTP 200 Invalid username or password.
+attempt 4 -> HTTP 200 Invalid username or password.
+attempt 5 -> HTTP 200 Invalid username or password.
+attempt 6 -> HTTP 200 Invalid username or password.
+correct password -> HTTP 302 /
+forged post without token as student (Origin evil):
+post without csrf token                                        HTTP 403 
+msg: 
+logout then reuse session:
+logout                                                         HTTP 302 /
+GET /reports/list.php after logout                             HTTP 302 /login.php
+--- hashes and config
+--- [postgres@grp07_campussafedb] select left(password_hash,4) p, count(*) from app_user group by 1
+  p   | count 
+------+-------
+ $2y$ |     7
+(1 row)
+
+
+default password in .env.example: DEMO_PASSWORD=Password123!; DB_PASSWORD=change_me_locally
+grp07-campussafe-main\.gitignore:2:.env
+grp07-campussafe-main\.gitignore:3:.env.local
+grp07-campussafe-main\.gitignore:4:.env.*.local
+--- pg_hba rules
+local   all             all                                     scram-sha-256
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             ::1/128                 scram-sha-256
+local   replication     all                                     scram-sha-256
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+
+

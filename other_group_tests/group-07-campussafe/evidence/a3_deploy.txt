@@ -1,0 +1,362 @@
+=== Activity 3: deploy CampusSafe, tested by G08, 2026-11-07 00:54
+--- versions
+psql (PostgreSQL) 18.6
+php: C:\xampp2\php\php.exe
+PHP 8.2.12 (cli) (built: Oct 24 2023 21:15:15) (ZTS Visual C++ 2019 x64)
+fileinfo
+PDO
+pdo_mysql
+pdo_pgsql
+pdo_sqlite
+pgsql
+session
+--- shipped files
+
+bin               
+database          
+db-access-control 
+db-backup-recovery
+db-maintenance    
+docs              
+progress-report   
+public            
+src               
+uploads           
+.env              
+.env.example      
+.gitignore        
+HOW_IT_WORKS.md   
+README.md         
+setup.bat         
+start.bat         
+
+
+
+--- .env.example
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=grp07_campussafedb
+DB_USER=campussafe_app
+DB_PASSWORD=change_me_locally
+DEMO_PASSWORD=Password123!
+=== database setup (README manual steps, as postgres)
+DROP DATABASE
+CREATE DATABASE
+--- 01_schema.sql
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+--- 02_seed.sql
+INSERT 0 60
+INSERT 0 9
+INSERT 0 5
+ setval 
+--------
+      5
+(1 row)
+
+--- schema run a second time (repeatability)
+--- 02_seed.sql second run
+=== app: .env then seed_users.php
+app started with DB_USER=postgres
+========================================================
+ CampusSafe - Dynamic User Seeder
+========================================================
+Using DEMO_PASSWORD : Password123!
+Generated Hash      : $2y$10$4g1Ph3cz6RBALbxMkXrFTOPZJAoZefZgnwA0Sfk4PL1fFg.AMsBRC
+
+[UPDATED] demo_admin (Eleanor Vance (Admin)) - Password reset.
+[UPDATED] demo_maint1 (Alex Davis (Senior Tech)) - Password reset.
+[UPDATED] demo_maint2 (Carlos Reyes (Electrician)) - Password reset.
+[UPDATED] demo_student (Maria Santos (Student)) - Password reset.
+[UPDATED] demo_faculty (Dr. Robert Hernandez (Faculty)) - Password reset.
+[UPDATED] demo_auditor (Grace Kim (Safety Auditor)) - Password reset.
+
+All demo user accounts are successfully configured!
+========================================================
+ CampusSafe - Dynamic User Seeder
+========================================================
+--- [postgres@grp07_campussafedb] select u.username, r.role_name, u.account_status, length(u.password_hash) hashlen, left(u.password_hash,4) prefix from app_user u join role r using(role_id) order by 1
+   username   |   role_name   | account_status | hashlen | prefix 
+--------------+---------------+----------------+---------+--------
+ demo_admin   | Administrator | active         |      60 | $2y$
+ demo_auditor | Auditor       | active         |      60 | $2y$
+ demo_faculty | Faculty/Staff | active         |      60 | $2y$
+ demo_maint1  | Maintenance   | active         |      60 | $2y$
+ demo_maint2  | Maintenance   | active         |      60 | $2y$
+ demo_student | Student       | active         |      60 | $2y$
+(6 rows)
+
+
+=== database checks
+--- [postgres@grp07_campussafedb] select table_name from information_schema.tables where table_schema='public' order by 1
+      table_name       
+-----------------------
+ app_user
+ assignment
+ attachment
+ campus_location
+ hazard_category
+ hazard_report
+ maintenance_action
+ report_status_history
+ role
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select contype, count(*) from pg_constraint c join pg_namespace n on n.oid=c.connamespace where n.nspname='public' group by 1 order by 1
+ contype | count 
+---------+-------
+ c       |     7
+ f       |    14
+ n       |    47
+ p       |     9
+ u       |     5
+(5 rows)
+
+
+--- [postgres@grp07_campussafedb] select count(*) indexes from pg_indexes where schemaname='public'
+ indexes 
+---------
+      24
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select count(*) triggers from pg_trigger where not tgisinternal
+ triggers 
+----------
+        0
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select (select count(*) from hazard_report) reports, (select count(*) from hazard_category) cats, (select count(*) from campus_location) locs, (select count(*) from attachment) att
+ reports | cats | locs | att 
+---------+------+------+-----
+      16 |    6 |   10 |   5
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select tableowner, count(*) from pg_tables where schemaname='public' group by 1
+ tableowner | count 
+------------+-------
+ postgres   |     9
+(1 row)
+
+
+--- verify.sql shipped with the project
+=== 1. TABLE ROW COUNTS ===
+      table_name       | total_rows 
+-----------------------+------------
+ role                  |          5
+ app_user              |          6
+ hazard_category       |          6
+ campus_location       |         10
+ hazard_report         |         16
+ assignment            |         12
+ report_status_history |         60
+ maintenance_action    |          9
+ attachment            |          5
+(9 rows)
+
+=== 2. STATUS DISTRIBUTION ===
+   status    | priority | count 
+-------------+----------+-------
+ Assigned    | Critical |     2
+ Assigned    | High     |     1
+ Closed      | High     |     1
+ Closed      | Low      |     1
+ Closed      | Medium   |     1
+ In Progress | High     |     1
+ In Progress | Medium   |     2
+ Resolved    | High     |     2
+ Resolved    | Low      |     1
+ Submitted   |          |     2
+ Verified    | High     |     1
+ Verified    | Medium   |     1
+(12 rows)
+
+=== 3. CONSTRAINT INTEGRITY AUDIT ===
+ violation_unverified_with_verifier 
+------------------------------------
+                                  0
+(1 row)
+
+ violation_resolved_missing_timestamp 
+--------------------------------------
+                                    0
+=== web checks
+--- anonymous access to protected pages
+anonymous GET /index.php                                       HTTP 200 
+anonymous GET /reports/list.php                                HTTP 302 /login.php
+anonymous GET /reports/new.php                                 HTTP 302 /login.php
+anonymous GET /admin/index.php                                 HTTP 302 /login.php
+anonymous GET /admin/verify.php                                HTTP 302 /login.php
+anonymous GET /admin/assign.php                                HTTP 302 /login.php
+anonymous GET /admin/users.php                                 HTTP 302 /login.php
+anonymous GET /admin/categories.php                            HTTP 302 /login.php
+anonymous GET /admin/locations.php                             HTTP 302 /login.php
+anonymous GET /admin/stats.php                                 HTTP 302 /login.php
+anonymous GET /maintenance/index.php                           HTTP 302 /login.php
+anonymous GET /maintenance/assigned.php                        HTTP 302 /login.php
+login page HTTP 200; csrf field present: True
+install.php reachable without login after setup: HTTP 200 (title: CampusSafe 1-Click Installation Wizard)
+--- login tests
+login 'demo_admin' / 'wrong' -> HTTP 200  msg: Invalid username or password.
+login 'nobody' / 'Password123!' -> HTTP 200  msg: Invalid username or password.
+login '' / '' -> HTTP 200  msg: Please enter both your username/email and password.
+login '' OR '1'='1' / 'x' -> HTTP 200  msg: Invalid username or password.
+login without csrf token -> HTTP 403  msg: 
+--- role gating: each account against every page (Code 200 = allowed, 302/403 = blocked)
+demo_admin GET /index.php                                      HTTP 200 
+demo_admin GET /reports/list.php                               HTTP 200 
+demo_admin GET /reports/new.php                                HTTP 200 
+demo_admin GET /admin/index.php                                HTTP 200 
+demo_admin GET /admin/verify.php                               HTTP 200 
+demo_admin GET /admin/assign.php                               HTTP 200 
+demo_admin GET /admin/users.php                                HTTP 200 
+demo_admin GET /admin/categories.php                           HTTP 200 
+demo_admin GET /admin/locations.php                            HTTP 200 
+demo_admin GET /admin/stats.php                                HTTP 200 
+demo_admin GET /maintenance/index.php                          HTTP 403 
+demo_admin GET /maintenance/assigned.php                       HTTP 403 
+demo_maint1 GET /index.php                                     HTTP 200 
+demo_maint1 GET /reports/list.php                              HTTP 200 
+demo_maint1 GET /reports/new.php                               HTTP 200 
+demo_maint1 GET /admin/index.php                               HTTP 403 
+demo_maint1 GET /admin/verify.php                              HTTP 403 
+demo_maint1 GET /admin/assign.php                              HTTP 403 
+demo_maint1 GET /admin/users.php                               HTTP 403 
+demo_maint1 GET /admin/categories.php                          HTTP 403 
+demo_maint1 GET /admin/locations.php                           HTTP 403 
+demo_maint1 GET /admin/stats.php                               HTTP 403 
+demo_maint1 GET /maintenance/index.php                         HTTP 200 
+demo_maint1 GET /maintenance/assigned.php                      HTTP 200 
+demo_student GET /index.php                                    HTTP 200 
+demo_student GET /reports/list.php                             HTTP 200 
+demo_student GET /reports/new.php                              HTTP 200 
+demo_student GET /admin/index.php                              HTTP 403 
+demo_student GET /admin/verify.php                             HTTP 403 
+demo_student GET /admin/assign.php                             HTTP 403 
+demo_student GET /admin/users.php                              HTTP 403 
+demo_student GET /admin/categories.php                         HTTP 403 
+demo_student GET /admin/locations.php                          HTTP 403 
+demo_student GET /admin/stats.php                              HTTP 403 
+demo_student GET /maintenance/index.php                        HTTP 403 
+demo_student GET /maintenance/assigned.php                     HTTP 403 
+demo_faculty GET /index.php                                    HTTP 200 
+demo_faculty GET /reports/list.php                             HTTP 200 
+demo_faculty GET /reports/new.php                              HTTP 200 
+demo_faculty GET /admin/index.php                              HTTP 403 
+demo_faculty GET /admin/verify.php                             HTTP 403 
+demo_faculty GET /admin/assign.php                             HTTP 403 
+demo_faculty GET /admin/users.php                              HTTP 403 
+demo_faculty GET /admin/categories.php                         HTTP 403 
+demo_faculty GET /admin/locations.php                          HTTP 403 
+demo_faculty GET /admin/stats.php                              HTTP 403 
+demo_faculty GET /maintenance/index.php                        HTTP 403 
+demo_faculty GET /maintenance/assigned.php                     HTTP 403 
+demo_auditor GET /index.php                                    HTTP 200 
+demo_auditor GET /reports/list.php                             HTTP 200 
+demo_auditor GET /reports/new.php                              HTTP 200 
+demo_auditor GET /admin/index.php                              HTTP 403 
+demo_auditor GET /admin/verify.php                             HTTP 403 
+demo_auditor GET /admin/assign.php                             HTTP 403 
+demo_auditor GET /admin/users.php                              HTTP 403 
+demo_auditor GET /admin/categories.php                         HTTP 403 
+demo_auditor GET /admin/locations.php                          HTTP 403 
+demo_auditor GET /admin/stats.php                              HTTP 200 
+demo_auditor GET /maintenance/index.php                        HTTP 403 
+demo_auditor GET /maintenance/assigned.php                     HTTP 403 
+--- submit a hazard report as student
+valid report                                                   HTTP 302 /reports/view.php?id=17
+msg: 
+empty description                                              HTTP 200 
+msg: Hazard report #17 has been submitted successfully and entered the verification queue.
+category 9999                                                  HTTP 200 
+msg: Failed to file report: SQLSTATE[23503]: Foreign key violation: 7 ERROR: insert or update on table &quot;hazard_report&quot; violates foreign key constraint &quot;hazard_report_category_id_fkey&quot; DETAIL: Key (category_id)=(9999) is not present in table &quot;hazard_category&quot;.
+script and SQL text in description                             HTTP 302 /reports/view.php?id=19
+report without csrf token                                      HTTP 403 
+msg: 
+--- [postgres@grp07_campussafedb] select report_id, status, priority, left(description,40) d, reporter_user_id from hazard_report order by report_id desc limit 4
+ report_id |  status   | priority |                    d                     | reporter_user_id 
+-----------+-----------+----------+------------------------------------------+------------------
+        19 | Submitted |          | <script>alert(1)</script> '; DROP TABLE  |                4
+        17 | Submitted |          | G08 test: wet floor near stairs          |                4
+        16 | Closed    | Low      | Water fountain spout pressure excessive, |                5
+        15 | Closed    | Medium   | Window latch broken, allowing rain water |                4
+(4 rows)
+
+
+--- [postgres@grp07_campussafedb] select count(*) from report_status_history
+ count 
+-------
+    62
+(1 row)
+
+
+--- admin workflow: verify then assign then technician resolves
+verify report 19                                               HTTP 302 /admin/assign.php?id=19
+msg: 
+priority Urgent                                                HTTP 200 
+msg: Report #19 was successfully verified as High priority. Ready for assignment.
+assign report 19                                               HTTP 302 /reports/view.php?id=19
+msg: 
+technician: in progress                                        HTTP 302 /maintenance/update.php?id=19
+msg: 
+technician: resolved                                           HTTP 302 /reports/view.php?id=19
+msg: 
+--- [postgres@grp07_campussafedb] select report_id, status, priority, resolved_at is not null resolved from hazard_report where report_id=19
+ report_id |  status  | priority | resolved 
+-----------+----------+----------+----------
+        19 | Resolved | High     | t
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select * from report_status_history where report_id=19 order by 1
+ history_id | report_id | changed_by_user_id |   status    |         changed_at         |                                          notes                                          
+------------+-----------+--------------------+-------------+----------------------------+-----------------------------------------------------------------------------------------
+         62 |        19 |                  4 | Submitted   | 2026-11-07 00:54:28.380116 | Initial hazard report filed by user.
+         63 |        19 |                  1 | Verified    | 2026-11-07 00:54:28.784599 | Verified as High priority. Notes: G08 verify
+         64 |        19 |                  1 | Assigned    | 2026-11-07 00:54:28.967537 | Assigned to Alex Davis (Senior Tech). Notes: G08 assign
+         65 |        19 |                  2 | In Progress | 2026-11-07 00:54:29.193101 | Technician started inspection / repair work. Notes: Technician logged initial progress.
+         66 |        19 |                  2 | Resolved    | 2026-11-07 00:54:29.240052 | Hazard resolved: G08 fixed
+(5 rows)
+
+
+--- headers and cookie
+Host : localhost:8000
+Connection : close
+Pragma : no-cache
+Cache-Control : no-store, no-cache, must-revalidate
+Content-Type : text/html; charset=UTF-8
+Date : Fri, 06 Nov 2026 16:54:29 GMT
+Expires : Thu, 19 Nov 1981 08:52:00 GMT
+Set-Cookie : PHPSESSID=nenmelutnbi9t5glsn041hcg9d; path=/; HttpOnly; SameSite=Lax
+X-Powered-By : PHP/8.2.12
+--- direct database rules
+--- [postgres@grp07_campussafedb] update hazard_report set status='Banana' where report_id=19
+ERROR:  new row for relation "hazard_report" violates check constraint "hazard_report_status_check"
+DETAIL:  Failing row contains (19, 4, 1, 1, <script>alert(1)</script> '; DROP TABLE hazard_report;--, High, Banana, 2026-11-07 00:54:28.380116, 1, 2026-11-07 00:54:28.784599, 2026-11-07 00:54:29.240052).
+
+--- [postgres@grp07_campussafedb] update hazard_report set status='Resolved', resolved_at=null where report_id=19
+ERROR:  new row for relation "hazard_report" violates check constraint "chk_resolved_has_date"
+DETAIL:  Failing row contains (19, 4, 1, 1, <script>alert(1)</script> '; DROP TABLE hazard_report;--, High, Resolved, 2026-11-07 00:54:28.380116, 1, 2026-11-07 00:54:28.784599, null).
+
+--- [postgres@grp07_campussafedb] insert into hazard_report(reporter_user_id,location_id,category_id,description,priority) values (1,1,1,'x','Urgent')
+ERROR:  new row for relation "hazard_report" violates check constraint "hazard_report_priority_check"
+DETAIL:  Failing row contains (20, 1, 1, 1, x, Urgent, Submitted, 2026-11-07 00:54:29.658016, null, null, null).
+
+--- [postgres@grp07_campussafedb] select count(*) from hazard_report
+ count 
+-------
+    18
+(1 row)
+
+
+--- php log
+app left running at http://localhost:8000 for screenshots (login demo_admin / Password123!)

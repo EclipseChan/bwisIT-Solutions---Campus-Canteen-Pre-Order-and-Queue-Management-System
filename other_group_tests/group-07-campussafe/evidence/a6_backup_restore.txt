@@ -1,0 +1,253 @@
+=== Activity 6: backup, restore, recovery, tested by G08, 2026-11-07 00:58
+pg_dump exit 0 in 0.2072846 s
+file grp07_campussafedb_activity6.dump bytes 48248
+sha256 82DEC32981B34765D985CE2F3B99F5832CBD8DDA9CACDC1C1A3F7D5904499E9F
+--- archive contents
+;
+; Archive created at 2026-11-07 00:58:40
+;     dbname: grp07_campussafedb
+;     TOC Entries: 118
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6
+;     Dumped by pg_dump version: 18.6
+;
+TOC entries: 113
+ACL entries: 21
+--- backup role: campussafe_backup login runs pg_dump
+exit 0 size 48248
+=== restore into grp07_campussafedb_restore
+NOTICE:  database "grp07_campussafedb_restore" does not exist, skipping
+DROP DATABASE
+CREATE DATABASE
+pg_restore exit 0 in 0.201748 s
+=== compare original and restored
+##### grp07_campussafedb
+--- [postgres@grp07_campussafedb] select (select count(*) from pg_tables where schemaname='public') tables, (select count(*) from pg_indexes where schemaname='public') indexes, (select count(*) from pg_sequences) sequences
+ tables | indexes | sequences 
+--------+---------+-----------
+      9 |      24 |         9
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select (select count(*) from role) role, (select count(*) from app_user) users, (select count(*) from hazard_category) cats, (select count(*) from campus_location) locs, (select count(*) from hazard_report) reports, (select count(*) from assignment) assignments, (select count(*) from report_status_history) history, (select count(*) from maintenance_action) actions, (select count(*) from attachment) attachments
+ role | users | cats | locs | reports | assignments | history | actions | attachments 
+------+-------+------+------+---------+-------------+---------+---------+-------------
+    5 |     7 |    8 |   10 |      19 |          13 |      68 |      11 |           5
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select contype, count(*) from pg_constraint c join pg_namespace n on n.oid=c.connamespace where n.nspname='public' group by 1 order by 1
+ contype | count 
+---------+-------
+ c       |     7
+ f       |    14
+ n       |    47
+ p       |     9
+ u       |     5
+(5 rows)
+
+
+--- [postgres@grp07_campussafedb] select md5(string_agg(h::text, '|' order by report_id)) reports_md5 from hazard_report h
+           reports_md5            
+----------------------------------
+ 7760618bcfd6b38620434f00bed4a955
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select md5(string_agg(h::text, '|' order by 1)) history_md5 from report_status_history h
+           history_md5            
+----------------------------------
+ 035e614aab390c7861427cf4194bd797
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select md5(string_agg(h::text, '|' order by user_id)) users_md5 from app_user h
+            users_md5             
+----------------------------------
+ ae500fb3313a9d4c158a7a6acad3c411
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select sequencename, last_value from pg_sequences order by 1
+             sequencename             | last_value 
+--------------------------------------+------------
+ app_user_user_id_seq                 |          7
+ assignment_assignment_id_seq         |         13
+ attachment_attachment_id_seq         |          5
+ campus_location_location_id_seq      |         10
+ hazard_category_category_id_seq      |          8
+ hazard_report_report_id_seq          |         21
+ maintenance_action_action_id_seq     |         11
+ report_status_history_history_id_seq |         68
+ role_role_id_seq                     |          5
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select grantee, count(*) from information_schema.role_table_grants where table_schema='public' and grantee like 'app%' group by 1 order by 1
+     grantee      | count 
+------------------+-------
+ app_backup_grp   |     9
+ app_readonly_grp |     7
+ app_runtime_grp  |    24
+(3 rows)
+
+
+--- [postgres@postgres] select datacl from pg_database where datname='grp07_campussafedb'
+                                                  datacl                                                  
+----------------------------------------------------------------------------------------------------------
+ {postgres=CTc/postgres,app_runtime_grp=c/postgres,app_readonly_grp=c/postgres,app_backup_grp=c/postgres}
+(1 row)
+
+
+##### grp07_campussafedb_restore
+--- [postgres@grp07_campussafedb_restore] select (select count(*) from pg_tables where schemaname='public') tables, (select count(*) from pg_indexes where schemaname='public') indexes, (select count(*) from pg_sequences) sequences
+ tables | indexes | sequences 
+--------+---------+-----------
+      9 |      24 |         9
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] select (select count(*) from role) role, (select count(*) from app_user) users, (select count(*) from hazard_category) cats, (select count(*) from campus_location) locs, (select count(*) from hazard_report) reports, (select count(*) from assignment) assignments, (select count(*) from report_status_history) history, (select count(*) from maintenance_action) actions, (select count(*) from attachment) attachments
+ role | users | cats | locs | reports | assignments | history | actions | attachments 
+------+-------+------+------+---------+-------------+---------+---------+-------------
+    5 |     7 |    8 |   10 |      19 |          13 |      68 |      11 |           5
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] select contype, count(*) from pg_constraint c join pg_namespace n on n.oid=c.connamespace where n.nspname='public' group by 1 order by 1
+ contype | count 
+---------+-------
+ c       |     7
+ f       |    14
+ n       |    47
+ p       |     9
+ u       |     5
+(5 rows)
+
+
+--- [postgres@grp07_campussafedb_restore] select md5(string_agg(h::text, '|' order by report_id)) reports_md5 from hazard_report h
+           reports_md5            
+----------------------------------
+ 7760618bcfd6b38620434f00bed4a955
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] select md5(string_agg(h::text, '|' order by 1)) history_md5 from report_status_history h
+           history_md5            
+----------------------------------
+ 035e614aab390c7861427cf4194bd797
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] select md5(string_agg(h::text, '|' order by user_id)) users_md5 from app_user h
+            users_md5             
+----------------------------------
+ ae500fb3313a9d4c158a7a6acad3c411
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] select sequencename, last_value from pg_sequences order by 1
+             sequencename             | last_value 
+--------------------------------------+------------
+ app_user_user_id_seq                 |          7
+ assignment_assignment_id_seq         |         13
+ attachment_attachment_id_seq         |          5
+ campus_location_location_id_seq      |         10
+ hazard_category_category_id_seq      |          8
+ hazard_report_report_id_seq          |         21
+ maintenance_action_action_id_seq     |         11
+ report_status_history_history_id_seq |         68
+ role_role_id_seq                     |          5
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb_restore] select grantee, count(*) from information_schema.role_table_grants where table_schema='public' and grantee like 'app%' group by 1 order by 1
+     grantee      | count 
+------------------+-------
+ app_backup_grp   |     9
+ app_readonly_grp |     7
+ app_runtime_grp  |    24
+(3 rows)
+
+
+--- [postgres@postgres] select datacl from pg_database where datname='grp07_campussafedb_restore'
+ datacl 
+--------
+ 
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] insert into hazard_report(reporter_user_id,location_id,category_id,description,priority) values (1,1,1,'x','Urgent')
+ERROR:  new row for relation "hazard_report" violates check constraint "hazard_report_priority_check"
+DETAIL:  Failing row contains (22, 1, 1, 1, x, Urgent, Submitted, 2026-11-07 00:58:42.46601, null, null, null).
+
+--- application against the restored copy as campussafe_app
+restored copy, admin GET /admin/index.php                      HTTP 200 
+restored copy, admin GET /reports/list.php                     HTTP 200 
+restored copy, admin GET /admin/stats.php                      HTTP 200 
+--- [login campussafe_app@grp07_campussafedb_restore] select count(*) from hazard_report
+ count 
+-------
+    19
+(1 row)
+
+
+--- [login campussafe_app@grp07_campussafedb_restore] truncate hazard_report
+ERROR:  permission denied for table hazard_report
+
+stopped PHP server (pid 22576)
+=== recovery simulation (incident in the restored copy, then restore again)
+--- [postgres@grp07_campussafedb_restore] select count(*), md5(string_agg(h::text, '|' order by report_id)) from hazard_report h
+ count |               md5                
+-------+----------------------------------
+    19 | 7760618bcfd6b38620434f00bed4a955
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_restore] update hazard_report set status='Closed', resolved_at=now()
+UPDATE 19
+
+--- [postgres@grp07_campussafedb_restore] delete from report_status_history
+DELETE 68
+
+--- [postgres@grp07_campussafedb_restore] select (select count(*) from hazard_report where status='Closed') closed, (select count(*) from report_status_history) history
+ closed | history 
+--------+---------
+     19 |       0
+(1 row)
+
+
+NOTICE:  database "grp07_campussafedb_recovery" does not exist, skipping
+DROP DATABASE
+CREATE DATABASE
+recovery restore exit 0
+--- [postgres@grp07_campussafedb_recovery] select count(*), md5(string_agg(h::text, '|' order by report_id)) from hazard_report h
+ count |               md5                
+-------+----------------------------------
+    19 | 7760618bcfd6b38620434f00bed4a955
+(1 row)
+
+
+--- [postgres@grp07_campussafedb_recovery] select count(*) history from report_status_history
+ history 
+---------
+      68
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select count(*), md5(string_agg(h::text, '|' order by report_id)) from hazard_report h
+ count |               md5                
+-------+----------------------------------
+    19 | 7760618bcfd6b38620434f00bed4a955
+(1 row)
+
+
+--- uploaded files (not in the dump)
+attachment rows: 5
+files in uploads: 1
+=== cleanup (databases and roles created by this test)
+DROP DATABASE grp07_campussafedb, grp07_campussafedb_restore, grp07_campussafedb_recovery; DROP ROLE campussafe_app, campussafe_report, campussafe_backup, app_runtime_grp, app_readonly_grp, app_backup_grp;

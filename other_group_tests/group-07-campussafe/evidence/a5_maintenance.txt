@@ -1,0 +1,308 @@
+=== Activity 5: maintenance and monitoring, tested by G08, 2026-11-07 00:58
+--- [postgres@postgres] select version()
+                                 version                                 
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select pg_size_pretty(pg_database_size('grp07_campussafedb')) size
+  size   
+---------
+ 9174 kB
+(1 row)
+
+
+--- [postgres@grp07_campussafedb] select datname,numbackends,xact_commit,xact_rollback,blks_read,blks_hit,deadlocks,temp_files from pg_stat_database where datname='grp07_campussafedb'
+      datname       | numbackends | xact_commit | xact_rollback | blks_read | blks_hit | deadlocks | temp_files 
+--------------------+-------------+-------------+---------------+-----------+----------+-----------+------------
+ grp07_campussafedb |           1 |        1431 |            27 |        48 |   188184 |         0 |          0
+(1 row)
+
+
+--- [postgres@postgres] select name, setting from pg_settings where name in ('autovacuum','log_statement','log_min_duration_statement','max_connections','logging_collector','log_directory') order by 1
+            name            | setting 
+----------------------------+---------
+ autovacuum                 | on
+ log_directory              | log
+ log_min_duration_statement | -1
+ log_statement              | none
+ logging_collector          | on
+ max_connections            | 100
+(6 rows)
+
+
+--- [postgres@grp07_campussafedb] select relname, n_live_tup live, n_dead_tup dead, last_autovacuum, last_autoanalyze from pg_stat_user_tables order by 1
+        relname        | live | dead | last_autovacuum |       last_autoanalyze        
+-----------------------+------+------+-----------------+-------------------------------
+ app_user              |    7 |    7 |                 | 
+ assignment            |   13 |    2 |                 | 
+ attachment            |    5 |    0 |                 | 
+ campus_location       |   10 |    0 |                 | 
+ hazard_category       |    8 |    0 |                 | 
+ hazard_report         |   19 |    6 |                 | 
+ maintenance_action    |   11 |    0 |                 | 
+ report_status_history |   68 |    0 |                 | 2026-11-07 00:54:20.455546+08
+ role                  |    5 |    0 |                 | 
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select relname, pg_size_pretty(pg_total_relation_size(relid)) total from pg_stat_user_tables order by pg_total_relation_size(relid) desc
+        relname        | total  
+-----------------------+--------
+ hazard_report         | 112 kB
+ assignment            | 72 kB
+ app_user              | 64 kB
+ role                  | 48 kB
+ report_status_history | 48 kB
+ hazard_category       | 48 kB
+ attachment            | 48 kB
+ maintenance_action    | 48 kB
+ campus_location       | 32 kB
+(9 rows)
+
+
+--- [postgres@grp07_campussafedb] select relname, indexrelname, idx_scan from pg_stat_user_indexes order by idx_scan, 1
+        relname        |                 indexrelname                 | idx_scan 
+-----------------------+----------------------------------------------+----------
+ app_user              | app_user_email_key                           |        0
+ hazard_category       | hazard_category_category_name_key            |        0
+ hazard_report         | idx_report_submitted                         |        0
+ hazard_report         | idx_report_category                          |        0
+ hazard_report         | idx_report_location                          |        0
+ maintenance_action    | maintenance_action_pkey                      |        0
+ report_status_history | report_status_history_pkey                   |        0
+ assignment            | assignment_pkey                              |        1
+ attachment            | idx_attach_report                            |        1
+ report_status_history | idx_history_report                           |        1
+ attachment            | attachment_pkey                              |        2
+ hazard_report         | idx_report_reporter                          |        2
+ maintenance_action    | idx_action_report                            |        2
+ assignment            | assignment_report_id_maintenance_user_id_key |        3
+ assignment            | idx_assign_maint                             |        4
+ app_user              | app_user_username_key                        |        9
+ assignment            | idx_assign_report                            |       11
+ hazard_report         | idx_report_status                            |       14
+ role                  | role_role_name_key                           |       30
+ role                  | role_pkey                                    |       39
+ campus_location       | campus_location_pkey                         |       72
+ hazard_category       | hazard_category_pkey                         |       72
+ hazard_report         | hazard_report_pkey                           |      120
+ app_user              | app_user_pkey                                |      224
+(24 rows)
+
+
+--- [postgres@grp07_campussafedb] select c.conrelid::regclass tbl, a.attname col from pg_constraint c join pg_attribute a on a.attrelid=c.conrelid and a.attnum=any(c.conkey) where c.contype='f' and not exists (select 1 from pg_index i where i.indrelid=c.conrelid and a.attnum = i.indkey[0]) order by 1
+          tbl          |         col         
+-----------------------+---------------------
+ app_user              | role_id
+ hazard_report         | verified_by_user_id
+ assignment            | assigned_by_user_id
+ report_status_history | changed_by_user_id
+ maintenance_action    | maintenance_user_id
+ attachment            | uploaded_by_user_id
+(6 rows)
+
+
+--- server log (this database, last entries)
+	                INSERT INTO hazard_report (
+2026-11-07 00:54:29 +08 ERROR:  new row for relation "hazard_report" violates check constraint "hazard_report_status_check"
+2026-11-07 00:54:29 +08 DETAIL:  Failing row contains (19, 4, 1, 1, <script>alert(1)</script> '; DROP TABLE hazard_report;--, High, Banana, 2026-11-07 00:54:28.380116, 1, 2026-11-07 00:54:28.784599, 2026-11-07 00:54:29.240052).
+2026-11-07 00:54:29 +08 STATEMENT:  update hazard_report set status='Banana' where report_id=19
+2026-11-07 00:54:29 +08 ERROR:  new row for relation "hazard_report" violates check constraint "chk_resolved_has_date"
+2026-11-07 00:54:29 +08 DETAIL:  Failing row contains (19, 4, 1, 1, <script>alert(1)</script> '; DROP TABLE hazard_report;--, High, Resolved, 2026-11-07 00:54:28.380116, 1, 2026-11-07 00:54:28.784599, null).
+2026-11-07 00:54:29 +08 STATEMENT:  update hazard_report set status='Resolved', resolved_at=null where report_id=19
+2026-11-07 00:54:29 +08 ERROR:  new row for relation "hazard_report" violates check constraint "hazard_report_priority_check"
+2026-11-07 00:54:29 +08 STATEMENT:  insert into hazard_report(reporter_user_id,location_id,category_id,description,priority) values (1,1,1,'x','Urgent')
+2026-11-07 00:57:55 +08 ERROR:  permission denied for table hazard_report
+2026-11-07 00:57:55 +08 STATEMENT:  delete from hazard_report where report_id=1
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table hazard_report
+2026-11-07 00:57:56 +08 STATEMENT:  truncate hazard_report
+2026-11-07 00:57:56 +08 WARNING:  permission denied to vacuum "hazard_report", skipping it
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table app_user
+2026-11-07 00:57:56 +08 STATEMENT:  select count(*) from app_user
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table app_user
+2026-11-07 00:57:56 +08 STATEMENT:  select username, left(password_hash,7) from app_user limit 1
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table hazard_category
+2026-11-07 00:57:56 +08 STATEMENT:  insert into hazard_category(category_name) values ('A4 test campussafe_report')
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table app_user
+2026-11-07 00:57:56 +08 STATEMENT:  update app_user set role_id=1 where username='demo_student'
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table hazard_report
+2026-11-07 00:57:56 +08 STATEMENT:  delete from hazard_report where report_id=1
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table attachment
+2026-11-07 00:57:56 +08 STATEMENT:  delete from attachment where attachment_id=-1
+2026-11-07 00:57:56 +08 ERROR:  permission denied for table hazard_report
+2026-11-07 00:57:56 +08 STATEMENT:  truncate hazard_report
+2026-11-07 00:57:56 +08 WARNING:  permission denied to vacuum "hazard_report", skipping it
+2026-11-07 00:57:57 +08 ERROR:  permission denied for table hazard_category
+2026-11-07 00:57:57 +08 STATEMENT:  insert into hazard_category(category_name) values ('A4 test campussafe_backup')
+2026-11-07 00:57:57 +08 ERROR:  permission denied for table app_user
+2026-11-07 00:57:57 +08 STATEMENT:  update app_user set role_id=1 where username='demo_student'
+2026-11-07 00:57:57 +08 ERROR:  permission denied for table hazard_report
+2026-11-07 00:57:57 +08 STATEMENT:  delete from hazard_report where report_id=1
+2026-11-07 00:57:57 +08 ERROR:  permission denied for table attachment
+2026-11-07 00:57:57 +08 STATEMENT:  delete from attachment where attachment_id=-1
+2026-11-07 00:57:57 +08 ERROR:  permission denied for table hazard_report
+2026-11-07 00:57:57 +08 STATEMENT:  truncate hazard_report
+2026-11-07 00:57:57 +08 WARNING:  permission denied to vacuum "hazard_report", skipping it
+--- maintenance_commands.sql from the project (db-maintenance is for other groups; this project's own commands are in the repo docs)
+--- manual maintenance as postgres
+--- [postgres@grp07_campussafedb] analyze
+ANALYZE
+
+avg read rate: 7.789 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 27 hits, 1 reads, 0 dirtied
+WAL usage: 1 records, 0 full page images, 258 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+INFO:  analyzing "public.hazard_report"
+INFO:  "hazard_report": scanned 1 of 1 pages, containing 19 live rows and 0 dead rows; 19 rows in sample, 19 estimated total rows
+INFO:  finished analyzing table "grp07_campussafedb.public.hazard_report"
+avg read rate: 0.000 MB/s, avg write rate: 3.906 MB/s
+buffer usage: 427 hits, 0 reads, 1 dirtied
+WAL usage: 31 records, 0 full page images, 5433 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+INFO:  analyzing "public.report_status_history"
+INFO:  "report_status_history": scanned 1 of 1 pages, containing 68 live rows and 0 dead rows; 68 rows in sample, 68 estimated total rows
+INFO:  finished analyzing table "grp07_campussafedb.public.report_status_history"
+avg read rate: 0.000 MB/s, avg write rate: 0.000 MB/s
+buffer usage: 346 hits, 0 reads, 0 dirtied
+WAL usage: 11 records, 0 full page images, 3378 bytes, 0 buffers full
+system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+VACUUM
+--- [postgres@grp07_campussafedb] select relname, n_dead_tup dead, last_vacuum, last_analyze from pg_stat_user_tables order by 1
+        relname        | dead |          last_vacuum          |         last_analyze          
+-----------------------+------+-------------------------------+-------------------------------
+ app_user              |    7 |                               | 2026-11-07 00:58:39.17426+08
+ assignment            |    2 |                               | 2026-11-07 00:58:39.16603+08
+ attachment            |    0 |                               | 2026-11-07 00:58:39.323128+08
+ campus_location       |    0 |                               | 2026-11-07 00:58:39.163558+08
+ hazard_category       |    0 |                               | 2026-11-07 00:58:39.162416+08
+ hazard_report         |    0 | 2026-11-07 00:58:39.391622+08 | 2026-11-07 00:58:39.394714+08
+ maintenance_action    |    0 |                               | 2026-11-07 00:58:39.326538+08
+ report_status_history |    0 | 2026-11-07 00:58:39.450766+08 | 2026-11-07 00:58:39.454582+08
+ role                  |    0 |                               | 2026-11-07 00:58:39.167604+08
+(9 rows)
+
+
+--- as campussafe_app
+--- [login campussafe_app@grp07_campussafedb] vacuum hazard_report
+WARNING:  permission denied to vacuum "hazard_report", skipping it
+VACUUM
+
+--- [login campussafe_app@grp07_campussafedb] analyze hazard_report
+WARNING:  permission denied to analyze "hazard_report", skipping it
+ANALYZE
+
+--- query plans for the pages' queries
+--- [postgres@grp07_campussafedb] explain (analyze, buffers) select r.report_id, r.status, r.priority, c.category_name, l.building from hazard_report r join hazard_category c using(category_id) join campus_location l using(location_id) order by r.submitted_at desc
+                                                              QUERY PLAN                                                               
+---------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=4.14..4.19 rows=19 width=63) (actual time=0.079..0.080 rows=19.00 loops=1)
+   Sort Key: r.submitted_at DESC
+   Sort Method: quicksort  Memory: 26kB
+   Buffers: shared hit=6
+   ->  Hash Join  (cost=2.41..3.74 rows=19 width=63) (actual time=0.044..0.054 rows=19.00 loops=1)
+         Hash Cond: (r.location_id = l.location_id)
+         Buffers: shared hit=3
+         ->  Hash Join  (cost=1.18..2.44 rows=19 width=43) (actual time=0.024..0.030 rows=19.00 loops=1)
+               Hash Cond: (r.category_id = c.category_id)
+               Buffers: shared hit=2
+               ->  Seq Scan on hazard_report r  (cost=0.00..1.19 rows=19 width=35) (actual time=0.006..0.007 rows=19.00 loops=1)
+                     Buffers: shared hit=1
+               ->  Hash  (cost=1.08..1.08 rows=8 width=16) (actual time=0.009..0.009 rows=8.00 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on hazard_category c  (cost=0.00..1.08 rows=8 width=16) (actual time=0.003..0.004 rows=8.00 loops=1)
+                           Buffers: shared hit=1
+         ->  Hash  (cost=1.10..1.10 rows=10 width=28) (actual time=0.015..0.015 rows=10.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=1
+               ->  Seq Scan on campus_location l  (cost=0.00..1.10 rows=10 width=28) (actual time=0.009..0.010 rows=10.00 loops=1)
+                     Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=348
+ Planning Time: 5.132 ms
+ Execution Time: 0.117 ms
+(26 rows)
+
+
+--- [postgres@grp07_campussafedb] explain (analyze, buffers) select * from hazard_report where status='Submitted' order by submitted_at
+                                                    QUERY PLAN                                                    
+------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.26..1.27 rows=3 width=126) (actual time=0.027..0.027 rows=3.00 loops=1)
+   Sort Key: submitted_at
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=4
+   ->  Seq Scan on hazard_report  (cost=0.00..1.24 rows=3 width=126) (actual time=0.012..0.015 rows=3.00 loops=1)
+         Filter: ((status)::text = 'Submitted'::text)
+         Rows Removed by Filter: 16
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=202
+ Planning Time: 3.002 ms
+ Execution Time: 0.039 ms
+(12 rows)
+
+
+--- [postgres@grp07_campussafedb] explain (analyze, buffers) select * from report_status_history where report_id=1 order by changed_at
+                                                       QUERY PLAN                                                        
+-------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.86..1.86 rows=1 width=67) (actual time=0.028..0.028 rows=1.00 loops=1)
+   Sort Key: changed_at
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=4
+   ->  Seq Scan on report_status_history  (cost=0.00..1.85 rows=1 width=67) (actual time=0.010..0.013 rows=1.00 loops=1)
+         Filter: (report_id = 1)
+         Rows Removed by Filter: 67
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=113
+ Planning Time: 1.476 ms
+ Execution Time: 0.042 ms
+(12 rows)
+
+
+--- [postgres@grp07_campussafedb] explain (analyze, buffers) select a.*, u.full_name from assignment a join app_user u on u.user_id=a.maintenance_user_id where a.maintenance_user_id=2
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..2.33 rows=8 width=57) (actual time=0.022..0.025 rows=8.00 loops=1)
+   Buffers: shared hit=2
+   ->  Seq Scan on app_user u  (cost=0.00..1.09 rows=1 width=27) (actual time=0.014..0.014 rows=1.00 loops=1)
+         Filter: (user_id = 2)
+         Rows Removed by Filter: 6
+         Buffers: shared hit=1
+   ->  Seq Scan on assignment a  (cost=0.00..1.16 rows=8 width=34) (actual time=0.007..0.009 rows=8.00 loops=1)
+         Filter: (maintenance_user_id = 2)
+         Rows Removed by Filter: 5
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=200
+ Planning Time: 3.834 ms
+ Execution Time: 0.052 ms
+(14 rows)
+
+
+--- [postgres@grp07_campussafedb] explain (analyze, buffers) select status, count(*) from hazard_report group by 1
+                                                    QUERY PLAN                                                    
+------------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=1.29..1.35 rows=6 width=17) (actual time=0.023..0.024 rows=6.00 loops=1)
+   Group Key: status
+   Batches: 1  Memory Usage: 32kB
+   Buffers: shared hit=1
+   ->  Seq Scan on hazard_report  (cost=0.00..1.19 rows=19 width=9) (actual time=0.011..0.012 rows=19.00 loops=1)
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=168
+ Planning Time: 2.960 ms
+ Execution Time: 0.070 ms
+(10 rows)
+
+
+--- [postgres@grp07_campussafedb] select count(*) reports from hazard_report
+ reports 
+---------
+      19
+(1 row)
+
+
